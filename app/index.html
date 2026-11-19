@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Simbi · Somos Simbióticos</title>
+  <meta name="description" content="Simbi, el asistente de IA de Somos Simbióticos.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0B0F14">
+  <link rel="icon" href="../logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../base.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <!-- ───── Acceso ───── -->
+  <main id="acceso" class="acceso" hidden>
+    <div class="acceso-caja">
+      <a class="marca" href="../"><img src="../logo.svg" alt="" width="40" height="40"><span>Somos Simbióticos</span></a>
+      <h1 class="titulo">Hola, soy <span class="cian">Simbi</span></h1>
+      <p class="sub">Tu asistente de IA. Tú eliges la potencia; yo gasto solo lo necesario.</p>
+      <div class="pestanas" role="tablist">
+        <button type="button" role="tab" id="tab-entrar" aria-selected="true" class="activa">Ingresar</button>
+        <button type="button" role="tab" id="tab-crear" aria-selected="false">Crear cuenta</button>
+      </div>
+      <form id="form-acceso" novalidate>
+        <label id="campo-nombre" hidden>Nombre<input id="nombre" type="text" autocomplete="name" maxlength="80"></label>
+        <label>Correo<input id="correo" type="email" autocomplete="email" required></label>
+        <label>Contraseña<input id="clave" type="password" autocomplete="current-password" minlength="8" required></label>
+        <button class="btn btn-brasa" id="btn-acceso" type="submit">Ingresar</button>
+        <button class="enlace" type="button" id="btn-olvide">¿Olvidaste tu contraseña?</button>
+        <p id="aviso-acceso" class="aviso" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </main>
+
+  <!-- ───── Aplicación ───── -->
+  <div id="app" class="app" hidden>
+    <aside id="lateral" class="lateral" aria-label="Conversaciones">
+      <div class="lat-cab">
+        <a class="marca chica" href="../"><img src="../logo.svg" alt="" width="28" height="28"><span>Simbi</span></a>
+        <button class="icono solo-movil" id="btn-cerrar-lat" type="button" aria-label="Cerrar menú">✕</button>
+      </div>
+      <button class="btn btn-brasa nuevo" id="btn-nuevo" type="button">＋ Nueva conversación</button>
+      <input id="buscar" class="buscar" type="search" placeholder="Buscar conversaciones…" aria-label="Buscar conversaciones">
+      <ul id="lista-conv" class="lista-conv"></ul>
+      <div id="cupos" class="cupos" aria-live="polite"></div>
+      <div class="usuario">
+        <div class="u-info"><span id="u-correo"></span><span id="u-plan" class="insignia"></span></div>
+        <div class="u-acc">
+          <a id="lnk-admin" href="admin.html" hidden>Administrar</a>
+          <button class="enlace" id="btn-salir" type="button">Salir</button>
+        </div>
+      </div>
+    </aside>
+    <div id="velo" class="velo" hidden></div>
+
+    <main class="chat">
+      <header class="barra">
+        <button class="icono solo-movil" id="btn-menu" type="button" aria-label="Abrir menú">☰</button>
+        <h2 id="titulo-conv" class="titulo-conv">Nueva conversación</h2>
+        <div class="niveles" id="niveles" role="radiogroup" aria-label="Potencia del modelo"></div>
+      </header>
+
+      <div id="aviso-api" class="aviso-api" hidden></div>
+
+      <section id="mensajes" class="mensajes" aria-live="polite">
+        <div id="bienvenida" class="bienvenida">
+          <img src="../logo.svg" alt="" width="64" height="64">
+          <h1 class="titulo">¿Qué hacemos <span class="cian">hoy?</span></h1>
+          <p>Pregunta lo que quieras o usa un atajo. Los atajos no gastan tokens de chat.</p>
+          <div class="atajos" id="atajos"></div>
+        </div>
+      </section>
+
+      <form id="form-chat" class="entrada">
+        <div id="sugeridos" class="sugeridos" hidden></div>
+        <div id="adjuntos" class="adjuntos"></div>
+        <div class="caja">
+          <button type="button" class="icono clip" id="btn-adjuntar" aria-label="Adjuntar archivos" title="Adjuntar archivos (Pro)">📎</button>
+          <input type="file" id="archivo" multiple hidden>
+          <textarea id="texto" rows="1" placeholder="Escribe tu mensaje…  (Enter envía · Shift+Enter nueva línea)" aria-label="Mensaje"></textarea>
+          <button class="btn btn-brasa enviar" id="btn-enviar" type="submit" aria-label="Enviar">➤</button>
+          <button class="btn btn-borde enviar" id="btn-parar" type="button" aria-label="Detener" hidden>■</button>
+        </div>
+        <div class="pie-entrada"><span id="contador">0 palabras · ~0 tokens</span><span id="restante"></span></div>
+      </form>
+    </main>
+  </div>
+
+  <!-- ───── Diálogo de atajos ───── -->
+  <dialog id="dlg" class="dlg">
+    <form method="dialog" id="dlg-form">
+      <h3 id="dlg-titulo"></h3>
+      <div id="dlg-campos"></div>
+      <p id="dlg-nota" class="nota"></p>
+      <div class="dlg-acc">
+        <button class="btn btn-borde" value="cancelar" type="submit" formnovalidate>Cancelar</button>
+        <button class="btn btn-brasa" value="ok" type="submit" id="dlg-ok">Crear</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-clave" class="dlg">
+    <form method="dialog" id="form-clave">
+      <h3>Nueva contraseña</h3>
+      <label>Contraseña nueva<input id="clave-nueva" type="password" minlength="8" autocomplete="new-password" required></label>
+      <div class="dlg-acc"><button class="btn btn-brasa" value="ok" type="submit">Guardar</button></div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

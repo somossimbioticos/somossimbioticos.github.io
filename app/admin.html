@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administración · Simbi</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0B0F14">
+  <link rel="icon" href="../logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../base.css">
+  <style>
+    body { min-height: 100vh; }
+    .envoltura { width: min(1180px, 100% - 32px); margin: 0 auto; padding: 22px 0 60px; }
+    .cab { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 26px; }
+    .cab a.marca { display: flex; gap: 10px; align-items: center; text-decoration: none; color: var(--papel); }
+    .cab h1 { font-size: 44px; }
+    .cab .der { margin-left: auto; display: flex; gap: 10px; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 26px; }
+    .kpi { background: var(--panel); border: 1px solid var(--linea); border-radius: 16px; padding: 16px 18px; }
+    .kpi b { display: block; font-family: var(--f-titulo); font-size: 40px; line-height: 1; margin-top: 6px; }
+    .kpi small { color: var(--mut); font-size: 12.5px; }
+    h2 { font-family: var(--f-titulo); text-transform: uppercase; font-size: 30px; margin: 30px 0 12px; }
+    .herr { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .herr input, .herr select { background: var(--ink); border: 1px solid var(--linea); border-radius: 12px; padding: 10px 14px; color: var(--papel); }
+    .herr input { flex: 1; min-width: 220px; }
+    .tabla { overflow-x: auto; background: var(--panel); border: 1px solid var(--linea); border-radius: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--linea); white-space: nowrap; }
+    th { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--mut); font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+    td .correo { font-weight: 600; } td .nombre { color: var(--mut); font-size: 12.5px; }
+    .interruptor { display: inline-flex; background: var(--ink); border-radius: 99px; padding: 3px; border: 1px solid var(--linea); }
+    .interruptor button { border: 0; background: none; color: var(--mut); padding: 5px 12px; border-radius: 99px; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .interruptor button.on { background: var(--cian); color: var(--ink); }
+    .interruptor button.on.gratis { background: var(--panel-2); color: var(--papel); }
+    .num { font-family: var(--f-mono); font-size: 13px; }
+    .planes { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+    .plan { background: var(--panel); border: 1px solid var(--linea); border-radius: 16px; padding: 18px; }
+    .plan h3 { margin: 0 0 12px; font-family: var(--f-titulo); text-transform: uppercase; font-size: 26px; }
+    .plan label { display: grid; grid-template-columns: 1fr 140px; align-items: center; gap: 10px; font-size: 14px; color: #C9D6DB; margin-bottom: 8px; }
+    .plan input { background: var(--ink); border: 1px solid var(--linea); border-radius: 10px; padding: 8px 10px; color: var(--papel); width: 100%; }
+    .aviso { padding: 14px; border-radius: 12px; background: var(--brasa-suave); border: 1px solid rgba(255,77,46,.4); }
+    .ok { color: var(--exito); font-size: 13px; margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <div class="envoltura">
+    <div class="cab">
+      <a class="marca" href="./"><img src="../logo.svg" alt="" width="36" height="36"></a>
+      <h1 class="titulo">Administración</h1>
+      <div class="der"><a class="btn btn-borde" href="./">← Volver a Simbi</a></div>
+    </div>
+    <div id="contenido"><p class="mono">Cargando…</p></div>
+  </div>
+  <script type="module" src="admin.js"></script>
+</body>
+</html>

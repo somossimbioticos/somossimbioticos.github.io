@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Somos Simbióticos · Evolucionismo Científico</title>
+  <meta name="description" content="Todo evoluciona, menos la forma en que gobernamos. El evolucionismo científico propone gobernar con evidencia: medir, probar y corregir. Colombia y Ecuador.">
+  <meta property="og:title" content="Somos Simbióticos · Evolucionismo Científico">
+  <meta property="og:description" content="Todo evoluciona, menos la forma en que gobernamos.">
+  <meta property="og:image" content="https://somossimbioticos.github.io/img/estorninos.webp">
+  <meta name="theme-color" content="#0B0F14">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .envoltura { width: min(1160px, 100% - 32px); margin-inline: auto; }
+    header.nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); background: rgba(11, 15, 20, .78); border-bottom: 1px solid var(--linea); }
+    .nav .envoltura { display: flex; align-items: center; gap: 18px; height: 64px; }
+    .marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--papel); }
+    .marca img { width: 34px; height: 34px; }
+    .marca span { font-family: var(--f-titulo); font-weight: 900; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; }
+    .nav nav { margin-left: auto; display: flex; gap: 22px; align-items: center; }
+    .nav nav a:not(.btn) { color: var(--mut); text-decoration: none; font-weight: 600; font-size: 15px; }
+    .nav nav a:not(.btn):hover { color: var(--papel); }
+    @media (max-width: 760px) { .nav nav a:not(.btn) { display: none; } .nav .btn { padding: 9px 16px; font-size: 14px; } }
+
+    .hero { position: relative; overflow: hidden; padding: 72px 0 56px; }
+    .hero::before { content: ""; position: absolute; inset: -20% -10% auto auto; width: 70%; aspect-ratio: 1; background: radial-gradient(closest-side, rgba(62, 230, 224, .16), transparent); pointer-events: none; }
+    .hero .envoltura { display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: center; }
+    .hero h1 { font-size: clamp(52px, 8.4vw, 112px); }
+    .hero h1 .l2 { display: block; color: var(--cian); }
+    .hero h1 .l3 { display: block; font-size: .5em; color: var(--papel); margin-top: .25em; }
+    .hero p.lead { font-size: clamp(17px, 2vw, 20px); color: #C9D6DB; max-width: 560px; margin: 26px 0 30px; }
+    .acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+    .foto-hero { position: relative; border-radius: 22px; overflow: hidden; box-shadow: var(--sombra); aspect-ratio: 4/5; }
+    .foto-hero img { width: 100%; height: 100%; object-fit: cover; }
+    .foto-hero figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 60px 20px 18px; background: linear-gradient(transparent, rgba(11, 15, 20, .92)); }
+    .foto-hero figcaption b { display: block; font-family: var(--f-titulo); font-size: 30px; text-transform: uppercase; line-height: 1; }
+    @media (max-width: 860px) { .hero .envoltura { grid-template-columns: 1fr; } .foto-hero { aspect-ratio: 16/11; } .hero { padding-top: 40px; } }
+
+    section { padding: 72px 0; }
+    .sec-cab { max-width: 760px; margin-bottom: 36px; }
+    .sec-cab h2 { font-size: clamp(38px, 5.6vw, 64px); margin: 10px 0 14px; }
+    .sec-cab p { color: #C9D6DB; font-size: 18px; margin: 0; }
+
+    .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .tarjeta { background: var(--panel); border: 1px solid var(--linea); border-radius: 20px; padding: 28px; }
+    .tarjeta h3 { font-family: var(--f-titulo); font-size: 34px; text-transform: uppercase; margin: 8px 0 10px; line-height: 1; }
+    .tarjeta p { margin: 0; color: #C9D6DB; }
+    .tarjeta.c { border-top: 4px solid var(--cian); }
+    .tarjeta.b { border-top: 4px solid var(--brasa); }
+    @media (max-width: 760px) { .dos { grid-template-columns: 1fr; } }
+
+    .pilares { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+    .pilar { background: var(--panel); border: 1px solid var(--linea); border-radius: 18px; padding: 22px 18px; }
+    .pilar .n { font-family: var(--f-titulo); font-size: 46px; line-height: 1; color: var(--brasa); }
+    .pilar h3 { font-size: 17px; margin: 10px 0 8px; line-height: 1.25; }
+    .pilar p { font-size: 14.5px; color: var(--mut); margin: 0; }
+    @media (max-width: 1000px) { .pilares { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .pilares { grid-template-columns: 1fr; } }
+
+    .piezas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .pieza { padding: 24px; border-radius: 18px; background: linear-gradient(160deg, var(--panel-2), var(--panel)); border: 1px solid var(--linea); }
+    .pieza .mono { color: var(--cian); }
+    .pieza h3 { font-family: var(--f-titulo); font-size: 30px; text-transform: uppercase; margin: 6px 0 8px; line-height: 1; }
+    .pieza p { margin: 0; color: #C9D6DB; font-size: 15.5px; }
+    .pieza.dest { grid-column: span 3; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; border-color: rgba(255, 77, 46, .45); background: linear-gradient(120deg, var(--brasa-suave), var(--panel)); }
+    .pieza.dest .cifra { font-family: var(--f-titulo); font-weight: 900; font-size: 92px; line-height: .9; color: var(--brasa); }
+    @media (max-width: 900px) { .piezas { grid-template-columns: 1fr 1fr; } .pieza.dest { grid-column: span 2; } }
+    @media (max-width: 560px) { .piezas { grid-template-columns: 1fr; } .pieza.dest { grid-column: span 1; grid-template-columns: 1fr; } }
+
+    .natura { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .foto { position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 4/5; background: var(--panel); }
+    .foto img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
+    .foto:hover img { transform: scale(1.04); }
+    .foto div { position: absolute; inset: auto 0 0 0; padding: 70px 16px 16px; background: linear-gradient(transparent, rgba(11, 15, 20, .95)); }
+    .foto b { font-family: var(--f-titulo); font-size: 26px; text-transform: uppercase; line-height: 1; display: block; }
+    .foto p { margin: 6px 0 0; font-size: 14px; color: #C9D6DB; line-height: 1.45; }
+    @media (max-width: 900px) { .natura { grid-template-columns: 1fr 1fr; } }
+
+    .simbi { border-radius: 28px; padding: clamp(28px, 5vw, 56px); background:
+      radial-gradient(600px 300px at 90% 0%, rgba(62, 230, 224, .18), transparent),
+      radial-gradient(500px 300px at 0% 100%, rgba(255, 77, 46, .16), transparent), var(--panel);
+      border: 1px solid var(--linea); display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; }
+    .simbi h2 { font-size: clamp(40px, 6vw, 72px); }
+    .simbi ul { list-style: none; padding: 0; margin: 22px 0 28px; display: grid; gap: 10px; }
+    .simbi li { display: flex; gap: 12px; align-items: flex-start; color: #DCE6E9; }
+    .simbi li span { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; background: var(--cian-suave); }
+    .planes { display: grid; gap: 14px; align-content: start; }
+    .plan { border-radius: 18px; padding: 22px; background: rgba(11, 15, 20, .55); border: 1px solid var(--linea); }
+    .plan.pro { border-color: var(--cian); }
+    .plan h3 { margin: 0 0 6px; font-family: var(--f-titulo); font-size: 30px; text-transform: uppercase; }
+    .plan p { margin: 0; color: var(--mut); font-size: 15px; }
+    @media (max-width: 860px) { .simbi { grid-template-columns: 1fr; } }
+
+    .frase { text-align: center; padding: 90px 0; }
+    .frase blockquote { margin: 0 auto; max-width: 900px; font-family: var(--f-titulo); font-weight: 900; text-transform: uppercase; font-size: clamp(36px, 5.6vw, 70px); line-height: .98; }
+    .frase cite { display: block; margin-top: 20px; font-style: normal; }
+
+    footer { border-top: 1px solid var(--linea); padding: 36px 0 48px; color: var(--mut); font-size: 14px; }
+    footer .envoltura { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+    .aparecer { opacity: 0; transform: translateY(18px); transition: opacity .7s, transform .7s; }
+    .aparecer.si { opacity: 1; transform: none; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="envoltura">
+      <a class="marca" href="./"><img src="logo.svg" alt=""><span>Somos Simbióticos</span></a>
+      <nav>
+        <a href="#nombre">El nombre</a>
+        <a href="#pilares">Pilares</a>
+        <a href="#modelo">El modelo</a>
+        <a href="#simbi">Simbi IA</a>
+        <a class="btn btn-brasa" href="app/">Probar Simbi</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="envoltura">
+        <div>
+          <div class="mono">Evolucionismo científico · Colombia · Ecuador</div>
+          <h1 class="titulo" style="margin-top:14px">Todo evoluciona.<span class="l2">Menos la forma</span><span class="l3">en que gobernamos.</span></h1>
+          <p class="lead">Proponemos gobernar con evidencia y no con opiniones: cada decisión se mide, lo que funciona se queda y lo que no, se cambia. Inteligencia artificial, blockchain y ciudadanos vigilando, trabajando en simbiosis.</p>
+          <div class="acciones">
+            <a class="btn btn-brasa" href="#nombre">Conoce las ideas</a>
+            <a class="btn btn-borde" href="app/">Habla con Simbi, nuestra IA →</a>
+          </div>
+        </div>
+        <figure class="foto-hero" style="margin:0">
+          <img src="img/estorninos.webp" alt="Bandada de estorninos formando una figura al atardecer" width="1100" height="1366" fetchpriority="high">
+          <figcaption><b>Miles de pájaros, <span class="cian">ningún jefe</span></b><span class="mono" style="color:#C9D6DB">Cada uno mira a 7 vecinos. Juntos esquivan halcones.</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="nombre">
+      <div class="envoltura">
+        <div class="sec-cab aparecer">
+          <div class="mono">¿Por qué ese nombre?</div>
+          <h2 class="titulo">Dos palabras, <span class="brasa">una idea</span></h2>
+          <p>La naturaleza, la tecnología, la economía y el propio ser humano cambian sin parar. Los sistemas que nos gobiernan deberían cambiar al mismo ritmo, y con método.</p>
+        </div>
+        <div class="dos">
+          <article class="tarjeta c aparecer">
+            <div class="mono cian">Evolucionismo</div>
+            <h3>Todo evoluciona</h3>
+            <p>Evolucionar o extinguirse. Una ley escrita hace 200 años no puede responder a los problemas de hoy. Y la evolución humana no se deja al azar: se guía con políticas que nos hagan cada día mejores.</p>
+          </article>
+          <article class="tarjeta b aparecer">
+            <div class="mono brasa">Científico</div>
+            <h3>Medir, probar, corregir</h3>
+            <p>Cada ley es una hipótesis. Se simula antes de aplicarla, se mide mientras funciona y, si los datos muestran que falla, se cambia. Sin dogmas: con datos.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="pilares">
+      <div class="envoltura">
+        <div class="sec-cab aparecer">
+          <div class="mono">El manifiesto</div>
+          <h2 class="titulo">Cinco <span class="cian">pilares</span></h2>
+          <p>Catorce principios agrupados en cinco ideas, tomados de la novela <em>El País de las Pasiones</em>.</p>
+        </div>
+        <div class="pilares">
+          <article class="pilar aparecer"><div class="n">I</div><h3>Gobernar con la verdad</h3><p>Fin del dogma, la ley como hipótesis y gestores auditables.</p></article>
+          <article class="pilar aparecer"><div class="n">II</div><h3>Competencia</h3><p>Decisiones informadas y guerra a la demagogia con verificación en tiempo real.</p></article>
+          <article class="pilar aparecer"><div class="n">III</div><h3>Economía real</h3><p>Dinero que nadie imprime a capricho y capitalismo evolutivo y sostenible.</p></article>
+          <article class="pilar aparecer"><div class="n">IV</div><h3>La jaula racional</h3><p>Incentivos que hacen la corrupción imposible o carísima. La diversidad es ventaja.</p></article>
+          <article class="pilar aparecer"><div class="n">V</div><h3>Evolucionar</h3><p>Educación toda la vida y lo básico garantizado para todos.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="modelo">
+      <div class="envoltura">
+        <div class="sec-cab aparecer">
+          <div class="mono">Cómo funcionaría</div>
+          <h2 class="titulo">Un gobierno que <span class="brasa">no puede esconder</span> nada</h2>
+          <p>Las piezas del modelo, tal como las imagina la novela.</p>
+        </div>
+        <div class="piezas">
+          <article class="pieza aparecer"><div class="mono">Inteligencia artificial</div><h3>Nexus</h3><p>Predice crisis, detecta corrupción e ineficiencia y administra lo automatizable. Su ley suprema: propiciar la evolución del ser humano y nunca ocultar errores.</p></article>
+          <article class="pieza aparecer"><div class="mono">Simular primero</div><h3>Mundo espejo</h3><p>Cada política se prueba en una simulación de la ciudad o el país antes de tocar la vida real.</p></article>
+          <article class="pieza aparecer"><div class="mono">Blockchain</div><h3>Ledger</h3><p>Un libro público e inmutable donde se registra cada peso. Lo que no está en el Ledger no existe ante la ley.</p></article>
+          <article class="pieza aparecer"><div class="mono">Leyes inteligentes</div><h3>Constitución Viva</h3><p>Leyes escritas como contratos que se cumplen solas y se derogan si no logran su meta.</p></article>
+          <article class="pieza aparecer"><div class="mono">Moneda</div><h3>LibreCoin</h3><p>Digital, finita y rastreable. Su valor se ancla a la energía y nadie puede imprimir más.</p></article>
+          <article class="pieza aparecer"><div class="mono">Ciudadanía</div><h3>Ojos de todos</h3><p>Datos abiertos para que cualquier persona pueda auditar a quien gobierna.</p></article>
+          <article class="pieza dest aparecer">
+            <div class="cifra">5+2</div>
+            <div><div class="mono brasa">Liderazgo colegiado</div><h3 style="margin-top:6px">Nunca uno solo</h3><p>Cinco líderes en los cargos altos (presidencia, gobernación, alcaldía) y mínimo dos en los demás. La IA los monitorea siempre y cada decisión se simula antes de aplicarse.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="envoltura">
+        <div class="sec-cab aparecer">
+          <div class="mono">Lo aprendimos de la naturaleza</div>
+          <h2 class="titulo">La vida ya <span class="cian">lo resolvió</span></h2>
+        </div>
+        <div class="natura">
+          <figure class="foto aparecer" style="margin:0"><img src="img/galapagos.webp" alt="Tortuga gigante en Galápagos" loading="lazy" width="900" height="1117"><div><b>Galápagos</b><p>Aquí entendimos que todo evoluciona. Quien no se adapta, desaparece.</p></div></figure>
+          <figure class="foto aparecer" style="margin:0"><img src="img/abeja.webp" alt="Abeja sobre una flor amarilla" loading="lazy" width="900" height="1117"><div><b>Abejas</b><p>Eligen su nuevo hogar comparando evidencia, no obedeciendo a una reina.</p></div></figure>
+          <figure class="foto aparecer" style="margin:0"><img src="img/simbiosis.webp" alt="Pez payaso en una anémona" loading="lazy" width="900" height="1117"><div><b>Simbiosis</b><p>Nuestro nombre: la vida no avanza sola, avanza en alianza.</p></div></figure>
+          <figure class="foto aparecer" style="margin:0"><img src="img/paramo.webp" alt="Páramo andino con frailejones" loading="lazy" width="900" height="1117"><div><b>Páramos</b><p>Fábricas de agua de Bogotá y Quito. Cuidarlas es política con evidencia.</p></div></figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="simbi">
+      <div class="envoltura">
+        <div class="simbi aparecer">
+          <div>
+            <div class="mono cian">Inteligencia artificial para todos</div>
+            <h2 class="titulo" style="margin-top:10px">Conoce a <span class="cian">Simbi</span></h2>
+            <p style="color:#C9D6DB;font-size:18px;margin:14px 0 0">Nuestro asistente de IA. Tú eliges la potencia y él gasta solo lo necesario.</p>
+            <ul>
+              <li><span>💬</span> Chat en cuatro niveles: fácil, medio, difícil y muy complejo.</li>
+              <li><span>📄</span> Lee tus PDF, Word, Excel, PowerPoint y proyectos de código.</li>
+              <li><span>📊</span> Crea Excel, Word, PDF, gráficos y cálculos con Python.</li>
+              <li><span>🎨</span> Genera imágenes y videos cortos.</li>
+              <li><span>🔊</span> Convierte texto en voz y audio en texto.</li>
+              <li><span>⬇️</span> Descarga videos o audio MP3 de YouTube.</li>
+            </ul>
+            <a class="btn btn-cian" href="app/">Entrar a Simbi →</a>
+          </div>
+          <div class="planes">
+            <div class="plan"><div class="mono">Gratis</div><h3>Para empezar</h3><p>Chat en nivel fácil, hasta 1.000 tokens por semana.</p></div>
+            <div class="plan pro"><div class="mono cian">Pro</div><h3>Para crear</h3><p>Los cuatro niveles, 2 millones de tokens, 10 imágenes y 1 video por semana, voz, transcripción, archivos y herramientas.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="frase">
+      <div class="envoltura aparecer">
+        <blockquote>La pasión es el motor. <span class="cian">La ciencia,</span> <span class="brasa">el volante.</span></blockquote>
+        <cite class="mono">El País de las Pasiones · Andrés Santana</cite>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="envoltura">
+      <a class="marca" href="./"><img src="logo.svg" alt=""><span>Somos Simbióticos</span></a>
+      <div>@somossimbioticos · #EvolucionismoCientífico #Colombia #Ecuador</div>
+      <a href="app/">Simbi IA</a>
+    </div>
+  </footer>
+
+  <script>
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("si"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
+    document.querySelectorAll(".aparecer").forEach((el) => io.observe(el));
+  </script>
+</body>
+</html>
