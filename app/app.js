@@ -149,6 +149,19 @@ $("form-clave").onsubmit = async (e) => {
 };
 $("btn-salir").onclick = () => sb.auth.signOut();
 
+/* Ingreso con Google (OAuth de Supabase). Al volver, supabase-js lee la sesión de la URL. */
+if (CONFIG.GOOGLE_LOGIN) $("bloque-google").hidden = false;
+$("btn-google").onclick = async () => {
+  $("btn-google").disabled = true;
+  const { error } = await sb.auth.signInWithOAuth({ provider: "google",
+    options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: "select_account" } } });
+  if (error) { avisoAcceso("No se pudo abrir Google: " + error.message); $("btn-google").disabled = false; }
+};
+{ // si Google devolvió un error (p. ej. el usuario canceló), mostrarlo
+  const q = new URLSearchParams(location.search + "&" + location.hash.slice(1));
+  if (q.get("error_description")) { avisoAcceso("Google: " + q.get("error_description").replace(/\+/g, " ")); history.replaceState(null, "", location.pathname); }
+}
+
 sb.auth.onAuthStateChange((evento, sesion) => {
   if (evento === "PASSWORD_RECOVERY") $("dlg-clave").showModal();
   if (sesion?.user) { if (!usuario || usuario.id !== sesion.user.id) { usuario = sesion.user; iniciarApp(); } }
@@ -318,12 +331,14 @@ function pintarGaleria() {
 $("btn-archivos").onclick = abrirArchivos;
 
 /* ───────── 🎧 Mi música: reproductor de los audios descargados ───────── */
-const musica = { todas: [], cola: [], i: -1, aleatorio: true, repetir: "no", conVoces: false, audio: new Audio() };
+const musica = { todas: [], cola: [], i: -1, aleatorio: true, repetir: "no", conVoces: false, verOcultas: false, ocultas: new Set(), audio: new Audio() };
 musica.audio.preload = "metadata";
 const tiempo = (s) => !isFinite(s) ? "0:00" : `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 const tituloCancion = (n) => n.replace(/^voz_/, "Voz ").replace(/\.(mp3|m4a|wav|ogg|aac|opus)$/i, "").replace(/[_]+/g, " ").trim();
 
 async function cargarMusica() {
+  const oc = await sb.from("musica_oculta").select("ruta");
+  musica.ocultas = new Set((oc.data || []).map((x) => x.ruta));
   const { data } = await sb.from("mensajes").select("id,adjuntos,eventos,creado")
     .eq("rol", "asistente").neq("adjuntos", "[]").order("id", { ascending: false }).limit(600);
   const vistos = new Set(), titulos = new Set();
@@ -336,11 +351,12 @@ async function cargarMusica() {
     if (titulos.has(k)) return false;
     titulos.add(k); return true;
   });
-  $("musica-n").textContent = String(musica.todas.filter((c) => c.youtube).length || "");
+  $("musica-n").textContent = String(musica.todas.filter((c) => c.youtube && !musica.ocultas.has(c.ruta)).length || "");
 }
 function listaVisible() {
   const q = $("rep-buscar").value.trim().toLowerCase();
-  return musica.todas.filter((c) => (musica.conVoces || c.youtube) && (!q || c.titulo.toLowerCase().includes(q)));
+  return musica.todas.filter((c) => (musica.conVoces || c.youtube) && (!q || c.titulo.toLowerCase().includes(q))
+    && musica.ocultas.has(c.ruta) === musica.verOcultas);
 }
 function armarCola(empezarCon) {
   const base = listaVisible();
@@ -394,12 +410,27 @@ function pintarMusica() {
   const lista = $("rep-lista"); lista.textContent = "";
   const vis = listaVisible();
   if (!vis.length) {
-    lista.append(el("li", { class: "vacio" }, musica.todas.length ? "Nada coincide con la búsqueda." :
+    lista.append(el("li", { class: "vacio" }, musica.verOcultas ? "No tienes canciones ocultas." : musica.todas.length ? "Nada coincide con la búsqueda." :
       "Aún no tienes música. Usa «⬇️ Descargar de YouTube» → «Solo audio MP3» (puedes pegar varios enlaces)."));
   }
   vis.forEach((x, k) => lista.append(el("li", { class: x === c ? "actual" : "", onclick: () => { armarCola(x); tocar(0); } },
     el("span", { class: "n" }, x === c && sonando ? "▶" : String(k + 1)), el("span", { class: "t", title: x.titulo }, x.titulo),
-    el("span", { class: "d" }, new Date(x.creado).toLocaleDateString("es", { day: "numeric", month: "short" })))));
+    el("span", { class: "d" }, new Date(x.creado).toLocaleDateString("es", { day: "numeric", month: "short" })),
+    el("button", { type: "button", class: "ocultar", title: musica.verOcultas ? "Volver a mostrar" : "Ocultar de Mi música",
+      "aria-label": musica.verOcultas ? "Volver a mostrar" : "Ocultar", onclick: (e) => { e.stopPropagation(); alternarOculta(x); } }, musica.verOcultas ? "↩" : "✕"))));
+}
+async function alternarOculta(c) {
+  const ocultar = !musica.ocultas.has(c.ruta);
+  const { error } = ocultar ? await sb.from("musica_oculta").insert({ ruta: c.ruta })
+    : await sb.from("musica_oculta").delete().eq("ruta", c.ruta);
+  if (error) return alert("No se pudo: " + error.message);
+  ocultar ? musica.ocultas.add(c.ruta) : musica.ocultas.delete(c.ruta);
+  if (ocultar) {
+    const k = musica.cola.indexOf(c);
+    if (k >= 0) { const sonaba = k === musica.i; musica.cola.splice(k, 1); if (k < musica.i) musica.i--; if (sonaba) { musica.i--; siguiente(); } }
+  }
+  $("musica-n").textContent = String(musica.todas.filter((x) => x.youtube && !musica.ocultas.has(x.ruta)).length || "");
+  pintarMusica();
 }
 async function abrirMusica() {
   $("dlg-musica").showModal();
@@ -425,6 +456,7 @@ $("rep-aleatorio").onclick = () => { musica.aleatorio = !musica.aleatorio; const
 $("rep-repetir").onclick = () => { musica.repetir = { no: "todas", todas: "una", una: "no" }[musica.repetir]; pintarMusica(); };
 $("rep-buscar").oninput = pintarMusica;
 $("rep-voces").onchange = (e) => { musica.conVoces = e.target.checked; pintarMusica(); };
+$("rep-ocultas").onchange = (e) => { musica.verOcultas = e.target.checked; pintarMusica(); };
 $("btn-musica").onclick = abrirMusica; $("mr-titulo").onclick = abrirMusica;
 if ("mediaSession" in navigator) {
   navigator.mediaSession.setActionHandler("play", () => musica.audio.play());
@@ -448,10 +480,18 @@ $("mas-archivos").onclick = () => { galeria.mostrados += POR_PAGINA; pintarGaler
 
 /* ───────── Conversaciones ───────── */
 async function cargarConversaciones() {
-  const { data } = await sb.from("conversaciones").select("id,titulo,actualizado,nivel").order("actualizado", { ascending: false }).limit(200);
+  let { data, error } = await sb.from("conversaciones").select("id,titulo,actualizado,nivel,en_proceso").order("actualizado", { ascending: false }).limit(200);
+  if (error) ({ data } = await sb.from("conversaciones").select("id,titulo,actualizado,nivel").order("actualizado", { ascending: false }).limit(200));
   conversaciones = data || [];
   pintarLista();
+  clearTimeout(relojConv);                       // si alguna sigue procesándose (p. ej. desde otro dispositivo), revisar luego
+  if (conversaciones.some(enProceso)) relojConv = setTimeout(cargarConversaciones, 15000);
 }
+let relojConv = null, convProcesando = null;
+// ⏳ si Simbi está respondiendo en esa conversación; 🟢 si ya terminó (15 min de margen por si el servidor se reinició)
+const enProceso = (c) => c.id === convProcesando || (c.en_proceso && Date.now() - new Date(c.actualizado) < 15 * 60 * 1000);
+const horaCorta = (iso) => { const d = new Date(iso), h = new Date(); return d.toDateString() === h.toDateString()
+  ? d.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) : d.toLocaleDateString("es-CO", { day: "numeric", month: "short" }); };
 function grupoFecha(iso) {
   const d = new Date(iso), hoy = new Date(); hoy.setHours(0, 0, 0, 0);
   const dias = (hoy - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5;
@@ -464,8 +504,11 @@ function pintarLista() {
   for (const c of conversaciones.filter((c) => !q || c.titulo.toLowerCase().includes(q))) {
     const g = grupoFecha(c.actualizado);
     if (g !== grupo) { grupo = g; ul.append(el("div", { class: "fecha" }, g)); }
+    const proc = enProceso(c);
     ul.append(el("li", { class: c.id === convActual ? "activa" : "" },
-      el("button", { class: "ir", type: "button", title: c.titulo, onclick: () => abrirConversacion(c.id) }, c.titulo),
+      el("button", { class: "ir", type: "button", title: c.titulo + (proc ? " · Simbi está respondiendo…" : " · Lista"), onclick: () => abrirConversacion(c.id) },
+        el("span", { class: "est " + (proc ? "proc" : "lista"), "aria-label": proc ? "Procesando" : "Finalizada" }),
+        el("span", { class: "tit" }, c.titulo), el("span", { class: "hora" }, horaCorta(c.actualizado))),
       el("button", { class: "mas", type: "button", "aria-label": "Opciones", onclick: (e) => opcionesConv(e, c) }, "⋯")));
   }
 }
@@ -629,6 +672,7 @@ async function enviar({ mensaje = "", accion = null, params = {} } = {}) {
   if (!mensaje.trim() && !accion && !adj.length) return;
 
   ocupado = true; alternarEnvio(true);
+  convProcesando = convActual || "nueva"; pintarLista();
   pintarUsuario(mensaje || etiquetaAccion(accion, params), adj);
   $("texto").value = ""; adjuntos = []; pintarAdjuntos(); contar(); sugerir();
   const v = nuevaRespuesta();
@@ -662,6 +706,7 @@ async function enviar({ mensaje = "", accion = null, params = {} } = {}) {
   } finally {
     v.pintar(true);
     ocupado = false; control = null; alternarEnvio(false);
+    convProcesando = null; pintarLista();
   }
 }
 
@@ -669,7 +714,7 @@ function manejar(ev, v) {
   switch (ev.t) {
     case "conv":
       if (convActual !== ev.id) {
-        convActual = ev.id; guardar("simb_conv_" + usuario.id, ev.id);
+        convActual = ev.id; guardar("simb_conv_" + usuario.id, ev.id); if (ocupado) convProcesando = ev.id;
         if (!conversaciones.some((c) => c.id === ev.id)) conversaciones.unshift({ id: ev.id, titulo: ev.titulo, actualizado: new Date().toISOString() });
         $("titulo-conv").textContent = ev.titulo; pintarLista();
       }

@@ -4,5 +4,7 @@ const local = ["localhost", "127.0.0.1"].includes(location.hostname);
 export const CONFIG = {
   SUPABASE_URL: "https://ubaxnpleinqeenvkrutk.supabase.co",
   SUPABASE_KEY: "sb_publishable_CII5kZH3vcesCY3BXLDEPg_yHLkuNop",
+  // Ingreso con Google: se activa cuando el proveedor esté configurado en Supabase
+  GOOGLE_LOGIN: false,
   API_URL: local ? "http://127.0.0.1:8090" : "https://simb-api-wut4a22mhq-uc.a.run.app",
 };
