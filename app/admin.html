@@ -12,6 +12,13 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
   <link rel="stylesheet" href="../base.css">
   <style>
+    .sugs { display: grid; gap: 10px; margin-bottom: 8px; max-height: 520px; overflow-y: auto; }
+    .sug { background: var(--panel); border: 1px solid var(--linea); border-left: 3px solid var(--brasa); border-radius: 12px; padding: 12px 14px; }
+    .sug.revisada { border-left-color: var(--cian); } .sug.hecha { border-left-color: var(--linea); opacity: .7; }
+    .sug-cab { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+    .sug-cab small { color: var(--mut); flex: 1; }
+    .sug p { margin: 8px 0 0; white-space: pre-wrap; line-height: 1.5; }
+    .est-sug { width: auto; padding: 4px 8px; font-size: 12px; }
     body { min-height: 100vh; }
     .envoltura { width: min(1180px, 100% - 32px); margin: 0 auto; padding: 22px 0 60px; }
     .cab { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 26px; }

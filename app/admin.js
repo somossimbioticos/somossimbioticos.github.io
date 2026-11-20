@@ -27,8 +27,8 @@ async function iniciar() {
 }
 
 async function pintar() {
-  const [{ data: res }, { data: us, error }, { data: planes }] = await Promise.all([
-    sb.rpc("admin_resumen"), sb.rpc("admin_usuarios"), sb.from("planes").select("*").order("plan"),
+  const [{ data: res }, { data: us, error }, { data: planes }, { data: sugs }] = await Promise.all([
+    sb.rpc("admin_resumen"), sb.rpc("admin_usuarios"), sb.from("planes").select("*").order("plan"), sb.rpc("admin_sugerencias"),
   ]);
   if (error) { raiz.replaceChildren(el("p", { class: "aviso" }, error.message)); return; }
   usuarios = us || [];
@@ -50,6 +50,8 @@ async function pintar() {
   raiz.replaceChildren(
     kpis,
     modelos ? el("p", { class: "mono" }, "Modelos usados esta semana (tokens) — " + modelos) : null,
+    el("h2", {}, `Sugerencias (${(sugs || []).filter((x) => x.estado === "nueva").length} nuevas)`),
+    seccionSugerencias(sugs || []),
     el("h2", {}, "Usuarios"),
     el("div", { class: "herr" }, buscar, filtro),
     el("div", { class: "tabla" }, el("table", {},
@@ -137,3 +139,28 @@ function formPlan(p) {
 }
 
 iniciar();
+
+function seccionSugerencias(lista) {
+  if (!lista.length) return el("p", { class: "mono" }, "Aún no hay sugerencias.");
+  const ICO = { idea: "💡", problema: "🐞", otro: "💬" };
+  const filtro = el("select", {}, el("option", { value: "nueva" }, "Nuevas"), el("option", { value: "" }, "Todas"),
+    el("option", { value: "revisada" }, "Revisadas"), el("option", { value: "hecha" }, "Hechas"));
+  const cont = el("div", { class: "sugs" });
+  const pintarS = () => {
+    const vis = lista.filter((x) => !filtro.value || x.estado === filtro.value);
+    cont.replaceChildren(...(vis.length ? vis.map((x) => {
+      const est = el("select", { class: "est-sug" }, ["nueva", "revisada", "hecha"].map((e) => el("option", { value: e, selected: e === x.estado ? true : null }, e)));
+      est.onchange = async () => {
+        const { error } = await sb.rpc("admin_estado_sugerencia", { p_id: x.id, p_estado: est.value });
+        if (error) { alert(error.message); est.value = x.estado; return; }
+        x.estado = est.value; pintarS();
+      };
+      return el("div", { class: "sug " + x.estado },
+        el("div", { class: "sug-cab" }, el("b", {}, `${ICO[x.tipo] || "💬"} ${x.nombre || x.correo || "Usuario"}`),
+          el("small", {}, `${x.correo || ""} · ${new Date(x.creado).toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" })}`), est),
+        el("p", {}, x.texto));
+    }) : [el("p", { class: "mono" }, "Nada en este filtro.")]));
+  };
+  filtro.onchange = pintarS; pintarS();
+  return el("div", {}, el("div", { class: "herr" }, filtro), cont);
+}

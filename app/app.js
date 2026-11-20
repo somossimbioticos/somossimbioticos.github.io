@@ -315,6 +315,18 @@ function pintarGaleria() {
   });
 }
 $("btn-archivos").onclick = abrirArchivos;
+
+/* ───────── Sugerencias (las lee el administrador) ───────── */
+$("btn-sugerir").onclick = () => abrirDialogo("Enviar una sugerencia", [
+  campoOpciones("tipo", [["idea", "💡 Idea o función nueva"], ["problema", "🐞 Algo no funciona"], ["otro", "💬 Otro"]], "idea"),
+  el("label", {}, "Cuéntanos", el("textarea", { name: "texto", required: true, minlength: 3, maxlength: 4000,
+    placeholder: "Ej.: me gustaría poder crear presentaciones de PowerPoint con mis colores" })),
+], "La lee el equipo de Simbi para mejorar. ¡Gracias!", "Enviar", async (f) => {
+  const texto = f.get("texto")?.trim();
+  if (!texto || texto.length < 3) return;
+  const { error } = await sb.from("sugerencias").insert({ tipo: f.get("tipo"), texto });
+  alert(error ? "No se pudo enviar: " + error.message : "✅ ¡Gracias! Tu sugerencia llegó al equipo.");
+});
 $("mas-archivos").onclick = () => { galeria.mostrados += POR_PAGINA; pintarGaleria(); };
 
 /* ───────── Conversaciones ───────── */

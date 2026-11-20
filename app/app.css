@@ -216,3 +216,5 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 @media (max-width: 560px) { .galeria { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .item-arch .acc { gap: 8px; } .item-arch .acc a, .item-arch .acc button { font-size: 11px; } }
 
 .campo-titulo { font-size: 13px; font-weight: 600; margin: 4px 0 -4px; }
+.btn-sugerir { width: 100%; margin-top: 8px; background: none; border: 1px dashed var(--linea); color: var(--mut); border-radius: 12px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
+.btn-sugerir:hover { border-color: var(--cian); color: var(--papel); }
