@@ -229,6 +229,84 @@ function pintarPrueba() {
 setInterval(() => { if (estado?.prueba_termina) pintarPrueba(); }, 30000);
 $("btn-limites").onclick = () => { pintarCupos(); $("dlg-limites").showModal(); };
 
+/* ───────── Mis archivos (todo lo que Simbi generó) ───────── */
+const TIPOS_ARCH = [
+  { id: "todos", nombre: "Todos", es: () => true },
+  { id: "img", nombre: "🖼️ Imágenes", es: (m) => m.startsWith("image/") },
+  { id: "vid", nombre: "🎬 Videos", es: (m) => m.startsWith("video/") },
+  { id: "aud", nombre: "🔊 Audios", es: (m) => m.startsWith("audio/") },
+  { id: "doc", nombre: "📄 Documentos", es: (m) => /pdf|word|document|presentation|text\/(plain|markdown|html)/.test(m) },
+  { id: "hoja", nombre: "📊 Hojas de cálculo", es: (m) => /sheet|excel|csv/.test(m) },
+  { id: "otro", nombre: "📁 Otros", es: (m) => !TIPOS_ARCH.slice(1, 6).some((t) => t.es(m)) },
+];
+const POR_PAGINA = 48;
+let galeria = { lista: [], filtro: "todos", mostrados: POR_PAGINA };
+
+function iconoArch(m) {
+  return /sheet|excel|csv/.test(m) ? "📊" : /word|document/.test(m) ? "📄" : /pdf/.test(m) ? "📕" : /presentation/.test(m) ? "📽️"
+    : /zip/.test(m) ? "🗜️" : m.startsWith("audio/") ? "🔊" : /text/.test(m) ? "📝" : "📁";
+}
+
+async function abrirArchivos() {
+  $("dlg-archivos").showModal();
+  const g = $("galeria"); g.textContent = ""; g.append(el("div", { class: "vacio" }, "Cargando…"));
+  const { data, error } = await sb.from("mensajes").select("id,conversacion_id,adjuntos,creado")
+    .eq("rol", "asistente").neq("adjuntos", "[]").order("id", { ascending: false }).limit(400);
+  if (error) { g.textContent = ""; g.append(el("div", { class: "vacio" }, "No se pudieron cargar tus archivos.")); return; }
+  const titulos = new Map(conversaciones.map((c) => [c.id, c.titulo]));
+  galeria.lista = (data || []).flatMap((m) => (m.adjuntos || []).filter((a) => a.ruta && a.origen !== "subido")
+    .map((a) => ({ ...a, mime: a.mime || "", creado: m.creado, conv: m.conversacion_id, titulo: titulos.get(m.conversacion_id) || "Conversación" })));
+  galeria.mostrados = POR_PAGINA;
+  pintarGaleria();
+}
+
+function pintarGaleria() {
+  const f = $("filtros-arch"); f.textContent = "";
+  for (const t of TIPOS_ARCH) {
+    const n = galeria.lista.filter((a) => t.es(a.mime)).length;
+    if (t.id !== "todos" && !n) continue;
+    f.append(el("button", { type: "button", role: "tab", "aria-selected": String(galeria.filtro === t.id),
+      onclick: () => { galeria.filtro = t.id; galeria.mostrados = POR_PAGINA; pintarGaleria(); } }, t.nombre, el("small", {}, String(n))));
+  }
+  const tipo = TIPOS_ARCH.find((t) => t.id === galeria.filtro) || TIPOS_ARCH[0];
+  const lista = galeria.lista.filter((a) => tipo.es(a.mime));
+  const g = $("galeria"); g.textContent = "";
+  if (!lista.length) { g.append(el("div", { class: "vacio" }, "Aún no hay archivos generados aquí. Pídele a Simbi una imagen, un Excel, un PDF o un audio.")); }
+  const visibles = lista.slice(0, galeria.mostrados);
+  $("mas-archivos").hidden = lista.length <= visibles.length;
+  if (!visibles.length) return;
+  const tarjetas = visibles.map((a) => {
+    const vista = el("div", { class: "vista" }, iconoArch(a.mime));
+    const acc = el("div", { class: "acc" });
+    const fecha = new Date(a.creado).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
+    const t = el("div", { class: "item-arch" }, vista, el("div", { class: "info" }, el("b", { title: a.nombre }, a.nombre),
+      el("small", { title: a.titulo }, `${fecha} · ${tam(a.bytes || 0)}`), el("small", {}, a.titulo), acc));
+    return { a, vista, acc, t };
+  });
+  g.append(...tarjetas.map((x) => x.t));
+  sb.storage.from("archivos").createSignedUrls(visibles.map((a) => a.ruta), 3600).then(({ data }) => {
+    tarjetas.forEach(({ a, vista, acc }, i) => {
+      const url = data?.[i]?.signedUrl;
+      if (!url) { vista.textContent = "⚠️"; acc.append(el("small", {}, "Ya no está disponible")); return; }
+      const urlBajar = url + (url.includes("?") ? "&" : "?") + "download=" + encodeURIComponent(a.nombre);
+      if (a.mime.startsWith("image/")) {
+        vista.textContent = ""; vista.append(el("img", { src: url, alt: a.nombre, loading: "lazy" }));
+        vista.onclick = () => { const v = el("div", { class: "visor", onclick: () => v.remove() }, el("img", { src: url, alt: a.nombre })); document.body.append(v); };
+      } else if (a.mime.startsWith("video/")) {
+        vista.textContent = ""; vista.append(el("video", { src: url, controls: true, playsinline: true, preload: "metadata" }));
+      } else if (a.mime.startsWith("audio/")) {
+        vista.textContent = ""; vista.append(el("audio", { src: url, controls: true, preload: "none" }));
+      } else {
+        vista.onclick = () => window.open(url, "_blank", "noopener");
+      }
+      acc.append(el("a", { href: urlBajar, download: a.nombre }, "⬇ Descargar"),
+        el("button", { type: "button", onclick: () => { $("dlg-archivos").close(); abrirConversacion(a.conv); } }, "Ver chat"));
+    });
+  });
+}
+$("btn-archivos").onclick = abrirArchivos;
+$("mas-archivos").onclick = () => { galeria.mostrados += POR_PAGINA; pintarGaleria(); };
+
 /* ───────── Conversaciones ───────── */
 async function cargarConversaciones() {
   const { data } = await sb.from("conversaciones").select("id,titulo,actualizado,nivel").order("actualizado", { ascending: false }).limit(200);

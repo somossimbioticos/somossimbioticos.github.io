@@ -48,6 +48,7 @@
       <ul id="lista-conv" class="lista-conv"></ul>
       <div class="lat-limites">
         <div id="prueba" class="prueba" hidden></div>
+        <button class="btn-limites" id="btn-archivos" type="button" aria-haspopup="dialog">🗂️ Mis archivos</button>
         <button class="btn-limites" id="btn-limites" type="button" aria-haspopup="dialog">📊 Límite semanal <span id="limite-resumen"></span></button>
       </div>
       <div class="usuario">
@@ -112,6 +113,15 @@
       <p id="limites-prueba" class="nota" hidden></p>
       <div id="cupos" class="cupos" aria-live="polite"></div>
       <div class="dlg-acc"><button class="btn btn-borde" value="cerrar" type="submit">Cerrar</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-archivos" class="dlg dlg-ancho">
+    <form method="dialog">
+      <div class="dlg-cab"><h3>Mis archivos</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
+      <div class="filtros-arch" id="filtros-arch" role="tablist"></div>
+      <div id="galeria" class="galeria" aria-live="polite"></div>
+      <div class="dlg-acc"><button class="btn btn-borde" id="mas-archivos" type="button" hidden>Ver más</button></div>
     </form>
   </dialog>
 

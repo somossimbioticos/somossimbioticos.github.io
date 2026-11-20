@@ -185,3 +185,28 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
   .entrada { padding-inline: 10px; }
   .msj.usuario .cuerpo { max-width: 92%; }
 }
+
+/* ───────── Galería «Mis archivos» ───────── */
+.dlg-ancho { width: min(980px, calc(100% - 32px)); max-height: calc(100dvh - 48px); display: none; }
+.dlg-ancho[open] { display: flex; flex-direction: column; }
+.dlg-ancho form { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.dlg-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.btn-x { background: none; border: 1px solid var(--linea); color: var(--papel); border-radius: 10px; width: 34px; height: 34px; cursor: pointer; font-size: 15px; }
+.btn-x:hover { border-color: var(--cian); }
+.filtros-arch { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.filtros-arch button { background: var(--panel-2); border: 1px solid var(--linea); color: var(--papel); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; }
+.filtros-arch button[aria-selected="true"] { border-color: var(--cian); color: var(--cian); font-weight: 600; }
+.filtros-arch small { color: var(--mut); font-family: var(--f-mono); margin-left: 4px; }
+.galeria { overflow-y: auto; min-height: 120px; flex: 1; align-content: start; grid-auto-rows: max-content; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; padding: 2px 2px 8px; }
+.item-arch { background: var(--panel-2); border: 1px solid var(--linea); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.item-arch:hover { border-color: var(--cian); }
+.item-arch .vista { flex-shrink: 0; aspect-ratio: 4 / 3; background: var(--panel); display: grid; place-items: center; font-size: 42px; cursor: pointer; overflow: hidden; }
+.item-arch .vista img, .item-arch .vista video { width: 100%; height: 100%; object-fit: cover; }
+.item-arch .vista audio { width: 92%; }
+.item-arch .info { padding: 8px 10px 10px; display: grid; gap: 3px; font-size: 12px; }
+.item-arch .info b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
+.item-arch .info small { color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-arch .acc { display: flex; gap: 10px; margin-top: 2px; white-space: nowrap; }
+.item-arch .acc a, .item-arch .acc button { font-size: 12px; font-weight: 600; text-decoration: none; background: none; border: 0; padding: 0; color: var(--cian); cursor: pointer; }
+.galeria .vacio { grid-column: 1 / -1; color: var(--mut); text-align: center; padding: 40px 0; }
+@media (max-width: 560px) { .galeria { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .item-arch .acc { gap: 8px; } .item-arch .acc a, .item-arch .acc button { font-size: 11px; } }
