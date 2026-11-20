@@ -180,6 +180,7 @@ async function iniciarApp() {
   await cargarConversaciones();
   const ultima = leer("simb_conv_" + usuario.id);
   if (ultima && conversaciones.some((c) => c.id === ultima)) abrirConversacion(ultima); else nuevaConversacion();
+  cargarMusica();
 }
 
 function pintarNiveles() {
@@ -315,6 +316,122 @@ function pintarGaleria() {
   });
 }
 $("btn-archivos").onclick = abrirArchivos;
+
+/* ───────── 🎧 Mi música: reproductor de los audios descargados ───────── */
+const musica = { todas: [], cola: [], i: -1, aleatorio: true, repetir: "no", conVoces: false, audio: new Audio() };
+musica.audio.preload = "metadata";
+const tiempo = (s) => !isFinite(s) ? "0:00" : `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+const tituloCancion = (n) => n.replace(/^voz_/, "Voz ").replace(/\.(mp3|m4a|wav|ogg|aac|opus)$/i, "").replace(/[_]+/g, " ").trim();
+
+async function cargarMusica() {
+  const { data } = await sb.from("mensajes").select("id,adjuntos,eventos,creado")
+    .eq("rol", "asistente").neq("adjuntos", "[]").order("id", { ascending: false }).limit(600);
+  const vistos = new Set(), titulos = new Set();
+  musica.todas = (data || []).flatMap((m) => {
+    const deYoutube = (m.eventos || []).some((e) => e.nombre === "descargar_youtube");
+    return (m.adjuntos || []).filter((a) => (a.mime || "").startsWith("audio/") && a.ruta && !vistos.has(a.ruta) && vistos.add(a.ruta))
+      .map((a) => ({ ...a, titulo: tituloCancion(a.nombre), youtube: deYoutube && !/^voz_/.test(a.nombre), creado: m.creado }));
+  }).filter((c) => {                     // la misma canción descargada varias veces aparece una sola vez (la más reciente)
+    const k = c.titulo.toLowerCase();
+    if (titulos.has(k)) return false;
+    titulos.add(k); return true;
+  });
+  $("musica-n").textContent = String(musica.todas.filter((c) => c.youtube).length || "");
+}
+function listaVisible() {
+  const q = $("rep-buscar").value.trim().toLowerCase();
+  return musica.todas.filter((c) => (musica.conVoces || c.youtube) && (!q || c.titulo.toLowerCase().includes(q)));
+}
+function armarCola(empezarCon) {
+  const base = listaVisible();
+  const resto = base.filter((c) => c !== empezarCon);
+  if (musica.aleatorio) for (let k = resto.length - 1; k > 0; k--) { const j = Math.floor(Math.random() * (k + 1)); [resto[k], resto[j]] = [resto[j], resto[k]]; }
+  musica.cola = empezarCon ? [empezarCon, ...resto] : resto;
+  musica.i = -1;
+}
+async function tocar(i) {
+  if (!musica.cola.length) return;
+  musica.i = (i + musica.cola.length) % musica.cola.length;
+  const c = musica.cola[musica.i];
+  if (!c.url || c.vence < Date.now()) {
+    const { data } = await sb.storage.from("archivos").createSignedUrl(c.ruta, 6 * 3600);
+    if (!data?.signedUrl) { c.roto = true; return tocar(musica.i + 1); }
+    c.url = data.signedUrl; c.vence = Date.now() + 5.5 * 3600 * 1000;
+  }
+  musica.audio.src = c.url;
+  try { await musica.audio.play(); } catch { /* el navegador pide un clic */ }
+  pintarMusica();
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({ title: c.titulo, artist: "Mi música · Simbi", artwork: [{ src: new URL("../logo.svg", location.href).href, sizes: "512x512", type: "image/svg+xml" }] });
+  }
+}
+function siguiente(auto = false) {
+  if (!musica.cola.length) { armarCola(); }
+  if (auto && musica.repetir === "una") return tocar(musica.i);
+  if (musica.i + 1 >= musica.cola.length) {
+    if (auto && musica.repetir === "no" && !musica.aleatorio) { musica.audio.pause(); pintarMusica(); return; }
+    const actual = musica.cola[musica.i]; armarCola(); if (musica.aleatorio && musica.cola[0] === actual && musica.cola.length > 1) musica.cola.push(musica.cola.shift());
+    return tocar(0);
+  }
+  tocar(musica.i + 1);
+}
+function anterior() { if (musica.audio.currentTime > 4) musica.audio.currentTime = 0; else tocar(musica.i - 1); }
+function alternar() {
+  if (!musica.audio.src) { armarCola(); return tocar(0); }
+  musica.audio.paused ? musica.audio.play() : musica.audio.pause();
+}
+function pintarMusica() {
+  const c = musica.cola[musica.i], sonando = !musica.audio.paused;
+  $("rep-titulo").textContent = c ? c.titulo : "Elige una canción";
+  $("rep-sub").textContent = c ? `${musica.i + 1} de ${musica.cola.length}${musica.aleatorio ? " · aleatorio" : ""}` : `${listaVisible().length} audios`;
+  $("rep-play").textContent = sonando ? "⏸" : "▶"; $("mr-play").textContent = sonando ? "⏸" : "▶";
+  $("rep-portada").classList.toggle("sonando", sonando);
+  $("mini-rep").hidden = !c; $("mr-titulo").textContent = c ? "🎵 " + c.titulo : "";
+  $("rep-aleatorio").setAttribute("aria-pressed", String(musica.aleatorio));
+  $("rep-repetir").setAttribute("aria-pressed", String(musica.repetir !== "no"));
+  $("rep-repetir").textContent = musica.repetir === "una" ? "🔂" : "🔁";
+  $("rep-repetir").title = { no: "Repetir: no", todas: "Repetir: todas", una: "Repetir: esta" }[musica.repetir];
+  const lista = $("rep-lista"); lista.textContent = "";
+  const vis = listaVisible();
+  if (!vis.length) {
+    lista.append(el("li", { class: "vacio" }, musica.todas.length ? "Nada coincide con la búsqueda." :
+      "Aún no tienes música. Usa «⬇️ Descargar de YouTube» → «Solo audio MP3» (puedes pegar varios enlaces)."));
+  }
+  vis.forEach((x, k) => lista.append(el("li", { class: x === c ? "actual" : "", onclick: () => { armarCola(x); tocar(0); } },
+    el("span", { class: "n" }, x === c && sonando ? "▶" : String(k + 1)), el("span", { class: "t", title: x.titulo }, x.titulo),
+    el("span", { class: "d" }, new Date(x.creado).toLocaleDateString("es", { day: "numeric", month: "short" })))));
+}
+async function abrirMusica() {
+  $("dlg-musica").showModal();
+  await cargarMusica();
+  if (!musica.cola.length) armarCola();
+  pintarMusica();
+}
+musica.audio.addEventListener("ended", () => siguiente(true));
+musica.audio.addEventListener("error", () => { if (musica.audio.src) setTimeout(() => siguiente(true), 800); });
+for (const ev of ["play", "pause"]) musica.audio.addEventListener(ev, pintarMusica);
+musica.audio.addEventListener("timeupdate", () => {
+  const a = musica.audio, p = a.duration ? a.currentTime / a.duration : 0;
+  $("rep-actual").textContent = tiempo(a.currentTime); $("rep-total").textContent = tiempo(a.duration);
+  if (!$("rep-barra").matches(":active")) $("rep-barra").value = Math.round(p * 1000);
+  $("mr-avance").style.width = (p * 100).toFixed(1) + "%";
+});
+$("rep-barra").oninput = (e) => { if (musica.audio.duration) musica.audio.currentTime = (e.target.value / 1000) * musica.audio.duration; };
+$("rep-volumen").oninput = (e) => { musica.audio.volume = +e.target.value; };
+$("rep-play").onclick = alternar; $("mr-play").onclick = alternar;
+$("rep-sig").onclick = () => siguiente(); $("mr-sig").onclick = () => siguiente();
+$("rep-ant").onclick = anterior; $("mr-ant").onclick = anterior;
+$("rep-aleatorio").onclick = () => { musica.aleatorio = !musica.aleatorio; const c = musica.cola[musica.i]; armarCola(c); if (c) musica.i = 0; pintarMusica(); };
+$("rep-repetir").onclick = () => { musica.repetir = { no: "todas", todas: "una", una: "no" }[musica.repetir]; pintarMusica(); };
+$("rep-buscar").oninput = pintarMusica;
+$("rep-voces").onchange = (e) => { musica.conVoces = e.target.checked; pintarMusica(); };
+$("btn-musica").onclick = abrirMusica; $("mr-titulo").onclick = abrirMusica;
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("play", () => musica.audio.play());
+  navigator.mediaSession.setActionHandler("pause", () => musica.audio.pause());
+  navigator.mediaSession.setActionHandler("nexttrack", () => siguiente());
+  navigator.mediaSession.setActionHandler("previoustrack", anterior);
+}
 
 /* ───────── Sugerencias (las lee el administrador) ───────── */
 $("btn-sugerir").onclick = () => abrirDialogo("Enviar una sugerencia", [
@@ -565,6 +682,7 @@ function manejar(ev, v) {
     case "fin":
       v.pintar(true); v.pie(ev.nivel, ev.tokens, ev.modelo);
       if (ev.estado) { estado = ev.estado; pintarCupos(); contar(); }
+      if (v.texto.includes("Mi música") || v.texto.startsWith("✅ Listo")) cargarMusica();
       const c = conversaciones.find((x) => x.id === convActual);
       if (c) { c.actualizado = new Date().toISOString(); conversaciones = [c, ...conversaciones.filter((x) => x !== c)]; pintarLista(); }
       break;
@@ -595,8 +713,8 @@ function sugerir() {
   if (!esPro()) { caja.hidden = true; return; }
   const yt = $("texto").value.match(RX_YT);
   if (yt) {
-    caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp4", params: { url: yt[0] } }) }, "⬇️ Descargar video MP4"),
-      el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp3", params: { url: yt[0] } }) }, "🎵 Solo audio MP3"));
+    caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp3", params: { url: yt[0] } }) }, "🎵 Solo audio MP3"),
+      el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp4", params: { url: yt[0] } }) }, "⬇️ Video MP4"));
   }
   const medio = adjuntos.find((a) => !a.subiendo && /^(audio|video)\//.test(a.mime));
   if (medio) caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "transcribir", params: { archivo: medio.nombre } }) }, "📝 Transcribir " + medio.nombre));
@@ -639,10 +757,10 @@ function pintarAdjuntos() {
 /* ───────── Atajos (no gastan tokens de chat) ───────── */
 const ATAJOS = [
   { id: "imagen", ico: "🎨", titulo: "Crear una imagen", desc: "Describe lo que imaginas", pro: true },
-  { id: "video", ico: "🎬", titulo: "Video de 3 segundos", desc: "Un clip con IA (Veo)", pro: true },
+  { id: "video", ico: "🎬", titulo: "Video con IA", desc: "Clip de 1 a 5 segundos (Veo)", pro: true },
   { id: "voz", ico: "🔊", titulo: "Texto a voz", desc: "Chirp HD o voz expresiva Gemini", pro: true },
   { id: "transcribir", ico: "📝", titulo: "Transcribir audio o video", desc: "Convierte lo que dicen en texto", pro: true },
-  { id: "youtube", ico: "⬇️", titulo: "Descargar de YouTube", desc: "Video MP4 o solo audio MP3", pro: true },
+  { id: "youtube", ico: "⬇️", titulo: "Descargar de YouTube", desc: "Música MP3 o video MP4 · varios enlaces", pro: true },
   { id: "oficina", ico: "📊", titulo: "Excel, Word o PDF", desc: "Tablas, informes, gráficos", pro: true },
   { id: "analizar", ico: "📁", titulo: "Analizar archivos", desc: "PDF, Word, Excel, código o ZIP", pro: true },
   { id: "video_codigo", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz Chirp o Gemini", pro: true },
@@ -719,11 +837,13 @@ async function abrirAtajo(id, conAdjunta = false) {
     ], `Te quedan ${quedan("imagenes", "imagenes")} imágenes esta semana.`, "Crear imagen",
       (f) => f.get("texto")?.trim() && enviar({ accion: "imagen", params: { texto: f.get("texto").trim(), formato: f.get("formato") } }));
   } else if (id === "video") {
-    abrirDialogo("Video de 3 segundos", [
+    abrirDialogo("Video con IA", [
       el("label", {}, "Describe la escena", el("textarea", { name: "texto", required: true, placeholder: "Ej.: una bandada de estorninos al atardecer, cámara lenta" })),
       campoOpciones("formato", [["9:16", "Vertical 9:16"], ["16:9", "Horizontal 16:9"]], "9:16"),
+      el("div", { class: "campo-titulo" }, "Duración"),
+      campoOpciones("segundos", [1, 2, 3, 4, 5].map((n) => [String(n), `${n} s`]), "3"),
     ], `Te quedan ${quedan("videos", "videos")} videos esta semana. Tarda alrededor de un minuto.`, "Crear video",
-      (f) => f.get("texto")?.trim() && enviar({ accion: "video", params: { texto: f.get("texto").trim(), formato: f.get("formato") } }));
+      (f) => f.get("texto")?.trim() && enviar({ accion: "video", params: { texto: f.get("texto").trim(), formato: f.get("formato"), segundos: +f.get("segundos") || 3 } }));
   } else if (id === "voz") {
     const sel = el("select", { name: "voz" }, ["Femenina", "Masculina"].map((g) =>
       el("optgroup", { label: "Voces " + g.toLowerCase() + "s" }, VOCES.filter((v) => v.genero === g)
@@ -737,11 +857,16 @@ async function abrirAtajo(id, conAdjunta = false) {
       (f) => f.get("texto")?.trim() && enviar({ accion: f.get("motor") === "gemini" ? "voz_gemini" : "voz_chirp", params: { texto: f.get("texto").trim(), voz: f.get("voz"), estilo: f.get("estilo") || "" } }));
   } else if (id === "youtube") {
     abrirDialogo("Descargar de YouTube", [
-      el("label", {}, "Enlace del video", el("input", { type: "url", name: "url", required: true, placeholder: "https://www.youtube.com/watch?v=…" })),
-      campoOpciones("formato", [["mp4", "Video MP4"], ["mp3", "Solo audio MP3"]], "mp4"),
+      el("label", {}, "Enlaces (uno por línea, hasta 10)", el("textarea", { name: "urls", required: true,
+        placeholder: "https://www.youtube.com/watch?v=…\nhttps://youtu.be/…" })),
+      campoOpciones("formato", [["mp3", "🎵 Solo audio MP3 (va a «Mi música»)"], ["mp4", "🎬 Video MP4"]], "mp3"),
       campoOpciones("calidad", [["baja", "Baja"], ["media", "Media"], ["alta", "Alta"]], "media"),
     ], "Máximo 48 MB por archivo. Descarga solo contenido que tengas derecho a usar.", "Descargar",
-      (f) => RX_YT.test(f.get("url") || "") ? enviar({ accion: "youtube_" + f.get("formato"), params: { url: f.get("url"), calidad: f.get("calidad") } }) : alert("Ese no parece un enlace de YouTube."));
+      (f) => {
+        const urls = [...new Set((f.get("urls") || "").match(new RegExp(RX_YT.source, "gi")) || [])].slice(0, 10);
+        if (!urls.length) return alert("No encontré enlaces de YouTube.");
+        enviar({ accion: "youtube_" + f.get("formato"), params: { url: urls.join("\n"), urls, calidad: f.get("calidad") } });
+      });
   } else if (id === "transcribir") {
     $("archivo").accept = "audio/*,video/*";
     $("archivo").onchange = async (e) => {
@@ -857,7 +982,7 @@ async function abrirAtajo(id, conAdjunta = false) {
   }
 }
 function etiquetaAccion(accion, p) {
-  return ({ imagen: "🎨 Imagen: ", video: "🎬 Video: ", voz_chirp: "🔊 Voz Chirp: ", voz_gemini: "🔊 Voz Gemini: ",
+  return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz Chirp: ", voz_gemini: "🔊 Voz Gemini: ",
     youtube_mp4: "⬇️ YouTube MP4: ", youtube_mp3: "🎵 YouTube MP3: ", transcribir: "📝 Transcribir: ", video_codigo: "🎞️ Video con código: " })[accion] +
     (p.texto || p.url || p.archivo || "");
 }
