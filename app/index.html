@@ -46,7 +46,10 @@
       <button class="btn btn-brasa nuevo" id="btn-nuevo" type="button">＋ Nueva conversación</button>
       <input id="buscar" class="buscar" type="search" placeholder="Buscar conversaciones…" aria-label="Buscar conversaciones">
       <ul id="lista-conv" class="lista-conv"></ul>
-      <div id="cupos" class="cupos" aria-live="polite"></div>
+      <div class="lat-limites">
+        <div id="prueba" class="prueba" hidden></div>
+        <button class="btn-limites" id="btn-limites" type="button" aria-haspopup="dialog">📊 Límite semanal <span id="limite-resumen"></span></button>
+      </div>
       <div class="usuario">
         <div class="u-info"><span id="u-correo"></span><span id="u-plan" class="insignia"></span></div>
         <div class="u-acc">
@@ -100,6 +103,15 @@
         <button class="btn btn-borde" value="cancelar" type="submit" formnovalidate>Cancelar</button>
         <button class="btn btn-brasa" value="ok" type="submit" id="dlg-ok">Crear</button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-limites" class="dlg">
+    <form method="dialog">
+      <h3>Límite semanal</h3>
+      <p id="limites-prueba" class="nota" hidden></p>
+      <div id="cupos" class="cupos" aria-live="polite"></div>
+      <div class="dlg-acc"><button class="btn btn-borde" value="cerrar" type="submit">Cerrar</button></div>
     </form>
   </dialog>
 

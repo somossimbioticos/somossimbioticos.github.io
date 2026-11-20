@@ -36,10 +36,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 .lista-conv li .mas { opacity: 0; background: none; border: 0; color: var(--mut); cursor: pointer; padding: 6px 8px; border-radius: 8px; }
 .lista-conv li:hover .mas, .lista-conv li.activa .mas { opacity: 1; }
 .lista-conv .fecha { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--mut); padding: 12px 10px 4px; }
-.cupos { border-top: 1px solid var(--linea); padding-top: 10px; display: grid; gap: 8px; font-size: 12.5px; }
+.cupos { display: grid; gap: 12px; font-size: 14px; margin-bottom: 18px; }
+.lat-limites { border-top: 1px solid var(--linea); padding-top: 10px; display: grid; gap: 8px; }
+.btn-limites { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; background: var(--panel-2); border: 1px solid var(--linea); border-radius: 12px; padding: 9px 12px; cursor: pointer; font-size: 13px; font-weight: 600; text-align: left; }
+.btn-limites:hover { border-color: var(--cian); }
+.btn-limites span { font-family: var(--f-mono); font-size: 11px; font-weight: 400; color: var(--mut); }
+.prueba { font-size: 12.5px; padding: 8px 12px; border-radius: 12px; background: var(--cian-suave); color: var(--cian); border: 1px solid rgba(62,230,224,.3); }
+.prueba.vencida { background: var(--brasa-suave); color: var(--error); border-color: rgba(255,77,46,.35); }
+.pie-msj .modelo { color: var(--ambar); text-transform: none; letter-spacing: .02em; }
 .cupo .fila { display: flex; justify-content: space-between; color: var(--mut); }
 .cupo .fila b { color: var(--papel); font-weight: 600; }
-.cupo .barra-c { height: 5px; background: var(--ink); border-radius: 9px; overflow: hidden; margin-top: 4px; }
+.cupo .barra-c { height: 6px; background: var(--ink); border-radius: 9px; overflow: hidden; margin-top: 4px; }
 .cupo .barra-c i { display: block; height: 100%; background: var(--cian); border-radius: 9px; transition: width .4s; }
 .cupo.alto .barra-c i { background: var(--ambar); }
 .cupo.lleno .barra-c i { background: var(--brasa); }

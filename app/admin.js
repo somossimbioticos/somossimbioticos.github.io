@@ -53,7 +53,7 @@ async function pintar() {
     el("h2", {}, "Usuarios"),
     el("div", { class: "herr" }, buscar, filtro),
     el("div", { class: "tabla" }, el("table", {},
-      el("thead", {}, el("tr", {}, ["Usuario", "Plan", "Rol", "Tokens semana", "Imágenes", "Videos", "Voz (min)", "Chats", "Último ingreso"].map((t) => el("th", {}, t)))),
+      el("thead", {}, el("tr", {}, ["Usuario", "Plan", "Rol", "Prueba", "Tokens semana", "Imágenes", "Videos", "Voz (min)", "Chats", "Último ingreso"].map((t) => el("th", {}, t)))),
       cuerpo)),
     el("h2", {}, "Límites semanales por plan"),
     el("div", { class: "planes" }, (planes || []).map(formPlan)),
@@ -71,6 +71,7 @@ function pintarFilas(tbody, q, plan) {
       el("td", {}, el("div", { class: "correo" }, u.correo), u.nombre ? el("div", { class: "nombre" }, u.nombre) : null),
       el("td", {}, interruptor(u, "plan", [["gratis", "Gratis"], ["pro", "Pro"]])),
       el("td", {}, interruptor(u, "rol", [["usuario", "Usuario"], ["admin", "Admin"]])),
+      el("td", {}, celdaPrueba(u)),
       el("td", { class: "num" }, fmt(u.chat_tokens)),
       el("td", { class: "num" }, fmt(u.imagenes)),
       el("td", { class: "num" }, fmt(u.videos)),
@@ -78,6 +79,20 @@ function pintarFilas(tbody, q, plan) {
       el("td", { class: "num" }, fmt(u.conversaciones)),
       el("td", { class: "num" }, u.ultimo_ingreso ? new Date(u.ultimo_ingreso).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" }) : "—")));
   }
+}
+
+function celdaPrueba(u) {
+  if (!u.prueba_termina) return "—";
+  const fin = new Date(u.prueba_termina), vencida = fin <= new Date();
+  const btn = el("button", { type: "button", class: "btn-mini", title: "Da otro día de prueba desde ahora",
+    onclick: async () => {
+      if (!confirm(`¿Reiniciar el día de prueba de ${u.correo}?`)) return;
+      const { error } = await sb.rpc("admin_reiniciar_prueba", { p_uid: u.id });
+      if (error) return alert(error.message);
+      await pintar();
+    } }, "Reiniciar");
+  return el("div", { class: "celda-prueba" },
+    el("span", { class: vencida ? "vencida" : "activa" }, (vencida ? "Vencida " : "Hasta ") + fin.toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" })), btn);
 }
 
 function interruptor(u, campo, opciones) {
@@ -103,6 +118,7 @@ function interruptor(u, campo, opciones) {
 const CAMPOS = [
   ["chat_tokens", "Tokens de chat"], ["imagenes", "Imágenes"], ["videos", "Videos"], ["video_seg_max", "Segundos por video (máx.)"],
   ["tts_gemini_seg", "Voz Gemini (segundos)"], ["tts_chirp_seg", "Voz Chirp (segundos)"], ["stt_seg", "Transcripción (segundos)"],
+  ["prueba_horas", "Horas de prueba (0 = sin vencimiento)"],
 ];
 function formPlan(p) {
   const estadoOk = el("span", { class: "ok" });

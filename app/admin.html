@@ -36,6 +36,10 @@
     .interruptor button { border: 0; background: none; color: var(--mut); padding: 5px 12px; border-radius: 99px; cursor: pointer; font-weight: 600; font-size: 13px; }
     .interruptor button.on { background: var(--cian); color: var(--ink); }
     .interruptor button.on.gratis { background: var(--panel-2); color: var(--papel); }
+    .celda-prueba { display: flex; align-items: center; gap: 8px; font-size: 12.5px; white-space: nowrap; }
+    .celda-prueba .activa { color: var(--cian); } .celda-prueba .vencida { color: var(--error); }
+    .btn-mini { border: 1px solid var(--linea); background: var(--panel-2); border-radius: 99px; padding: 3px 10px; cursor: pointer; font-size: 12px; }
+    .btn-mini:hover { border-color: var(--cian); color: var(--cian); }
     .num { font-family: var(--f-mono); font-size: 13px; }
     .planes { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
     .plan { background: var(--panel); border: 1px solid var(--linea); border-radius: 16px; padding: 18px; }

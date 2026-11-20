@@ -203,8 +203,31 @@ function pintarCupos() {
       el("div", { class: "fila" }, el("span", {}, nom), el("b", {}, `${f(u)} / ${f(l)}`)),
       el("div", { class: "barra-c" }, el("i", { style: `width:${p}%` }))));
   }
-  if (estado.reinicia) c.append(el("div", { class: "reinicio" }, "Se reinicia el " + new Date(estado.reinicia).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "short" })));
+  if (estado.reinicia && !estado.prueba_termina) c.append(el("div", { class: "reinicio" }, "Se reinicia el " + new Date(estado.reinicia).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "short" })));
+  const pct = L.chat_tokens ? Math.min(100, Math.round((U.chat_tokens / L.chat_tokens) * 100)) : 0;
+  $("limite-resumen").textContent = `${pct}%`;
+  pintarPrueba();
 }
+
+/* Día de prueba (plan gratis) */
+const finPrueba = () => (estado?.prueba_termina ? new Date(estado.prueba_termina) : null);
+const pruebaVencida = () => { const f = finPrueba(); return !!f && f <= new Date(); };
+function textoPrueba() {
+  const f = finPrueba(); if (!f) return "";
+  const ms = f - new Date();
+  if (ms <= 0) return "Tu día de prueba terminó. Pide la versión Pro para seguir usando Simbi.";
+  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
+  return `Día de prueba: te quedan ${h ? h + " h " : ""}${m} min`;
+}
+function pintarPrueba() {
+  const t = textoPrueba(), caja = $("prueba"), nota = $("limites-prueba");
+  caja.hidden = nota.hidden = !t;
+  caja.textContent = nota.textContent = t;
+  caja.classList.toggle("vencida", pruebaVencida());
+  const env = $("btn-enviar"); if (env) env.disabled = pruebaVencida();
+}
+setInterval(() => { if (estado?.prueba_termina) pintarPrueba(); }, 30000);
+$("btn-limites").onclick = () => { pintarCupos(); $("dlg-limites").showModal(); };
 
 /* ───────── Conversaciones ───────── */
 async function cargarConversaciones() {
@@ -263,7 +286,10 @@ async function abrirConversacion(id) {
   pintarLista(); cerrarLateral();
   const cont = $("mensajes"); cont.textContent = "";
   cont.append(el("div", { class: "pensando" }, el("i"), el("i"), el("i")));
-  const { data } = await sb.from("mensajes").select("id,rol,contenido,adjuntos,eventos,nivel,tokens").eq("conversacion_id", id).order("id").limit(500);
+  const [{ data }, modelos] = await Promise.all([
+    sb.from("mensajes").select("id,rol,contenido,adjuntos,eventos,nivel,tokens").eq("conversacion_id", id).order("id").limit(500),
+    estado?.rol === "admin" ? sb.rpc("admin_modelos", { p_conv: id }).then((r) => new Map((r.data || []).map((x) => [x.mensaje_id, x]))) : null,
+  ]);
   if (convActual !== id) return;
   cont.textContent = "";
   for (const m of data || []) {
@@ -273,7 +299,7 @@ async function abrirConversacion(id) {
       for (const ev of m.eventos || []) v.evento({ ...ev, t: "herramienta" });
       for (const a of m.adjuntos || []) v.archivo(a);
       v.texto = m.contenido; v.pintar(true);
-      v.pie(m.nivel, m.tokens);
+      v.pie(m.nivel, m.tokens, modelos?.get(m.id));
     }
   }
   cont.scrollTop = cont.scrollHeight;
@@ -327,8 +353,9 @@ function nuevaRespuesta() {
     progreso(t) { progreso.textContent = t; },
     archivo(a) { pensando.remove(); archivos.append(tarjetaArchivo(a)); },
     error(t) { pensando.remove(); md.classList.remove("cursor"); cuerpo.append(el("div", { class: "error-msj" }, t)); },
-    pie(nv, tokens) {
-      cuerpo.append(el("div", { class: "pie-msj" }, `${NOMBRE_NIVEL[nv] || ""}${tokens ? " · " + fmt(tokens) + " tokens" : ""}`));
+    pie(nv, tokens, modelo) {
+      cuerpo.append(el("div", { class: "pie-msj" }, `${NOMBRE_NIVEL[nv] || ""}${tokens ? " · " + fmt(tokens) + " tokens" : ""}`,
+        modelo ? el("span", { class: "modelo", title: "Solo lo ve el administrador" }, ` · 🛠 ${modelo.modelo}${modelo.detalle ? " · " + modelo.detalle : ""}`) : null));
     },
   };
   return v;
@@ -366,6 +393,7 @@ function tarjetaArchivo(a) {
 async function enviar({ mensaje = "", accion = null, params = {} } = {}) {
   if (ocupado) return;
   if (!API_LISTA) { alert("Simbi se está terminando de instalar. Intenta de nuevo pronto."); return; }
+  if (pruebaVencida()) { pintarPrueba(); $("dlg-limites").showModal(); return; }
   if (adjuntos.some((a) => a.subiendo)) { alert("Espera a que terminen de subir los archivos."); return; }
   const adj = adjuntos.map(({ ruta, nombre, mime, bytes }) => ({ ruta, nombre, mime, bytes }));
   if (!mensaje.trim() && !accion && !adj.length) return;
@@ -422,7 +450,7 @@ function manejar(ev, v) {
     case "archivo": v.archivo(ev); break;
     case "error": v.error(ev.msg); break;
     case "fin":
-      v.pintar(true); v.pie(ev.nivel, ev.tokens);
+      v.pintar(true); v.pie(ev.nivel, ev.tokens, ev.modelo);
       if (ev.estado) { estado = ev.estado; pintarCupos(); contar(); }
       const c = conversaciones.find((x) => x.id === convActual);
       if (c) { c.actualizado = new Date().toISOString(); conversaciones = [c, ...conversaciones.filter((x) => x !== c)]; pintarLista(); }
