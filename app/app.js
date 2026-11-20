@@ -19,7 +19,7 @@ const MAX_BYTES = 50 * 1024 * 1024;
 
 let usuario = null;
 let estado = null;
-let nivel = leer("simb_nivel") || "facil";
+let nivel = "facil";                       // cada conversación nueva empieza en Fácil
 let convActual = null;
 let conversaciones = [];
 let adjuntos = [];          // {clave, nombre, mime, bytes, ruta, subiendo}
@@ -180,7 +180,7 @@ function pintarNiveles() {
     const ok = permitidos.includes(n.id);
     cont.append(el("button", { type: "button", role: "radio", "aria-checked": String(n.id === nivel), disabled: !ok,
       title: ok ? "" : "Disponible en la versión Pro",
-      onclick: () => { nivel = n.id; guardar("simb_nivel", nivel); pintarNiveles(); } }, ok ? n.nombre : "🔒 " + n.nombre));
+      onclick: () => { nivel = n.id; pintarNiveles(); } }, ok ? n.nombre : "🔒 " + n.nombre));
   }
 }
 
@@ -272,6 +272,7 @@ async function opcionesConv(e, c) {
 
 function nuevaConversacion() {
   convActual = null; guardar("simb_conv_" + usuario.id, "");
+  nivel = "facil"; pintarNiveles();
   $("titulo-conv").textContent = "Nueva conversación";
   $("mensajes").textContent = ""; $("mensajes").append(bienvenida);
   pintarLista(); cerrarLateral(); $("texto").focus();
