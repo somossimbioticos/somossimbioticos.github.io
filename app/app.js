@@ -646,6 +646,8 @@ const ATAJOS = [
   { id: "oficina", ico: "📊", titulo: "Excel, Word o PDF", desc: "Tablas, informes, gráficos", pro: true },
   { id: "analizar", ico: "📁", titulo: "Analizar archivos", desc: "PDF, Word, Excel, código o ZIP", pro: true },
   { id: "video_codigo", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz Chirp o Gemini", pro: true },
+  { id: "presentacion", ico: "📽️", titulo: "Presentación PowerPoint", desc: "Diapositivas editables con revisión de diseño", pro: true },
+  { id: "estudiar", ico: "📚", titulo: "Estudiar", desc: "Quiz, tarjetas o guía de estudio", pro: false },
   { id: "correo", ico: "✉️", titulo: "Redactar un correo", desc: "Plantillas: solicitud, seguimiento, ventas…", pro: false },
   { id: "redactar", ico: "✍️", titulo: "Redactar un texto", desc: "Publicaciones, guiones, artículos, ideas", pro: false },
 ];
@@ -753,6 +755,56 @@ async function abrirAtajo(id, conAdjunta = false) {
     $("archivo").accept = ""; $("archivo").click(); texto.focus(); contar();
   } else if (id === "oficina") {
     texto.value = "Crea un archivo Excel con "; texto.focus(); contar();
+  } else if (id === "presentacion") {
+    const paletas = [["azul", "Azul corporativo (#1E3A8A, #3B82F6, blanco)"], ["verde", "Verde natural (#14532D, #22C55E, crema)"],
+      ["oscuro", "Oscuro moderno (#0F172A, #38BDF8, #F472B6)"], ["calido", "Cálido (#7C2D12, #F97316, #FDE68A)"],
+      ["sobrio", "Blanco y negro elegante (#111111, #F5F5F5, acento #D4AF37)"], ["simbi", "Colores de Simbi (#0B1117, #2EE6D6, #FF5A3C)"]];
+    abrirDialogo("Presentación PowerPoint", [
+      el("label", {}, "Tema", el("textarea", { name: "tema", required: true, placeholder: "Ej.: La ley de Ohm para grado 9, con ejemplos de la vida diaria y ejercicios" })),
+      el("label", {}, "Número de diapositivas", el("input", { type: "number", name: "n", min: 3, max: 25, value: 10 })),
+      el("label", {}, "Colores", el("select", { name: "paleta" }, paletas.map(([v, t]) => el("option", { value: v }, t)), el("option", { value: "propia" }, "Otros (los escribo abajo)"))),
+      el("label", {}, "Colores propios (opcional)", el("input", { type: "text", name: "colores", placeholder: "Ej.: morado y amarillo, o #6D28D9 y #FACC15" })),
+      campoOpciones("estilo", [["minimalista", "Minimalista"], ["corporativo", "Corporativo"], ["creativo", "Creativo"], ["educativo", "Educativo"]], "educativo"),
+      el("label", { class: "check" }, el("input", { type: "checkbox", name: "notas", checked: true }), " Incluir notas del orador"),
+    ], "Simbi crea un .pptx editable y un revisor de diseño mira las diapositivas antes de entregarlo. Si adjuntas un documento (📎) antes, lo usa como fuente. Recomendado: Difícil o Muy complejo.", "Crear presentación",
+      (f) => {
+        const pal = paletas.find((x) => x[0] === f.get("paleta"));
+        const colores = f.get("colores")?.trim() || (pal ? pal[1] : "a tu criterio, sobria");
+        enviar({ mensaje: `Crea una presentación de PowerPoint (.pptx editable) de ${Math.min(25, Math.max(3, +f.get("n") || 10))} diapositivas sobre: ${f.get("tema").trim()}\n` +
+          `Estilo: ${f.get("estilo")}. Colores: ${colores}.\n` +
+          `Incluye portada, agenda, desarrollo con una idea por diapositiva y elementos visuales, y cierre.` +
+          (f.get("notas") ? " Agrega notas del orador en cada diapositiva." : "") +
+          (adjuntos.length ? " Usa como fuente el documento que adjunto." : "") });
+      });
+  } else if (id === "estudiar") {
+    abrirDialogo("Estudiar", [
+      el("label", {}, "Tema o texto (o adjunta un documento con 📎 antes)", el("textarea", { name: "tema", required: !adjuntos.length,
+        placeholder: "Ej.: la célula y sus partes · o pega aquí tus apuntes" })),
+      el("div", { class: "campo-titulo" }, "¿Qué quieres?"),
+      campoOpciones("tipo", [["quiz", "📝 Quiz de opción múltiple"], ["tarjetas", "🃏 Tarjetas de estudio"], ["guia", "📖 Guía de estudio"], ["todo", "✨ Todo"]], "quiz"),
+      el("label", {}, "Cantidad de preguntas o tarjetas", el("input", { type: "number", name: "n", min: 3, max: 40, value: 10 })),
+      el("div", { class: "campo-titulo" }, "Nivel"),
+      campoOpciones("nivel", [["primaria", "Primaria"], ["secundaria", "Secundaria"], ["universidad", "Universidad"], ["profesional", "Profesional"]], "secundaria"),
+      el("div", { class: "campo-titulo" }, "Entrega"),
+      campoOpciones("salida", [["chat", "En el chat"], ["pdf", "PDF para imprimir"], ["excel", "Excel (tarjetas, importable a Anki/Quizlet)"]], "chat"),
+    ], "En el chat es lo más rápido y gasta menos tokens. El PDF y el Excel son de la versión Pro.", "Crear",
+      (f) => {
+        const tema = f.get("tema")?.trim();
+        if (!tema && !adjuntos.length) return;
+        const salida = f.get("salida");
+        if (salida !== "chat" && !esPro()) return alert("El PDF y el Excel son de la versión Pro. Elige «En el chat».");
+        const n = Math.min(40, Math.max(3, +f.get("n") || 10));
+        const que = { quiz: `un quiz de ${n} preguntas de opción múltiple (4 opciones, una correcta) con la clave de respuestas y una explicación breve de cada una AL FINAL`,
+          tarjetas: `${n} tarjetas de estudio (pregunta → respuesta corta)`,
+          guia: "una guía de estudio con conceptos clave, resumen por secciones, ejemplos y errores comunes",
+          todo: `una guía de estudio breve, ${n} tarjetas de estudio y un quiz de ${n} preguntas de opción múltiple con la clave de respuestas al final` }[f.get("tipo")];
+        const formato = { chat: "Respóndelo aquí en el chat, bien organizado con Markdown.",
+          pdf: "Entrégalo como PDF elegante para imprimir (preguntas primero y la clave de respuestas en una página aparte).",
+          excel: "Entrégalo como Excel con columnas Pregunta y Respuesta (y Opciones si es quiz), listo para importar a Anki o Quizlet." }[salida];
+        enviar({ mensaje: `Ayúdame a estudiar. Crea ${que}, para nivel ${f.get("nivel")}.\n` +
+          (tema ? `Tema / contenido: ${tema}\n` : "Usa como contenido el material que adjunto.\n") +
+          `Basa todo en información correcta; si adjunto material, cíñete a él. ${formato}` });
+      });
   } else if (id === "correo") {
     const area = el("textarea", { name: "puntos", required: true });
     abrirDialogo("Redactar un correo", [
