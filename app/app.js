@@ -24,7 +24,13 @@ const VOCES = [
   { id: "Fenrir", genero: "Masculina", tipo: "enérgica y emocionada" },
   { id: "Orus", genero: "Masculina", tipo: "firme y seria" },
 ];
-const RX_YT = /https?:\/\/(?:www\.|m\.|music\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/|embed\/)|youtu\.be\/)[\w-]{6,}[^\s]*/i;
+const RX_YT = /https?:\/\/(?:www\.|m\.|music\.)?(?:youtube\.com\/(?:watch\?(?:[^\s#]*&)?v=|shorts\/|live\/|embed\/)|youtu\.be\/)[\w-]{6,}[^\s]*/i;
+// Deja solo el ID del video: quita ?si=, &t=, &list=, etc. (youtu.be/ID?si=… → youtube.com/watch?v=ID)
+function limpiarYT(url) {
+  const m = String(url).match(/(?:youtu\.be\/|[?&]v=|shorts\/|live\/|embed\/)([\w-]{11})/);
+  return m ? `https://www.youtube.com/watch?v=${m[1]}` : url;
+}
+const enlacesYT = (texto) => [...new Set((String(texto).match(new RegExp(RX_YT.source, "gi")) || []).map(limpiarYT))];
 const MAX_BYTES = 50 * 1024 * 1024;
 
 let usuario = null;
@@ -758,8 +764,8 @@ function sugerir() {
   if (!esPro()) { caja.hidden = true; return; }
   const yt = $("texto").value.match(RX_YT);
   if (yt) {
-    caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp3", params: { url: yt[0] } }) }, "🎵 Solo audio MP3"),
-      el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp4", params: { url: yt[0] } }) }, "⬇️ Video MP4"));
+    caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp3", params: { url: limpiarYT(yt[0]) } }) }, "🎵 Solo audio MP3"),
+      el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp4", params: { url: limpiarYT(yt[0]) } }) }, "⬇️ Video MP4"));
   }
   const medio = adjuntos.find((a) => !a.subiendo && /^(audio|video)\//.test(a.mime));
   if (medio) caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "transcribir", params: { archivo: medio.nombre } }) }, "📝 Transcribir " + medio.nombre));
@@ -908,7 +914,7 @@ async function abrirAtajo(id, conAdjunta = false) {
       campoOpciones("calidad", [["baja", "Baja"], ["media", "Media"], ["alta", "Alta"]], "media"),
     ], "Máximo 48 MB por archivo. Descarga solo contenido que tengas derecho a usar.", "Descargar",
       (f) => {
-        const urls = [...new Set((f.get("urls") || "").match(new RegExp(RX_YT.source, "gi")) || [])].slice(0, 10);
+        const urls = enlacesYT(f.get("urls") || "").slice(0, 10);
         if (!urls.length) return alert("No encontré enlaces de YouTube.");
         enviar({ accion: "youtube_" + f.get("formato"), params: { url: urls.join("\n"), urls, calidad: f.get("calidad") } });
       });
