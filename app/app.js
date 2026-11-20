@@ -13,7 +13,17 @@ const NIVELES = [
   { id: "dificil", nombre: "Difícil" }, { id: "complejo", nombre: "Muy complejo" },
 ];
 const NOMBRE_NIVEL = Object.fromEntries(NIVELES.map((n) => [n.id, n.nombre]));
-const VOCES = ["Puck", "Kore", "Charon", "Aoede", "Fenrir", "Leda", "Orus", "Zephyr"];
+// Voces de Google (mismo nombre en Chirp HD y Gemini). Al usuario se le muestra género y tipo de voz.
+const VOCES = [
+  { id: "Kore", genero: "Femenina", tipo: "firme y segura" },
+  { id: "Aoede", genero: "Femenina", tipo: "ligera y relajada" },
+  { id: "Leda", genero: "Femenina", tipo: "juvenil" },
+  { id: "Zephyr", genero: "Femenina", tipo: "brillante y clara" },
+  { id: "Puck", genero: "Masculina", tipo: "alegre y animada" },
+  { id: "Charon", genero: "Masculina", tipo: "informativa (narrador)" },
+  { id: "Fenrir", genero: "Masculina", tipo: "enérgica y emocionada" },
+  { id: "Orus", genero: "Masculina", tipo: "firme y seria" },
+];
 const RX_YT = /https?:\/\/(?:www\.|m\.|music\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/|embed\/)|youtu\.be\/)[\w-]{6,}[^\s]*/i;
 const MAX_BYTES = 50 * 1024 * 1024;
 
@@ -651,7 +661,9 @@ async function abrirAtajo(id, conAdjunta = false) {
     ], `Te quedan ${quedan("videos", "videos")} videos esta semana. Tarda alrededor de un minuto.`, "Crear video",
       (f) => f.get("texto")?.trim() && enviar({ accion: "video", params: { texto: f.get("texto").trim(), formato: f.get("formato") } }));
   } else if (id === "voz") {
-    const sel = el("select", { name: "voz" }, VOCES.map((v) => el("option", { value: v }, v)));
+    const sel = el("select", { name: "voz" }, ["Femenina", "Masculina"].map((g) =>
+      el("optgroup", { label: "Voces " + g.toLowerCase() + "s" }, VOCES.filter((v) => v.genero === g)
+        .map((v) => el("option", { value: v.id, selected: v.id === "Puck" ? true : null }, `${g} · ${v.tipo}`)))));
     abrirDialogo("Texto a voz", [
       el("label", {}, "Texto", el("textarea", { name: "texto", required: true, placeholder: "Escribe o pega el texto que quieres escuchar" })),
       campoOpciones("motor", [["chirp", "Chirp HD (natural)"], ["gemini", "Gemini (expresiva, para videos)"]], "chirp"),
