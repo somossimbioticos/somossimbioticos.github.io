@@ -407,7 +407,15 @@ function pintarUsuario(texto, adj = []) {
 function nuevaRespuesta() {
   const cont = $("mensajes"); bienvenida.remove();
   const eventos = el("div"), progreso = el("div", { class: "progreso" }), archivos = el("div", { class: "archivos" });
-  const md = el("div", { class: "md" }), pensando = el("div", { class: "pensando" }, el("i"), el("i"), el("i"));
+  const md = el("div", { class: "md" });
+  const txtPensando = el("span", { class: "pensando-txt" }, "Simbi está pensando"), segPensando = el("span", { class: "pensando-seg" });
+  const pensando = el("div", { class: "pensando", role: "status" }, el("span", { class: "puntos" }, el("i"), el("i"), el("i")), txtPensando, segPensando);
+  const t0 = Date.now();
+  const reloj = setInterval(() => {
+    if (!pensando.isConnected) return clearInterval(reloj);
+    const seg = Math.round((Date.now() - t0) / 1000);
+    segPensando.textContent = seg >= 3 ? `${seg} s` : "";
+  }, 1000);
   const cuerpo = el("div", { class: "cuerpo" }, eventos, progreso, archivos, pensando, md);
   const nodo = el("div", { class: "msj asistente" }, el("img", { class: "avatar", src: "../logo.svg", alt: "" }), cuerpo);
   cont.append(nodo);
@@ -438,8 +446,12 @@ function nuevaRespuesta() {
         ev.segundos ? el("span", { class: "desc" }, `${ev.segundos} s`) : null);
       if (ev.estado === "error" && ev.error) chip.title = ev.error;
       if (ev.estado !== "inicio") progreso.textContent = "";
+      if (pensando.isConnected) txtPensando.textContent = ev.estado === "inicio" ? (ev.etiqueta || "Trabajando") + "…" : "Simbi está pensando";
     },
-    progreso(t) { progreso.textContent = t; },
+    progreso(t) {
+      if (pensando.isConnected) txtPensando.textContent = t || "Simbi está pensando";
+      else progreso.textContent = t;
+    },
     archivo(a) { pensando.remove(); archivos.append(tarjetaArchivo(a)); },
     error(t) { pensando.remove(); md.classList.remove("cursor"); cuerpo.append(el("div", { class: "error-msj" }, t)); },
     pie(nv, tokens, modelo) {
@@ -621,8 +633,46 @@ const ATAJOS = [
   { id: "youtube", ico: "⬇️", titulo: "Descargar de YouTube", desc: "Video MP4 o solo audio MP3", pro: true },
   { id: "oficina", ico: "📊", titulo: "Excel, Word o PDF", desc: "Tablas, informes, gráficos", pro: true },
   { id: "analizar", ico: "📁", titulo: "Analizar archivos", desc: "PDF, Word, Excel, código o ZIP", pro: true },
-  { id: "redactar", ico: "✍️", titulo: "Redactar un texto", desc: "Correos, publicaciones, guiones", pro: false },
+  { id: "video_codigo", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz Chirp o Gemini", pro: true },
+  { id: "correo", ico: "✉️", titulo: "Redactar un correo", desc: "Plantillas: solicitud, seguimiento, ventas…", pro: false },
+  { id: "redactar", ico: "✍️", titulo: "Redactar un texto", desc: "Publicaciones, guiones, artículos, ideas", pro: false },
 ];
+
+/* Plantillas de prompts para redactar */
+const TIPOS_CORREO = [
+  ["solicitud", "Solicitud formal", "una solicitud formal", "Ej.: pedir una cita con el rector para presentar el proyecto de robótica"],
+  ["seguimiento", "Seguimiento (no me han respondido)", "un seguimiento amable a un mensaje que no han respondido", "Ej.: envié la cotización el lunes y no he recibido respuesta"],
+  ["cliente", "Responder a un cliente", "una respuesta a un cliente", "Ej.: el cliente pregunta por el retraso del pedido; llegará el viernes"],
+  ["propuesta", "Propuesta comercial / venta", "una propuesta comercial persuasiva", "Ej.: ofrecer talleres de IA para docentes, 3 sesiones, precio especial"],
+  ["reunion", "Invitar a una reunión", "una invitación a una reunión", "Ej.: reunión de planeación el jueves 3 p. m. por Meet, 45 min"],
+  ["agradecimiento", "Agradecimiento", "un agradecimiento sincero", "Ej.: agradecer al equipo por el apoyo en la feria de ciencias"],
+  ["reclamo", "Reclamo o queja", "un reclamo firme y respetuoso", "Ej.: me cobraron dos veces la factura de octubre"],
+  ["disculpa", "Disculpa", "una disculpa profesional", "Ej.: no pude asistir a la reunión por un imprevisto"],
+  ["cobro", "Recordatorio de pago", "un recordatorio de pago cordial", "Ej.: factura #120 vencida hace 15 días"],
+  ["contacto", "Presentarme / contacto en frío", "un primer contacto para presentarme", "Ej.: me presento como ingeniero y ofrezco colaborar en su proyecto"],
+  ["renuncia", "Carta de renuncia", "una carta de renuncia respetuosa", "Ej.: renuncio con 15 días de preaviso, agradecido por la experiencia"],
+  ["otro", "Otro (lo describo yo)", "un correo", "Describe qué necesitas decir"],
+];
+const TIPOS_TEXTO = [
+  ["post", "Publicación para redes (Instagram / Facebook)", "una publicación para redes sociales con gancho inicial, cuerpo breve, llamado a la acción y hashtags", "Ej.: lanzamiento del curso de robótica para niños"],
+  ["linkedin", "Post para LinkedIn", "un post para LinkedIn con historia, aprendizaje y pregunta final", "Ej.: lo que aprendí al automatizar mi trabajo con IA"],
+  ["guion", "Guion de video corto (Reels / TikTok)", "un guion de video corto con gancho en los primeros 3 segundos, escenas y texto en pantalla", "Ej.: 3 errores al estudiar para un examen"],
+  ["articulo", "Artículo o blog", "un artículo con título, introducción, subtítulos y conclusión", "Ej.: cómo usar la IA en el aula sin hacer trampa"],
+  ["mejorar", "Mejorar o corregir mi texto", "una versión mejorada (ortografía, claridad y estilo) del texto que pego, y luego una lista breve de los cambios", "Pega aquí tu texto"],
+  ["resumen", "Resumir un texto", "un resumen claro con las ideas principales en viñetas", "Pega aquí el texto a resumir"],
+  ["discurso", "Discurso o presentación oral", "un discurso para decir en voz alta, con frases cortas y pausas", "Ej.: palabras de bienvenida a padres de familia, 2 minutos"],
+  ["producto", "Descripción de producto o servicio", "una descripción que venda: beneficios, características y llamado a la acción", "Ej.: kit de robótica educativa para colegios"],
+  ["bio", "Biografía o perfil profesional", "una biografía profesional", "Ej.: ingeniero, docente, 10 años enseñando tecnología"],
+  ["whatsapp", "Mensaje de WhatsApp", "un mensaje de WhatsApp breve y natural", "Ej.: recordar a los padres la salida pedagógica del viernes"],
+  ["ideas", "Lluvia de ideas", "una lista de 10 ideas creativas y variadas, cada una con una frase de explicación", "Ej.: ideas de contenido para enseñar matemáticas en redes"],
+  ["otro", "Otro (lo describo yo)", "un texto", "Describe qué necesitas"],
+];
+function selectorPlantilla(nombre, tipos, area) {
+  const sel = el("select", { name: nombre }, tipos.map(([id, t]) => el("option", { value: id }, t)));
+  sel.onchange = () => { area.placeholder = tipos.find((x) => x[0] === sel.value)[3]; };
+  area.placeholder = tipos[0][3];
+  return sel;
+}
 function pintarAtajos() {
   const c = $("atajos"); c.textContent = "";
   for (const a of ATAJOS) {
@@ -691,13 +741,60 @@ async function abrirAtajo(id, conAdjunta = false) {
     $("archivo").accept = ""; $("archivo").click(); texto.focus(); contar();
   } else if (id === "oficina") {
     texto.value = "Crea un archivo Excel con "; texto.focus(); contar();
+  } else if (id === "correo") {
+    const area = el("textarea", { name: "puntos", required: true });
+    abrirDialogo("Redactar un correo", [
+      el("label", {}, "Tipo de correo", selectorPlantilla("tipo", TIPOS_CORREO, area)),
+      el("label", {}, "¿Para quién?", el("input", { type: "text", name: "para", placeholder: "Ej.: el rector, un cliente, mi jefe, la profesora Ana" })),
+      el("label", {}, "¿Qué quieres decir? (puntos clave)", area),
+      campoOpciones("tono", [["formal", "Formal"], ["cercano", "Cercano"], ["persuasivo", "Persuasivo"], ["directo", "Directo"]], "formal"),
+      campoOpciones("largo", [["corto", "Corto"], ["medio", "Medio"], ["largo", "Largo"]], "medio"),
+    ], "Simbi escribe el asunto (con 2 alternativas), el saludo, el cuerpo y la despedida. Luego puedes pedirle cambios.", "Redactar",
+      (f) => {
+        const t = TIPOS_CORREO.find((x) => x[0] === f.get("tipo"));
+        const para = f.get("para")?.trim();
+        enviar({ mensaje: `Redacta ${t[2]}${para ? " dirigido a " + para : ""}.\nPuntos clave: ${f.get("puntos").trim()}\n` +
+          `Tono: ${f.get("tono")}. Extensión: ${f.get("largo")}.\nIncluye: asunto (y 2 alternativas), saludo, cuerpo bien organizado y despedida. ` +
+          `Usa [corchetes] para los datos que falten. Entrega solo el correo listo para copiar.` });
+      });
   } else if (id === "redactar") {
-    texto.value = "Redacta "; texto.focus(); contar();
+    const area = el("textarea", { name: "tema", required: true });
+    abrirDialogo("Redactar un texto", [
+      el("label", {}, "¿Qué necesitas?", selectorPlantilla("tipo", TIPOS_TEXTO, area)),
+      el("label", {}, "Tema o contenido", area),
+      el("label", {}, "Público (opcional)", el("input", { type: "text", name: "publico", placeholder: "Ej.: padres de familia, jóvenes de 15 a 20 años, docentes" })),
+      campoOpciones("tono", [["cercano", "Cercano"], ["profesional", "Profesional"], ["inspirador", "Inspirador"], ["divertido", "Divertido"]], "cercano"),
+      campoOpciones("largo", [["corto", "Corto"], ["medio", "Medio"], ["largo", "Largo"]], "medio"),
+    ], "Elige una plantilla y Simbi arma el pedido completo. Después puedes iterar en el chat.", "Redactar",
+      (f) => {
+        const t = TIPOS_TEXTO.find((x) => x[0] === f.get("tipo"));
+        const publico = f.get("publico")?.trim();
+        enviar({ mensaje: `Escribe ${t[2]}.\nTema/contenido: ${f.get("tema").trim()}\n` + (publico ? `Público: ${publico}.\n` : "") +
+          `Tono: ${f.get("tono")}. Extensión: ${f.get("largo")}.` });
+      });
+  } else if (id === "video_codigo") {
+    const sel = el("select", { name: "voz" }, ["Femenina", "Masculina"].map((g) =>
+      el("optgroup", { label: "Voces " + g.toLowerCase() + "s" }, VOCES.filter((v) => v.genero === g)
+        .map((v) => el("option", { value: v.id, selected: v.id === "Puck" ? true : null }, `${g} · ${v.tipo}`)))));
+    abrirDialogo("Video con código", [
+      el("label", {}, "¿Qué video quieres?", el("textarea", { name: "texto", required: true, placeholder: "Ej.: video explicativo de la ley de Ohm con fondo oscuro, títulos animados, la fórmula V = I × R y un ejemplo con números" })),
+      campoOpciones("formato", [["9:16", "Vertical 9:16"], ["16:9", "Horizontal 16:9"]], "9:16"),
+      el("label", {}, "Duración aproximada (segundos)", el("input", { type: "number", name: "duracion", min: 5, max: 90, value: 20 })),
+      el("div", { class: "campo-titulo" }, "Narración (voz)"),
+      campoOpciones("motor", [["ninguna", "Sin voz"], ["chirp", "Chirp HD (natural)"], ["gemini", "Gemini (expresiva)"]], "chirp"),
+      el("label", {}, "Voz", sel),
+      el("label", {}, "Texto de la narración (opcional: si lo dejas vacío, Simbi lo escribe)", el("textarea", { name: "guion", placeholder: "Escribe exactamente lo que dirá la voz" })),
+      el("label", {}, "Estilo de la voz (solo Gemini)", el("input", { type: "text", name: "estilo", placeholder: "Ej.: entusiasta, como profesor joven" })),
+    ], `La voz se descuenta de tus minutos (te quedan ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min Chirp y ${(quedan("tts_gemini_seg", "tts_gemini_seg") / 60).toFixed(0)} min Gemini). ` +
+      "Para música de fondo, adjunta un MP3 (📎) antes de crear. Recomendado: nivel Difícil o Muy complejo. Luego puedes pedir cambios en el chat.", "Crear video",
+      (f) => f.get("texto")?.trim() && enviar({ accion: "video_codigo", params: { texto: f.get("texto").trim(), formato: f.get("formato"),
+        duracion: Math.min(90, Math.max(5, +f.get("duracion") || 20)), motor: f.get("motor"), voz: f.get("voz"),
+        guion: f.get("guion") || "", estilo: f.get("estilo") || "" } }));
   }
 }
 function etiquetaAccion(accion, p) {
   return ({ imagen: "🎨 Imagen: ", video: "🎬 Video: ", voz_chirp: "🔊 Voz Chirp: ", voz_gemini: "🔊 Voz Gemini: ",
-    youtube_mp4: "⬇️ YouTube MP4: ", youtube_mp3: "🎵 YouTube MP3: ", transcribir: "📝 Transcribir: " })[accion] +
+    youtube_mp4: "⬇️ YouTube MP4: ", youtube_mp3: "🎵 YouTube MP3: ", transcribir: "📝 Transcribir: ", video_codigo: "🎞️ Video con código: " })[accion] +
     (p.texto || p.url || p.archivo || "");
 }
 
