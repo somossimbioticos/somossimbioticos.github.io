@@ -336,6 +336,131 @@ function pintarGaleria() {
 }
 $("btn-archivos").onclick = abrirArchivos;
 
+/* ───────── ☁️ Mi nube: almacenamiento personal (Google Cloud Storage, cupo por plan) ───────── */
+const nube = { lista: [], usado: 0, limite: 0, filtro: "todos", urls: new Map() };
+const gb = (b) => b >= 1e9 ? `${(b / 1e9).toFixed(2)} GB` : tam(b);
+async function apiNube(ruta, opciones = {}) {
+  const r = await fetch(API + ruta, { ...opciones, headers: { Authorization: "Bearer " + await token(),
+    ...(opciones.body ? { "Content-Type": "application/json" } : {}) } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || `Error ${r.status}`);
+  return j;
+}
+function pintarCupoNube() {
+  const pct = nube.limite ? Math.min(100, nube.usado / nube.limite * 100) : 0;
+  $("nube-uso").textContent = nube.limite ? `${gb(nube.usado)} de ${gb(nube.limite)}` : "No incluido en tu plan";
+  $("nube-barra").style.width = pct + "%";
+  $("nube-barra").style.background = pct > 90 ? "#ff8a8a" : "";
+  $("nube-resumen").textContent = nube.limite ? `${Math.round(pct)}%` : "";
+}
+async function cargarNube() {
+  const g = $("nube-galeria");
+  try {
+    const d = await apiNube("/nube");
+    Object.assign(nube, { lista: d.archivos, usado: d.usado, limite: d.limite });
+  } catch (e) { g.textContent = ""; g.append(el("div", { class: "vacio" }, "No se pudo cargar tu nube: " + e.message)); return; }
+  pintarCupoNube(); pintarNube();
+}
+async function abrirNube() {
+  $("dlg-nube").showModal();
+  const g = $("nube-galeria"); g.textContent = ""; g.append(el("div", { class: "vacio" }, "Cargando…"));
+  await cargarNube();
+}
+function pintarNube() {
+  const f = $("nube-filtros"); f.textContent = "";
+  for (const t of TIPOS_ARCH) {
+    const n = nube.lista.filter((a) => t.es(a.mime)).length;
+    if (t.id !== "todos" && !n) continue;
+    f.append(el("button", { type: "button", role: "tab", "aria-selected": String(nube.filtro === t.id),
+      onclick: () => { nube.filtro = t.id; pintarNube(); } }, t.nombre, el("small", {}, String(n))));
+  }
+  const tipo = TIPOS_ARCH.find((t) => t.id === nube.filtro) || TIPOS_ARCH[0];
+  const lista = nube.lista.filter((a) => tipo.es(a.mime)).slice(0, 300);
+  const g = $("nube-galeria"); g.textContent = "";
+  if (!lista.length) {
+    g.append(el("div", { class: "vacio" }, nube.limite ? "Tu nube está vacía. Sube fotos, videos o documentos para guardarlos aquí."
+      : "«Mi nube» está disponible en la versión Pro (5 GB).")); return;
+  }
+  const tarjetas = lista.map((a) => {
+    const vista = el("div", { class: "vista" }, iconoArch(a.mime));
+    const acc = el("div", { class: "acc" });
+    const fecha = new Date(a.creado).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
+    acc.append(
+      el("button", { type: "button", onclick: () => bajarNube(a) }, "⬇ Descargar"),
+      el("button", { type: "button", class: "peligro", onclick: () => borrarNube(a) }, "🗑 Borrar"));
+    g.append(el("div", { class: "item-arch" }, vista, el("div", { class: "info" }, el("b", { title: a.nombre }, a.nombre),
+      el("small", {}, `${fecha} · ${gb(a.bytes)}`), acc)));
+    return { a, vista };
+  });
+  const conVista = tarjetas.filter(({ a }) => /^(image|video|audio)\//.test(a.mime));
+  const faltan = conVista.filter(({ a }) => !nube.urls.has(a.id)).map(({ a }) => a.id);
+  const lotes = []; for (let i = 0; i < faltan.length; i += 60) lotes.push(faltan.slice(i, i + 60));
+  Promise.all(lotes.map((ids) => apiNube("/nube/urls", { method: "POST", body: JSON.stringify({ ids }) })
+    .then((u) => Object.entries(u).forEach(([k, v]) => nube.urls.set(k, v))).catch(() => {}))).then(() => {
+    for (const { a, vista } of conVista) {
+      const url = nube.urls.get(a.id); if (!url) continue;
+      vista.textContent = "";
+      if (a.mime.startsWith("image/")) {
+        vista.append(el("img", { src: url, alt: a.nombre, loading: "lazy" }));
+        vista.onclick = () => { const v = el("div", { class: "visor", onclick: () => v.remove() }, el("img", { src: url, alt: a.nombre })); document.body.append(v); };
+      } else if (a.mime.startsWith("video/")) vista.append(el("video", { src: url, controls: true, playsinline: true, preload: "metadata" }));
+      else vista.append(el("audio", { src: url, controls: true, preload: "none" }));
+    }
+  });
+  for (const { a, vista } of tarjetas) if (!/^(image|video|audio)\//.test(a.mime)) vista.onclick = () => abrirEnPestana(a);
+}
+async function abrirEnPestana(a) {
+  const w = window.open("", "_blank");
+  try { const u = await apiNube("/nube/urls", { method: "POST", body: JSON.stringify({ ids: [a.id] }) }); w.location = u[a.id]; }
+  catch (e) { w.close(); alert(e.message); }
+}
+async function bajarNube(a) {
+  try {
+    const u = await apiNube("/nube/urls", { method: "POST", body: JSON.stringify({ ids: [a.id], descargar: true }) });
+    const l = el("a", { href: u[a.id], download: a.nombre }); document.body.append(l); l.click(); l.remove();
+  } catch (e) { alert("No se pudo descargar: " + e.message); }
+}
+async function borrarNube(a) {
+  if (!confirm(`¿Borrar «${a.nombre}» de tu nube? No se puede deshacer.`)) return;
+  try { await apiNube("/nube/" + a.id, { method: "DELETE" }); } catch (e) { alert(e.message); return; }
+  nube.lista = nube.lista.filter((x) => x.id !== a.id); nube.usado -= a.bytes; nube.urls.delete(a.id);
+  pintarCupoNube(); pintarNube();
+}
+function putConProgreso(url, archivo, encabezados, alAvanzar) {
+  return new Promise((ok, mal) => {
+    const x = new XMLHttpRequest();
+    x.open("PUT", url);
+    for (const [k, v] of Object.entries(encabezados)) x.setRequestHeader(k, v);
+    x.upload.onprogress = (e) => e.lengthComputable && alAvanzar(e.loaded / e.total);
+    x.onload = () => (x.status >= 200 && x.status < 300 ? ok() : mal(new Error(`GCS ${x.status}`)));
+    x.onerror = () => mal(new Error("Se cortó la conexión"));
+    x.send(archivo);
+  });
+}
+async function subirNube(archivos) {
+  const cont = $("nube-subidas");
+  for (const archivo of archivos) {                // uno por uno: más estable en celulares
+    const barra = el("i", { style: "width:0" }), est = el("b", {}, "0%");
+    const fila = el("div", { class: "nube-sub" }, el("div", { class: "fila" }, el("span", {}, archivo.name), est), el("div", { class: "barra-c" }, barra));
+    cont.append(fila);
+    try {
+      const r = await apiNube("/nube/subir", { method: "POST", body: JSON.stringify({ nombre: archivo.name, mime: archivo.type || "application/octet-stream", bytes: archivo.size }) });
+      await putConProgreso(r.url, archivo, r.encabezados, (p) => { barra.style.width = (p * 100).toFixed(0) + "%"; est.textContent = (p * 100).toFixed(0) + "%"; });
+      await apiNube(`/nube/${r.id}/listo`, { method: "POST" });
+      est.textContent = "✓"; setTimeout(() => fila.remove(), 2500);
+    } catch (e) { fila.classList.add("error"); est.textContent = e.message; setTimeout(() => fila.remove(), 9000); }
+    await cargarNube();
+  }
+}
+$("btn-nube").onclick = abrirNube;
+$("nube-input").onchange = (e) => { const fs = [...e.target.files]; e.target.value = ""; if (fs.length) subirNube(fs); };
+{
+  const z = $("dlg-nube");
+  z.addEventListener("dragover", (e) => { e.preventDefault(); $("nube-galeria").classList.add("arrastrando"); });
+  z.addEventListener("dragleave", (e) => { if (!z.contains(e.relatedTarget)) $("nube-galeria").classList.remove("arrastrando"); });
+  z.addEventListener("drop", (e) => { e.preventDefault(); $("nube-galeria").classList.remove("arrastrando"); const fs = [...(e.dataTransfer?.files || [])]; if (fs.length) subirNube(fs); });
+}
+
 /* ───────── 🎧 Mi música: reproductor de los audios descargados ───────── */
 const musica = { todas: [], cola: [], i: -1, aleatorio: true, repetir: "no", conVoces: false, verOcultas: false, ocultas: new Set(), audio: new Audio() };
 musica.audio.preload = "metadata";

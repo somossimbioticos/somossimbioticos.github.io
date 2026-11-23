@@ -120,14 +120,18 @@ function interruptor(u, campo, opciones) {
 const CAMPOS = [
   ["chat_tokens", "Tokens de chat"], ["imagenes", "Imágenes"], ["videos", "Videos"], ["video_seg_max", "Segundos por video (máx.)"],
   ["tts_gemini_seg", "Voz Gemini (segundos)"], ["tts_chirp_seg", "Voz Chirp (segundos)"], ["stt_seg", "Transcripción (segundos)"],
-  ["prueba_horas", "Horas de prueba (0 = sin vencimiento)"],
+  ["prueba_horas", "Horas de prueba (0 = sin vencimiento)"], ["nube_gb", "Mi nube (GB por usuario)"],
 ];
+const GB = 1073741824;
 function formPlan(p) {
   const estadoOk = el("span", { class: "ok" });
-  const inputs = Object.fromEntries(CAMPOS.map(([k]) => [k, el("input", { type: "number", min: "0", value: p[k] ?? 0 })]));
+  const inputs = Object.fromEntries(CAMPOS.map(([k]) => [k, k === "nube_gb"
+    ? el("input", { type: "number", min: "0", step: "0.5", value: +((p.nube_bytes || 0) / GB).toFixed(2) })
+    : el("input", { type: "number", min: "0", value: p[k] ?? 0 })]));
   return el("form", { class: "plan", onsubmit: async (e) => {
     e.preventDefault();
-    const datos = Object.fromEntries(Object.entries(inputs).map(([k, i]) => [k, Number(i.value) || 0]));
+    const datos = Object.fromEntries(Object.entries(inputs).map(([k, i]) => k === "nube_gb"
+      ? ["nube_bytes", Math.round((Number(i.value) || 0) * GB)] : [k, Number(i.value) || 0]));
     const { error } = await sb.rpc("admin_editar_plan", { p_plan: p.plan, p_datos: datos });
     estadoOk.textContent = error ? error.message : "Guardado ✓";
     setTimeout(() => (estadoOk.textContent = ""), 2500);

@@ -68,6 +68,7 @@
         <div class="herr-lat">
           <button class="btn-herr" id="btn-musica" type="button" aria-haspopup="dialog" title="Mi música"><span>🎧</span>Música <small id="musica-n"></small></button>
           <button class="btn-herr" id="btn-archivos" type="button" aria-haspopup="dialog" title="Mis archivos"><span>🗂️</span>Archivos</button>
+          <button class="btn-herr" id="btn-nube" type="button" aria-haspopup="dialog" title="Mi nube: guarda tus fotos, videos y archivos"><span>☁️</span>Nube <small id="nube-resumen"></small></button>
           <button class="btn-herr" id="btn-limites" type="button" aria-haspopup="dialog" title="Límite semanal"><span>📊</span>Límite <small id="limite-resumen"></small></button>
         </div>
       </div>
@@ -142,6 +143,20 @@
       <div class="filtros-arch" id="filtros-arch" role="tablist"></div>
       <div id="galeria" class="galeria" aria-live="polite"></div>
       <div class="dlg-acc"><button class="btn btn-borde" id="mas-archivos" type="button" hidden>Ver más</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-nube" class="dlg dlg-ancho">
+    <form method="dialog">
+      <div class="dlg-cab"><h3>☁️ Mi nube</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
+      <div class="nube-cab">
+        <div class="cupo nube-cupo"><div class="fila"><span>Espacio usado</span><b id="nube-uso">…</b></div><div class="barra-c"><i id="nube-barra" style="width:0"></i></div></div>
+        <label class="btn btn-prim nube-subir">⬆ Subir archivos<input id="nube-input" type="file" multiple hidden></label>
+      </div>
+      <div id="nube-subidas" class="nube-subidas" aria-live="polite"></div>
+      <div class="filtros-arch" id="nube-filtros" role="tablist"></div>
+      <div id="nube-galeria" class="galeria nube-zona" aria-live="polite"></div>
+      <p class="nota nube-nota">Arrastra archivos aquí o usa «Subir». Solo tú puedes verlos.</p>
     </form>
   </dialog>
 

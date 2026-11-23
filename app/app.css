@@ -261,7 +261,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 
 /* Barra lateral compacta */
 .btn-sugerir { width: 42px; flex-shrink: 0; margin: 0; padding: 0; font-size: 17px; border-radius: 12px; }
-.herr-lat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.herr-lat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
 .btn-herr { display: grid; justify-items: center; gap: 1px; background: var(--panel-2); border: 1px solid var(--linea); border-radius: 12px; padding: 7px 4px 6px; color: var(--papel); font-size: 11.5px; font-weight: 600; cursor: pointer; line-height: 1.2; }
 .btn-herr span { font-size: 17px; }
 .btn-herr small { font-family: var(--f-mono); font-size: 9.5px; font-weight: 400; color: var(--mut); min-height: 11px; }
@@ -281,3 +281,19 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 .btn-google:hover { background: #f5f7f8 !important; }
 .separador { display: flex; align-items: center; gap: 10px; color: var(--mut); font-size: 12px; margin: 12px 0 4px; }
 .separador::before, .separador::after { content: ""; flex: 1; height: 1px; background: var(--linea); }
+
+/* ☁️ Mi nube */
+.nube-cab { display: flex; gap: 14px; align-items: end; margin-bottom: 12px; flex-wrap: wrap; }
+.nube-cupo { flex: 1; min-width: 200px; }
+.nube-subir { cursor: pointer; white-space: nowrap; }
+.nube-subidas { display: grid; gap: 6px; margin-bottom: 10px; }
+.nube-subidas:empty { display: none; }
+.nube-sub { font-size: 12px; display: grid; gap: 3px; }
+.nube-sub .fila { display: flex; justify-content: space-between; gap: 10px; color: var(--mut); }
+.nube-sub .fila span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--papel); }
+.nube-sub .barra-c { height: 4px; background: var(--ink); border-radius: 9px; overflow: hidden; }
+.nube-sub .barra-c i { display: block; height: 100%; background: var(--cian); transition: width .2s; }
+.nube-sub.error .fila b { color: #ff8a8a; }
+.nube-zona.arrastrando { outline: 2px dashed var(--cian); outline-offset: 4px; border-radius: 14px; }
+.nube-nota { margin: 8px 0 0; text-align: center; }
+.item-arch .acc .peligro { color: #ff8a8a; }
