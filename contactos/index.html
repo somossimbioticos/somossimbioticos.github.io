@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contactos</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0B0F14">
+  <link rel="icon" href="../logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../base.css">
+  <style>
+    body { min-height: 100vh; }
+    [hidden] { display: none !important; }
+    .env { width: min(1100px, 100% - 32px); margin: 0 auto; padding: 22px 0 80px; }
+    .cab { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .cab h1 { font-family: var(--f-titulo); font-size: 42px; margin: 0; letter-spacing: .5px; }
+    .cab .der { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+    .cab small { color: var(--mut); font-family: var(--f-mono); }
+    .barra { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .barra input[type=search] { flex: 1; min-width: 220px; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+    .chips button { background: var(--panel-2); border: 1px solid var(--linea); color: var(--papel); border-radius: 999px; padding: 6px 13px; font-size: 13px; cursor: pointer; }
+    .chips button[aria-pressed="true"] { border-color: var(--cian); color: var(--cian); font-weight: 600; }
+    .chips small { color: var(--mut); font-family: var(--f-mono); margin-left: 5px; }
+    .lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; }
+    .ct { background: var(--panel); border: 1px solid var(--linea); border-left: 4px solid var(--c, var(--cian)); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0; }
+    .ct-cab { display: flex; align-items: start; gap: 10px; }
+    .ct-cab b { font-size: 16px; flex: 1; overflow-wrap: anywhere; }
+    .eti { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; padding: 3px 8px; border-radius: 999px; background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--c); white-space: nowrap; }
+    .num { font-family: var(--f-mono); font-size: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .num a { color: var(--cian); text-decoration: none; font-family: var(--f-texto); font-size: 12.5px; font-weight: 600; }
+    .rel { color: var(--mut); font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; max-height: 9.5em; overflow: hidden; position: relative; }
+    .rel.abierta { max-height: none; }
+    .ct-acc { display: flex; gap: 14px; font-size: 12.5px; }
+    .ct-acc button { background: none; border: 0; padding: 0; color: var(--cian); font-weight: 600; cursor: pointer; }
+    .ct-acc .peligro { color: var(--error); }
+    .vacio { color: var(--mut); text-align: center; padding: 50px 0; grid-column: 1 / -1; }
+    .caja { max-width: 400px; margin: 12vh auto 0; background: var(--panel); border: 1px solid var(--linea); border-radius: 18px; padding: 26px; display: grid; gap: 12px; }
+    .caja h1 { font-family: var(--f-titulo); font-size: 38px; margin: 0; }
+    .caja p { color: var(--mut); margin: 0; font-size: 14px; }
+    .aviso { color: var(--error); font-size: 13px; min-height: 1em; }
+    dialog { background: var(--panel); color: var(--papel); border: 1px solid var(--linea); border-radius: 18px; padding: 22px; width: min(560px, calc(100% - 32px)); }
+    dialog::backdrop { background: rgba(5, 8, 11, .75); }
+    dialog form { display: grid; gap: 12px; }
+    dialog h3 { margin: 0; }
+    label { display: grid; gap: 5px; font-size: 13px; color: var(--mut); }
+    textarea { min-height: 150px; resize: vertical; line-height: 1.5; }
+    .acc-dlg { display: flex; gap: 10px; justify-content: end; }
+    .sep { display: flex; align-items: center; gap: 10px; color: var(--mut); font-size: 12px; }
+    .sep::before, .sep::after { content: ""; flex: 1; height: 1px; background: var(--linea); }
+    @media (max-width: 600px) { .cab h1 { font-size: 34px; } .cab .der { margin-left: 0; width: 100%; justify-content: space-between; } }
+  </style>
+</head>
+<body>
+  <!-- Ingreso -->
+  <div id="v-acceso" class="env" hidden>
+    <form class="caja" id="f-acceso">
+      <h1>Contactos</h1>
+      <p>Página privada. Ingresa con tu cuenta.</p>
+      <button class="btn btn-borde" type="button" id="btn-google">Continuar con Google</button>
+      <div class="sep">o con correo</div>
+      <input id="correo" type="email" placeholder="Correo" autocomplete="username" required>
+      <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+      <button class="btn btn-cian" type="submit" id="btn-entrar">Ingresar</button>
+      <div class="aviso" id="aviso" role="alert"></div>
+    </form>
+  </div>
+
+  <!-- Sin permiso -->
+  <div id="v-denegado" class="env" hidden>
+    <div class="caja"><h1>Sin acceso</h1><p>Esta página es privada y tu cuenta no tiene permiso.</p>
+      <button class="btn btn-borde" type="button" data-salir>Salir</button></div>
+  </div>
+
+  <!-- App -->
+  <div id="v-app" class="env" hidden>
+    <header class="cab">
+      <h1>Contactos</h1><small id="total"></small>
+      <div class="der">
+        <button class="btn btn-borde" type="button" id="btn-csv" title="Descargar todos en CSV (Excel)">⬇ CSV</button>
+        <button class="btn btn-cian" type="button" id="btn-nuevo">+ Nuevo contacto</button>
+        <button class="btn btn-borde" type="button" data-salir>Salir</button>
+      </div>
+    </header>
+    <div class="barra"><input id="buscar" type="search" placeholder="Buscar por nombre, número o relación…" aria-label="Buscar"></div>
+    <div class="chips" id="chips" role="group" aria-label="Filtrar por etiqueta"></div>
+    <div class="lista" id="lista" aria-live="polite"></div>
+  </div>
+
+  <dialog id="dlg">
+    <form id="f-ct" method="dialog">
+      <h3 id="dlg-titulo">Nuevo contacto</h3>
+      <label>Nombre<input name="nombre" required maxlength="200" autocomplete="off"></label>
+      <label>Número<input name="numero" type="tel" maxlength="60" placeholder="+57 300 123 4567" autocomplete="off"></label>
+      <label>Etiqueta<select name="etiqueta"></select></label>
+      <label>Relación (contexto: quién es, cómo nos conocimos, de qué hablamos…)<textarea name="relacion" maxlength="10000"></textarea></label>
+      <div class="aviso" id="aviso-dlg" role="alert"></div>
+      <div class="acc-dlg">
+        <button class="btn btn-borde" type="button" id="btn-cancelar">Cancelar</button>
+        <button class="btn btn-cian" type="submit" id="btn-guardar">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm";
+    import { CONFIG } from "../config.js";
+
+    const sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+    const $ = (id) => document.getElementById(id);
+    const ETIQUETAS = [
+      { id: "cesar", nombre: "César", color: "#3EE6E0" },
+      { id: "andres", nombre: "Andrés", color: "#FFC23F" },
+      { id: "easyclass", nombre: "EasyClass", color: "#A78BFA" },
+      { id: "antiguo", nombre: "Antiguo", color: "#8FA3AD" },
+    ];
+    const ETI = Object.fromEntries(ETIQUETAS.map((e) => [e.id, e]));
+    let contactos = [], filtro = "", editando = null, iniciado = false;
+
+    function el(tag, attrs = {}, ...hijos) {
+      const n = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (v == null) continue;
+        if (k.startsWith("on")) n[k] = v; else if (k === "style") n.style.cssText = v; else n.setAttribute(k, v);
+      }
+      for (const h of hijos.flat()) if (h != null) n.append(h);
+      return n;
+    }
+    const vista = (v) => ["acceso", "denegado", "app"].forEach((x) => ($("v-" + x).hidden = x !== v));
+    const sinTildes = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+    $("f-ct").etiqueta.append(...ETIQUETAS.map((e) => el("option", { value: e.id }, e.nombre)));
+
+    /* ── Sesión ── */
+    $("f-acceso").onsubmit = async (e) => {
+      e.preventDefault(); $("btn-entrar").disabled = true; $("aviso").textContent = "";
+      const { error } = await sb.auth.signInWithPassword({ email: $("correo").value.trim(), password: $("clave").value });
+      if (error) $("aviso").textContent = /Invalid login/i.test(error.message) ? "Correo o contraseña incorrectos." : error.message;
+      $("btn-entrar").disabled = false;
+    };
+    $("btn-google").onclick = async () => {
+      const { error } = await sb.auth.signInWithOAuth({ provider: "google",
+        options: { redirectTo: location.origin + location.pathname, queryParams: { prompt: "select_account" } } });
+      if (error) $("aviso").textContent = error.message;
+    };
+    document.querySelectorAll("[data-salir]").forEach((b) => (b.onclick = () => sb.auth.signOut()));
+    sb.auth.onAuthStateChange(async (_ev, s) => {
+      if (!s?.user) { iniciado = false; vista("acceso"); return; }
+      if (iniciado) return;
+      iniciado = true;
+      const { data: ok } = await sb.rpc("es_dueno_contactos");
+      if (!ok) { vista("denegado"); return; }
+      vista("app"); cargar();
+    });
+
+    /* ── Datos ── */
+    async function cargar() {
+      $("lista").replaceChildren(el("div", { class: "vacio" }, "Cargando…"));
+      const { data, error } = await sb.from("contactos").select("*").order("nombre");
+      if (error) { $("lista").replaceChildren(el("div", { class: "vacio" }, "Error: " + error.message)); return; }
+      contactos = data; pintar();
+    }
+
+    function pintar() {
+      const q = sinTildes($("buscar").value.trim());
+      $("total").textContent = `${contactos.length} en total`;
+      $("chips").replaceChildren(
+        el("button", { type: "button", "aria-pressed": String(!filtro), onclick: () => { filtro = ""; pintar(); } }, "Todos", el("small", {}, String(contactos.length))),
+        ...ETIQUETAS.map((e) => el("button", { type: "button", "aria-pressed": String(filtro === e.id), onclick: () => { filtro = filtro === e.id ? "" : e.id; pintar(); } },
+          e.nombre, el("small", {}, String(contactos.filter((c) => c.etiqueta === e.id).length)))));
+      const vis = contactos.filter((c) => (!filtro || c.etiqueta === filtro)
+        && (!q || sinTildes(`${c.nombre} ${c.numero} ${c.relacion}`).includes(q) || (c.numero || "").replace(/\D/g, "").includes(q.replace(/\D/g, "") || "§")));
+      if (!vis.length) {
+        $("lista").replaceChildren(el("div", { class: "vacio" }, contactos.length ? "No hay contactos con ese filtro." : "Aún no tienes contactos. Pulsa «+ Nuevo contacto»."));
+        return;
+      }
+      $("lista").replaceChildren(...vis.map(tarjeta));
+    }
+
+    function tarjeta(c) {
+      const e = ETI[c.etiqueta] || ETIQUETAS[0];
+      const dig = (c.numero || "").replace(/[^\d+]/g, "");
+      const rel = el("p", { class: "rel" }, c.relacion || "Sin contexto todavía.");
+      const acc = el("div", { class: "ct-acc" },
+        el("button", { type: "button", onclick: () => abrir(c) }, "✏️ Editar"),
+        el("button", { type: "button", class: "peligro", onclick: () => borrar(c) }, "🗑 Borrar"));
+      if ((c.relacion || "").length > 380) acc.prepend(el("button", { type: "button", onclick: (ev) => { rel.classList.toggle("abierta"); ev.target.textContent = rel.classList.contains("abierta") ? "Ver menos" : "Ver todo"; } }, "Ver todo"));
+      return el("article", { class: "ct", style: `--c:${e.color}` },
+        el("div", { class: "ct-cab" }, el("b", {}, c.nombre), el("span", { class: "eti" }, e.nombre)),
+        c.numero ? el("div", { class: "num" }, c.numero,
+          el("a", { href: "tel:" + dig }, "📞 Llamar"),
+          el("a", { href: "https://wa.me/" + dig.replace(/^\+/, ""), target: "_blank", rel: "noopener" }, "💬 WhatsApp")) : null,
+        rel, acc);
+    }
+
+    function abrir(c = null) {
+      editando = c;
+      const f = $("f-ct"); f.reset();
+      $("dlg-titulo").textContent = c ? "Editar contacto" : "Nuevo contacto";
+      $("aviso-dlg").textContent = "";
+      if (c) { f.nombre.value = c.nombre; f.numero.value = c.numero || ""; f.etiqueta.value = c.etiqueta; f.relacion.value = c.relacion || ""; }
+      else if (filtro) f.etiqueta.value = filtro;
+      $("dlg").showModal(); f.nombre.focus();
+    }
+
+    $("f-ct").onsubmit = async (ev) => {
+      ev.preventDefault();
+      const f = ev.target;
+      const datos = { nombre: f.nombre.value.trim(), numero: f.numero.value.trim() || null, etiqueta: f.etiqueta.value, relacion: f.relacion.value.trim() || null };
+      if (!datos.nombre) return;
+      $("btn-guardar").disabled = true;
+      const { data, error } = editando
+        ? await sb.from("contactos").update(datos).eq("id", editando.id).select().single()
+        : await sb.from("contactos").insert(datos).select().single();
+      $("btn-guardar").disabled = false;
+      if (error) { $("aviso-dlg").textContent = "No se pudo guardar: " + error.message; return; }
+      contactos = [...contactos.filter((x) => x.id !== data.id), data].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+      $("dlg").close(); pintar();
+    };
+    $("btn-cancelar").onclick = () => $("dlg").close();
+
+    async function borrar(c) {
+      if (!confirm(`¿Borrar a «${c.nombre}»? No se puede deshacer.`)) return;
+      const { error } = await sb.from("contactos").delete().eq("id", c.id);
+      if (error) { alert(error.message); return; }
+      contactos = contactos.filter((x) => x.id !== c.id); pintar();
+    }
+
+    $("btn-nuevo").onclick = () => abrir();
+    $("buscar").oninput = pintar;
+    $("btn-csv").onclick = () => {
+      const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+      const filas = [["Nombre", "Número", "Etiqueta", "Relación"], ...contactos.map((c) => [c.nombre, c.numero, ETI[c.etiqueta]?.nombre, c.relacion])];
+      const blob = new Blob(["﻿" + filas.map((f) => f.map(esc).join(";")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const a = el("a", { href: URL.createObjectURL(blob), download: `contactos_${new Date().toISOString().slice(0, 10)}.csv` });
+      document.body.append(a); a.click(); a.remove();
+    };
+  </script>
+</body>
+</html>
