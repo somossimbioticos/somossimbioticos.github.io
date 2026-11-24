@@ -55,6 +55,7 @@
   </style>
 </head>
 <body>
+  <div id="v-cargando" class="env"><div class="caja"><h1>Contactos</h1><p>Cargando…</p></div></div>
   <!-- Ingreso -->
   <div id="v-acceso" class="env" hidden>
     <form class="caja" id="f-acceso">
@@ -129,7 +130,7 @@
       for (const h of hijos.flat()) if (h != null) n.append(h);
       return n;
     }
-    const vista = (v) => ["acceso", "denegado", "app"].forEach((x) => ($("v-" + x).hidden = x !== v));
+    const vista = (v) => ["cargando", "acceso", "denegado", "app"].forEach((x) => ($("v-" + x).hidden = x !== v));
     const sinTildes = (t) => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
     $("f-ct").etiqueta.append(...ETIQUETAS.map((e) => el("option", { value: e.id }, e.nombre)));
@@ -147,13 +148,19 @@
       if (error) $("aviso").textContent = error.message;
     };
     document.querySelectorAll("[data-salir]").forEach((b) => (b.onclick = () => sb.auth.signOut()));
-    sb.auth.onAuthStateChange(async (_ev, s) => {
+    // Ojo: no se puede esperar (await) otra llamada de Supabase DENTRO de onAuthStateChange: se bloquea.
+    // Por eso la verificación corre aparte con setTimeout.
+    async function entrar() {
+      const { data: ok, error } = await sb.rpc("es_dueno_contactos");
+      if (error) { iniciado = false; vista("acceso"); $("aviso").textContent = "Error: " + error.message; return; }
+      if (!ok) { vista("denegado"); return; }
+      vista("app"); cargar();
+    }
+    sb.auth.onAuthStateChange((_ev, s) => {
       if (!s?.user) { iniciado = false; vista("acceso"); return; }
       if (iniciado) return;
       iniciado = true;
-      const { data: ok } = await sb.rpc("es_dueno_contactos");
-      if (!ok) { vista("denegado"); return; }
-      vista("app"); cargar();
+      setTimeout(entrar, 0);
     });
 
     /* ── Datos ── */
