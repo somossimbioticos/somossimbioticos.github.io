@@ -18,7 +18,33 @@
   --f-titulo: "Big Shoulders Display", "Arial Narrow", sans-serif;
   --f-texto: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, monospace;
+  --texto-2: #C9D6DB;
+  --sobre-cian: #0B0F14;
+  --cian-claro: #8BF5F0;
+  --codigo: #070A0E;
   color-scheme: dark;
+}
+/* ☀️ Modo claro (el oscuro es el predeterminado) */
+:root[data-theme="light"] {
+  --ink: #F2F5F7;
+  --panel: #FFFFFF;
+  --panel-2: #EDF2F5;
+  --linea: #D4DDE3;
+  --brasa: #E5401F;
+  --brasa-suave: rgba(229, 64, 31, .10);
+  --cian: #067F7B;
+  --cian-suave: rgba(6, 127, 123, .10);
+  --cian-claro: #2BB8B2;
+  --ambar: #A86A0C;
+  --papel: #101C25;
+  --mut: #566974;
+  --texto-2: #2B3E4B;
+  --exito: #15803D;
+  --error: #C9311F;
+  --sombra: 0 12px 34px rgba(16, 28, 37, .12);
+  --sobre-cian: #FFFFFF;
+  --codigo: #F3F6F8;
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -50,8 +76,8 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .btn:active { transform: scale(.97); }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 .btn-brasa { background: var(--brasa); color: #fff; }
-.btn-brasa:hover { background: #ff6648; }
-.btn-cian { background: var(--cian); color: var(--ink); }
+.btn-brasa:hover { background: var(--brasa); filter: brightness(1.1); }
+.btn-cian { background: var(--cian); color: var(--sobre-cian); }
 .btn-borde { background: transparent; color: var(--papel); box-shadow: inset 0 0 0 1.5px var(--linea); }
 .btn-borde:hover { box-shadow: inset 0 0 0 1.5px var(--cian); color: var(--cian); }
 

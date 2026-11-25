@@ -6,6 +6,7 @@
   <title>Administración · Simbi</title>
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0B0F14">
+  <script>try{if(localStorage.getItem("simb_tema")==="claro")document.documentElement.dataset.theme="light"}catch(e){}</script>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +42,7 @@
     td .correo { font-weight: 600; } td .nombre { color: var(--mut); font-size: 12.5px; }
     .interruptor { display: inline-flex; background: var(--ink); border-radius: 99px; padding: 3px; border: 1px solid var(--linea); }
     .interruptor button { border: 0; background: none; color: var(--mut); padding: 5px 12px; border-radius: 99px; cursor: pointer; font-weight: 600; font-size: 13px; }
-    .interruptor button.on { background: var(--cian); color: var(--ink); }
+    .interruptor button.on { background: var(--cian); color: var(--sobre-cian); }
     .interruptor button.on.gratis { background: var(--panel-2); color: var(--papel); }
     .celda-prueba { display: flex; align-items: center; gap: 8px; font-size: 12.5px; white-space: nowrap; }
     .celda-prueba .activa { color: var(--cian); } .celda-prueba .vencida { color: var(--error); }

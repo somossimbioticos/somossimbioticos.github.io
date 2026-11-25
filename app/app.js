@@ -9,9 +9,12 @@ const API_LISTA = API && !API.startsWith("PENDIENTE");
 const $ = (id) => document.getElementById(id);
 
 const NIVELES = [
-  { id: "facil", nombre: "Fácil" }, { id: "medio", nombre: "Medio" },
-  { id: "dificil", nombre: "Difícil" }, { id: "complejo", nombre: "Muy complejo" },
+  { id: "facil", nombre: "Fácil", barras: 1, desc: "Rápido · preguntas del día a día" },
+  { id: "medio", nombre: "Medio", barras: 2, desc: "Equilibrado · textos y tareas normales" },
+  { id: "dificil", nombre: "Difícil", barras: 3, desc: "Piensa más · análisis, código, cálculos" },
+  { id: "complejo", nombre: "Muy complejo", barras: 4, desc: "El más potente · proyectos grandes" },
 ];
+const barrasNivel = (n) => el("span", { class: "barras", "aria-hidden": "true" }, [1, 2, 3, 4].map((i) => el("i", { class: i <= n ? "on" : null })));
 const NOMBRE_NIVEL = Object.fromEntries(NIVELES.map((n) => [n.id, n.nombre]));
 // Voces de Google (mismo nombre en Chirp HD y Gemini). Al usuario se le muestra género y tipo de voz.
 const VOCES = [
@@ -214,9 +217,24 @@ function pintarNiveles() {
   const cont = $("niveles"); cont.textContent = "";
   const permitidos = estado?.limites?.niveles || ["facil"];
   if (!permitidos.includes(nivel)) nivel = permitidos[permitidos.length - 1];
-  const sel = $("nivel-sel"); sel.textContent = "";
-  for (const n of NIVELES) sel.append(el("option", { value: n.id, disabled: !permitidos.includes(n.id) ? true : null, selected: n.id === nivel ? true : null },
-    (permitidos.includes(n.id) ? "" : "🔒 ") + n.nombre));
+  const actual = NIVELES.find((n) => n.id === nivel) || NIVELES[0];
+  const btn = $("nivel-btn"); btn.textContent = "";
+  btn.dataset.nivel = actual.id;
+  btn.append(barrasNivel(actual.barras), el("span", { class: "nom" }, actual.nombre), el("span", { class: "flecha" }, "▾"));
+  btn.title = "Nivel de IA: " + actual.nombre + " — " + actual.desc;
+  const menu = $("nivel-menu"); menu.textContent = "";
+  menu.append(el("div", { class: "nm-tit" }, "🧠 Nivel de IA para este mensaje"));
+  for (const n of NIVELES) {
+    const ok = permitidos.includes(n.id);
+    menu.append(el("button", { type: "button", role: "option", class: "nm-op", "aria-selected": String(n.id === nivel), "data-nivel": n.id,
+      onclick: () => {
+        if (!ok) { cerrarMenuNivel(); return abrirPro(`El nivel «${n.nombre}» es parte de la versión Pro.`); }
+        nivel = n.id; pintarNiveles(); cerrarMenuNivel(); $("texto").focus();
+      } },
+      barrasNivel(n.barras),
+      el("span", { class: "nm-txt" }, el("b", {}, n.nombre), el("small", {}, n.desc)),
+      el("span", { class: "nm-fin" }, ok ? (n.id === nivel ? "✓" : "") : "🔒 Pro")));
+  }
   for (const n of NIVELES) {
     const ok = permitidos.includes(n.id);
     cont.append(el("button", { type: "button", role: "radio", "aria-checked": String(n.id === nivel), disabled: !ok,
@@ -225,13 +243,40 @@ function pintarNiveles() {
   }
 }
 
-$("nivel-sel").onchange = (e) => { nivel = e.target.value; pintarNiveles(); };
+function cerrarMenuNivel() { $("nivel-menu").hidden = true; $("nivel-btn").setAttribute("aria-expanded", "false"); }
+$("nivel-btn").onclick = (e) => {
+  e.stopPropagation();
+  const m = $("nivel-menu"), abrir = m.hidden;
+  if (abrir) {                                    // se ubica sobre el botón sin salirse de la pantalla
+    const r = $("nivel-btn").getBoundingClientRect(), angosta = innerWidth < 520;
+    m.style.bottom = (innerHeight - r.top + 8) + "px";
+    m.style.left = angosta ? "12px" : "auto";
+    m.style.right = (angosta ? 12 : Math.max(12, innerWidth - r.right)) + "px";
+  }
+  m.hidden = !abrir; $("nivel-btn").setAttribute("aria-expanded", String(abrir));
+  if (abrir) (m.querySelector('[aria-selected="true"]') || m.querySelector(".nm-op"))?.focus();
+};
+document.addEventListener("click", (e) => { if (!$("nivel-menu").hidden && !e.target.closest(".nivel-pick")) cerrarMenuNivel(); });
+document.addEventListener("keydown", (e) => {
+  const m = $("nivel-menu");
+  if (m.hidden) return;
+  if (e.key === "Escape") { cerrarMenuNivel(); $("nivel-btn").focus(); }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    const ops = [...m.querySelectorAll(".nm-op")], i = ops.indexOf(document.activeElement);
+    ops[(i + (e.key === "ArrowDown" ? 1 : -1) + ops.length) % ops.length].focus();
+  }
+});
 function campoNivel(sugerido) {
   const permitidos = estado?.limites?.niveles || ["facil"];
   const elegido = sugerido && permitidos.includes(sugerido) ? sugerido : nivel;
-  const desc = { facil: " · rápido", medio: " · equilibrado", dificil: " · más inteligente", complejo: " · el más potente" };
-  return el("label", {}, "🧠 Nivel de IA", el("select", { name: "nivel_ia" }, NIVELES.map((n) =>
-    el("option", { value: n.id, disabled: !permitidos.includes(n.id) ? true : null, selected: n.id === elegido ? true : null }, n.nombre + desc[n.id]))));
+  return el("fieldset", { class: "campo-nivel" }, el("legend", {}, "🧠 Nivel de IA"),
+    el("div", { class: "cn-grid" }, NIVELES.map((n) => {
+      const ok = permitidos.includes(n.id);
+      return el("label", { class: "cn-op" + (ok ? "" : " bloq"), title: ok ? n.desc : "Disponible en la versión Pro" },
+        el("input", { type: "radio", name: "nivel_ia", value: n.id, disabled: ok ? null : true, checked: n.id === elegido ? true : null }),
+        barrasNivel(n.barras), el("b", {}, n.nombre), el("small", {}, ok ? n.desc.split(" · ")[0] : "🔒 Pro"));
+    })));
 }
 
 function pintarCupos() {
@@ -422,7 +467,7 @@ function pintarCupoNube() {
   const pct = nube.limite ? Math.min(100, nube.usado / nube.limite * 100) : 0;
   $("nube-uso").textContent = nube.limite ? `${gb(nube.usado)} de ${gb(nube.limite)}` : "No incluido en tu plan";
   $("nube-barra").style.width = pct + "%";
-  $("nube-barra").style.background = pct > 90 ? "#ff8a8a" : "";
+  $("nube-barra").style.background = pct > 90 ? "var(--error)" : "";
   $("nube-resumen").textContent = nube.limite ? `${Math.round(pct)}%` : "";
 }
 async function cargarNube() {
@@ -1652,6 +1697,21 @@ async function abrirRecordatorios() {
       } catch (e) { alert("No se pudo programar: " + e.message); }
     });
 }
+
+/* 🌙/☀️ Tema: oscuro por defecto, claro opcional (se recuerda en este navegador) */
+function pintarTema() {
+  const claro = document.documentElement.dataset.theme === "light";
+  $("btn-tema").textContent = claro ? "🌙 Modo oscuro" : "☀️ Modo claro";
+  $("btn-tema").title = claro ? "Cambiar a modo oscuro" : "Cambiar a modo claro";
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", claro ? "#F2F5F7" : "#0B0F14");
+}
+$("btn-tema").onclick = () => {
+  const claro = document.documentElement.dataset.theme !== "light";
+  if (claro) document.documentElement.dataset.theme = "light"; else delete document.documentElement.dataset.theme;
+  try { localStorage.setItem("simb_tema", claro ? "claro" : "oscuro"); } catch {}
+  pintarTema();
+};
+pintarTema();
 
 /* ⏰ Mis recordatorios: ver, cambiar y cancelar */
 const fechaRec = (c) => new Date(c).toLocaleString("es-CO", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });

@@ -7,6 +7,7 @@
   <meta name="description" content="Simbi, el asistente de IA de Somos Simbióticos.">
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0B0F14">
+  <script>try{if(localStorage.getItem("simb_tema")==="claro")document.documentElement.dataset.theme="light"}catch(e){}</script>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -78,6 +79,7 @@
         <div class="u-info"><span id="u-correo"></span><span id="u-plan" class="insignia"></span></div>
         <div class="u-acc">
           <a id="lnk-admin" href="admin.html" hidden>Administrar</a>
+          <button class="enlace" id="btn-tema" type="button">☀️ Modo claro</button>
           <button class="enlace" id="btn-salir" type="button">Salir</button>
         </div>
       </div>
@@ -109,7 +111,10 @@
           <button type="button" class="btn-adj" id="btn-adjuntar" aria-label="Adjuntar archivos" title="Adjuntar archivos (fotos, PDF, Word, Excel, audio, video…)"><span class="mas">＋</span><span class="txt">Adjuntar</span></button>
           <input type="file" id="archivo" multiple hidden>
           <textarea id="texto" rows="1" placeholder="Escribe tu mensaje…  (Enter envía · Shift+Enter nueva línea)" aria-label="Mensaje"></textarea>
-          <label class="nivel-sel" title="Potencia de la IA para este mensaje"><span>🧠</span><select id="nivel-sel" aria-label="Nivel de IA"></select></label>
+          <div class="nivel-pick">
+            <button type="button" class="nivel-btn" id="nivel-btn" aria-haspopup="listbox" aria-expanded="false" aria-controls="nivel-menu"></button>
+            <div class="nivel-menu" id="nivel-menu" role="listbox" aria-label="Nivel de IA" hidden></div>
+          </div>
           <button class="btn btn-brasa enviar" id="btn-enviar" type="submit" aria-label="Enviar">➤</button>
           <button class="btn btn-borde enviar" id="btn-parar" type="button" aria-label="Detener" hidden>■</button>
         </div>
