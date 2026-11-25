@@ -185,6 +185,10 @@ async function cargarEstado() {
   const plan = estado?.plan || "gratis";
   $("u-plan").textContent = plan === "pro" ? "Pro" : "Gratis";
   $("u-plan").className = "insignia " + plan;
+  $("u-plan").title = plan === "pro" ? "" : "Pasarte a Simbi Pro";
+  $("u-plan").style.cursor = plan === "pro" ? "" : "pointer";
+  $("u-plan").onclick = plan === "pro" ? null : () => abrirPro();
+  if (plan === "gratis") $("u-plan").textContent = "Gratis · ✨ Pro";
   $("lnk-admin").hidden = estado?.rol !== "admin";
   $("btn-adjuntar").disabled = !esPro();
   pintarAtajos(); contar();
@@ -198,6 +202,7 @@ async function iniciarApp() {
   await cargarEstado();
   await cargarConversaciones();
   cargarTelegram();
+  if (estado?.sin_prueba) abrirCodigo();
   const ultima = leer("simb_conv_" + usuario.id);
   if (ultima && conversaciones.some((c) => c.id === ultima)) abrirConversacion(ultima); else nuevaConversacion();
   cargarMusica();
@@ -250,13 +255,64 @@ function textoPrueba() {
   const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
   return `Día de prueba: te quedan ${h ? h + " h " : ""}${m} min`;
 }
+const sinPrueba = () => !!estado?.sin_prueba;
 function pintarPrueba() {
-  const t = textoPrueba(), caja = $("prueba"), nota = $("limites-prueba");
+  const caja = $("prueba"), nota = $("limites-prueba");
+  const t = sinPrueba() ? "🎁 Activa tu día gratis con un código" : textoPrueba();
   caja.hidden = nota.hidden = !t;
   caja.textContent = nota.textContent = t;
+  if (pruebaVencida()) caja.textContent += estado?.puede_canjear ? " · Toca aquí si tienes un código" : " · Toca aquí para pasarte a Pro";
   caja.classList.toggle("vencida", pruebaVencida());
-  const env = $("btn-enviar"); if (env) env.disabled = pruebaVencida();
+  caja.classList.toggle("codigo", sinPrueba());
+  caja.style.cursor = sinPrueba() || pruebaVencida() ? "pointer" : "";
 }
+$("prueba").onclick = () => {
+  if (sinPrueba() || (pruebaVencida() && estado?.puede_canjear)) abrirCodigo();
+  else if (pruebaVencida()) abrirPro("Tu día de prueba terminó.");
+};
+
+/* 🎁 Código de prueba (ej. SOMOS2026) */
+function abrirCodigo(msg = "") {
+  $("codigo-msg").textContent = msg; $("codigo-txt").value = "";
+  $("dlg-codigo").showModal(); $("codigo-txt").focus();
+}
+$("form-codigo").addEventListener("submit", async (e) => {
+  if (e.submitter?.value !== "ok") return;
+  e.preventDefault();
+  const codigo = $("codigo-txt").value.trim();
+  if (!codigo) return;
+  $("codigo-ok").disabled = true; $("codigo-msg").textContent = "Verificando…";
+  const { data, error } = await sb.rpc("canjear_codigo", { p_codigo: codigo });
+  $("codigo-ok").disabled = false;
+  if (error || data?.error) { $("codigo-msg").textContent = "⚠️ " + (data?.error || "No se pudo verificar. Intenta de nuevo."); return; }
+  await cargarEstado();
+  $("dlg-codigo").close();
+  alert("🎉 ¡Listo! Tu día gratis de Simbi empezó. Tienes 24 horas de chat.");
+});
+
+/* ✨ Pasar a Pro: correo + WhatsApp */
+const CORREO_PRO = "somossimbioticos@gmail.com";
+let motivoPro = "";
+function abrirPro(motivo = "") {
+  motivoPro = String(motivo || "").slice(0, 200);
+  $("pro-motivo").textContent = (motivo ? motivo.replace(/\.?$/, ". ") : "") + "Con Simbi Pro desbloqueas todo:";
+  $("pro-mail").href = `mailto:${CORREO_PRO}?subject=${encodeURIComponent("Quiero Simbi Pro")}&body=${encodeURIComponent(
+    `Hola, quiero actualizar a Simbi Pro.\nMi cuenta: ${usuario?.email || ""}\nMi WhatsApp: `)}`;
+  $("pro-msg").textContent = ""; $("pro-ok").disabled = false;
+  if (!$("dlg-pro").open) $("dlg-pro").showModal();
+}
+$("form-pro").addEventListener("submit", async (e) => {
+  if (e.submitter?.value !== "ok") return;
+  e.preventDefault();
+  const wa = $("pro-wa").value.trim();
+  if (wa.replace(/\D/g, "").length < 7) { $("pro-msg").textContent = "Escribe tu número de WhatsApp con indicativo (ej. +57 300 123 4567)."; $("pro-wa").focus(); return; }
+  $("pro-ok").disabled = true; $("pro-msg").textContent = "Enviando…";
+  try {
+    await apiNube("/pro/interes", { method: "POST", body: JSON.stringify({ whatsapp: wa, motivo: motivoPro }) });
+    $("pro-msg").textContent = "✅ ¡Gracias! Te escribiremos por WhatsApp muy pronto. También puedes escribirnos a " + CORREO_PRO + ".";
+    setTimeout(() => $("dlg-pro").open && $("dlg-pro").close(), 4500);
+  } catch (err) { $("pro-msg").textContent = "⚠️ " + err.message; $("pro-ok").disabled = false; }
+});
 setInterval(() => { if (estado?.prueba_termina) pintarPrueba(); }, 30000);
 $("btn-limites").onclick = () => { pintarCupos(); $("dlg-limites").showModal(); };
 
@@ -406,7 +462,8 @@ function pintarNube() {
   const g = $("nube-galeria"); g.textContent = "";
   if (!lista.length) {
     g.append(el("div", { class: "vacio" }, nube.limite ? "Tu nube está vacía. Sube fotos, videos o documentos para guardarlos aquí."
-      : "«Mi nube» está disponible en la versión Pro (5 GB).")); return;
+      : "«Mi nube» está disponible en la versión Pro (5 GB).",
+      nube.limite ? null : el("div", {}, el("button", { type: "button", class: "btn btn-brasa btn-pro", onclick: () => abrirPro("«Mi nube» es parte de la versión Pro.") }, "✨ Quiero Pro")))); return;
   }
   const tarjetas = lista.map((a) => {
     const vista = el("div", { class: "vista" }, iconoArch(a.mime));
@@ -824,7 +881,8 @@ function tarjetaArchivo(a) {
 async function enviar({ mensaje = "", accion = null, params = {} } = {}) {
   if (ocupado) return;
   if (!API_LISTA) { alert("Simbi se está terminando de instalar. Intenta de nuevo pronto."); return; }
-  if (pruebaVencida()) { pintarPrueba(); $("dlg-limites").showModal(); return; }
+  if (sinPrueba()) { abrirCodigo(); return; }
+  if (pruebaVencida()) { pintarPrueba(); estado?.puede_canjear ? abrirCodigo("Tu día de prueba terminó. Si tienes otro código, escríbelo aquí.") : abrirPro("Tu día de prueba terminó."); return; }
   if (adjuntos.some((a) => a.subiendo)) { alert("Espera a que terminen de subir los archivos."); return; }
   const adj = adjuntos.map(({ ruta, nombre, mime, bytes }) => ({ ruta, nombre, mime, bytes }));
   if (!mensaje.trim() && !accion && !adj.length) return;
@@ -881,7 +939,7 @@ function manejar(ev, v) {
     case "herramienta": v.evento(ev); break;
     case "progreso": v.progreso(ev.msg); break;
     case "archivo": v.archivo(ev); break;
-    case "error": v.error(ev.msg); break;
+    case "error": v.error(ev.msg); if (ev.pro) abrirPro(ev.motivo ? `Quisiste usar: ${ev.motivo}.` : ""); if (ev.codigo) abrirCodigo(); break;
     case "fin":
       v.pintar(true); v.pie(ev.nivel, ev.tokens, ev.modelo);
       if (ev.estado) { estado = ev.estado; pintarCupos(); contar(); }
@@ -927,7 +985,7 @@ function sugerir() {
 }
 
 /* ───────── Adjuntos ───────── */
-$("btn-adjuntar").onclick = () => { if (!esPro()) return alert("Subir archivos es parte de la versión Pro."); $("archivo").accept = ""; $("archivo").click(); };
+$("btn-adjuntar").onclick = () => { if (!esPro()) return abrirPro("Subir archivos es parte de la versión Pro."); $("archivo").accept = ""; $("archivo").click(); };
 $("archivo").onchange = async (e) => { await subirArchivos([...e.target.files]); e.target.value = ""; };
 document.addEventListener("dragover", (e) => { if (esPro()) e.preventDefault(); });
 document.addEventListener("drop", (e) => { if (!esPro() || !e.dataTransfer?.files?.length) return; e.preventDefault(); subirArchivos([...e.dataTransfer.files]); });
@@ -1012,7 +1070,7 @@ function pintarAtajos() {
   const c = $("atajos"); c.textContent = "";
   for (const a of ATAJOS) {
     const bloqueado = a.pro && !esPro();
-    c.append(el("button", { type: "button", class: "atajo" + (bloqueado ? " bloqueado" : ""), onclick: () => bloqueado ? alert("Esta función es parte de la versión Pro. Pídela al administrador.") : abrirAtajo(a.id) },
+    c.append(el("button", { type: "button", class: "atajo" + (bloqueado ? " bloqueado" : ""), onclick: () => bloqueado ? abrirPro(`«${a.nombre || a.titulo || "Esta función"}» es parte de la versión Pro.`) : abrirAtajo(a.id) },
       el("b", {}, `${a.ico} ${a.titulo}`), el("small", {}, a.desc), bloqueado ? el("span", { class: "bloq" }, "PRO") : null));
   }
 }
@@ -1120,7 +1178,7 @@ async function abrirAtajo(id, conAdjunta = false) {
         const tema = f.get("tema")?.trim();
         if (!tema && !adjuntos.length) return;
         const salida = f.get("salida");
-        if (salida !== "chat" && !esPro()) return alert("El PDF y el Excel son de la versión Pro. Elige «En el chat».");
+        if (salida !== "chat" && !esPro()) return abrirPro("El PDF y el Excel son de la versión Pro.");
         const n = Math.min(40, Math.max(3, +f.get("n") || 10));
         const que = { quiz: `un quiz de ${n} preguntas de opción múltiple (4 opciones, una correcta) con la clave de respuestas y una explicación breve de cada una AL FINAL`,
           tarjetas: `${n} tarjetas de estudio (pregunta → respuesta corta)`,

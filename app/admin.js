@@ -27,8 +27,9 @@ async function iniciar() {
 }
 
 async function pintar() {
-  const [{ data: res }, { data: us, error }, { data: planes }, { data: sugs }] = await Promise.all([
+  const [{ data: res }, { data: us, error }, { data: planes }, { data: sugs }, { data: intz }, avisos] = await Promise.all([
     sb.rpc("admin_resumen"), sb.rpc("admin_usuarios"), sb.from("planes").select("*").order("plan"), sb.rpc("admin_sugerencias"),
+    sb.rpc("admin_interesados"), api("/admin/avisos").catch((e) => ({ error: e.message })),
   ]);
   if (error) { raiz.replaceChildren(el("p", { class: "aviso" }, error.message)); return; }
   usuarios = us || [];
@@ -50,6 +51,10 @@ async function pintar() {
   raiz.replaceChildren(
     kpis,
     modelos ? el("p", { class: "mono" }, "Modelos usados esta semana (tokens) — " + modelos) : null,
+    el("h2", {}, `Quieren Pro (${(intz || []).filter((x) => !x.atendido).length} por atender)`),
+    seccionInteresados(intz || []),
+    el("h2", {}, `Avisos por Telegram (${avisos?.conectados ?? 0} conectados)`),
+    seccionAvisos(avisos),
     el("h2", {}, `Sugerencias (${(sugs || []).filter((x) => x.estado === "nueva").length} nuevas)`),
     seccionSugerencias(sugs || []),
     el("h2", {}, "Usuarios"),
@@ -167,4 +172,66 @@ function seccionSugerencias(lista) {
   };
   filtro.onchange = pintarS; pintarS();
   return el("div", {}, el("div", { class: "herr" }, filtro), cont);
+}
+
+
+/* ───── API del servidor (avisos) ───── */
+async function api(ruta, opciones = {}) {
+  const { data: s } = await sb.auth.getSession();
+  const r = await fetch(CONFIG.API_URL + ruta, { ...opciones, headers: { Authorization: "Bearer " + s.session?.access_token,
+    ...(opciones.body ? { "Content-Type": "application/json" } : {}) } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.detail || `Error ${r.status}`);
+  return j;
+}
+const fechaCO = (f) => new Date(f).toLocaleString("es-CO", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+
+/* ───── 💰 Interesados en Pro (dejaron su WhatsApp) ───── */
+function seccionInteresados(lista) {
+  if (!lista.length) return el("p", { class: "mono" }, "Aún nadie ha pedido Pro desde la app.");
+  return el("div", { class: "tabla" }, el("table", {},
+    el("thead", {}, el("tr", {}, ["Fecha", "Correo", "WhatsApp", "Quería usar", "Atendido"].map((t) => el("th", {}, t)))),
+    el("tbody", {}, lista.map((x) => {
+      const num = String(x.whatsapp || "").replace(/[^\d]/g, "");
+      const chk = el("input", { type: "checkbox", ...(x.atendido ? { checked: "" } : {}) });
+      chk.onchange = async () => {
+        const { error } = await sb.rpc("admin_atender_interesado", { p_id: x.id, p_atendido: chk.checked });
+        if (error) { alert(error.message); chk.checked = !chk.checked; }
+      };
+      return el("tr", {}, el("td", { class: "num" }, fechaCO(x.creado)), el("td", {}, x.correo || "—"),
+        el("td", {}, el("a", { href: `https://wa.me/${num}?text=${encodeURIComponent("Hola 👋, te escribo de Somos Simbióticos por tu solicitud de Simbi Pro.")}`, target: "_blank", rel: "noopener" }, "💬 " + x.whatsapp)),
+        el("td", {}, x.motivo || "—"), el("td", {}, chk));
+    }))));
+}
+
+/* ───── 📣 Avisos por Telegram a todos los conectados ───── */
+function seccionAvisos(datos) {
+  if (datos?.error) return el("p", { class: "aviso" }, "No se pudo cargar: " + datos.error);
+  const texto = el("textarea", { rows: "4", maxlength: "3500", placeholder: "Mensaje para todos los que conectaron Telegram… (puedes usar <b>negrita</b>)", style: "width:100%;background:var(--ink);border:1px solid var(--linea);border-radius:12px;padding:10px 14px;color:var(--papel)" });
+  const cuando = el("input", { type: "datetime-local", title: "Vacío = enviar ahora (hora de Colombia)" });
+  const ok = el("span", { class: "ok" });
+  const boton = el("button", { type: "button", class: "btn btn-brasa" }, "Enviar / programar");
+  boton.onclick = async () => {
+    if (!texto.value.trim()) return;
+    if (!confirm(cuando.value ? "¿Programar este aviso?" : `¿Enviar AHORA a ${datos.conectados} personas?`)) return;
+    boton.disabled = true;
+    try {
+      const r = await api("/admin/avisos", { method: "POST", body: JSON.stringify({ texto: texto.value, cuando: cuando.value ? cuando.value.replace("T", " ") : null }) });
+      ok.textContent = "✓ " + (cuando.value ? "Programado para el " + r.cuando : "Enviado"); texto.value = ""; cuando.value = "";
+      setTimeout(pintar, 1500);
+    } catch (e) { alert(e.message); } finally { boton.disabled = false; }
+  };
+  const filas = (datos?.avisos || []).map((a) => el("tr", {},
+    el("td", { class: "num" }, fechaCO(a.cuando)),
+    el("td", { style: "white-space:normal;max-width:520px" }, a.texto.replace(/<[^>]+>/g, "").slice(0, 180)),
+    el("td", {}, a.enviado ? (a.resultado || "enviado") : "⏳ pendiente"),
+    el("td", {}, a.enviado ? "" : el("button", { type: "button", class: "btn-mini", onclick: async () => {
+      if (!confirm("¿Cancelar este aviso?")) return;
+      try { await api("/admin/avisos/" + a.id, { method: "DELETE" }); pintar(); } catch (e) { alert(e.message); }
+    } }, "Cancelar"))));
+  return el("div", {},
+    el("p", { class: "mono" }, "Les llega a quienes tocaron «📲 Avisos» en Simbi. Deja la fecha vacía para enviarlo ya (hora de Colombia)."),
+    texto, el("div", { class: "herr", style: "margin-top:10px;align-items:center" }, cuando, boton, ok),
+    filas.length ? el("div", { class: "tabla" }, el("table", {},
+      el("thead", {}, el("tr", {}, ["Cuándo", "Mensaje", "Estado", ""].map((t) => el("th", {}, t)))), el("tbody", {}, filas))) : null);
 }

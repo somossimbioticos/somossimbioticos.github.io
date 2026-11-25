@@ -191,6 +191,38 @@
     </form>
   </dialog>
 
+  <dialog id="dlg-codigo" class="dlg">
+    <form method="dialog" id="form-codigo">
+      <h3>🎁 Activa tu día gratis</h3>
+      <p class="nota">Escribe tu código de prueba (por ejemplo, el que te dieron en la clase). Tendrás 24 horas de chat con Simbi.</p>
+      <label>Código<input id="codigo-txt" type="text" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" required placeholder="Ej. SOMOS2026"></label>
+      <p id="codigo-msg" class="nota" role="status"></p>
+      <div class="dlg-acc">
+        <button class="btn btn-borde" value="cancelar" type="submit" formnovalidate>Cerrar</button>
+        <button class="btn btn-brasa" value="ok" type="submit" id="codigo-ok">Activar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-pro" class="dlg">
+    <form method="dialog" id="form-pro">
+      <h3>✨ Simbi Pro</h3>
+      <p class="nota" id="pro-motivo"></p>
+      <ul class="pro-lista">
+        <li>🎨 Imágenes y 🎬 videos con IA</li><li>📄 PDF, Word, Excel y PowerPoint</li>
+        <li>🎵 Música y videos de YouTube</li><li>🔊 Texto a voz y 📝 transcripciones</li>
+        <li>☁️ 5 GB en «Mi nube» y ⏰ avisos por Telegram</li>
+      </ul>
+      <p class="pro-correo">Para actualizar escríbenos a<br><a id="pro-mail" href="mailto:somossimbioticos@gmail.com">somossimbioticos@gmail.com</a></p>
+      <label>Tu WhatsApp (te contactamos para activarlo)<input id="pro-wa" type="tel" inputmode="tel" maxlength="25" autocomplete="tel" placeholder="+57 300 123 4567"></label>
+      <p id="pro-msg" class="nota" role="status"></p>
+      <div class="dlg-acc">
+        <button class="btn btn-borde" value="cancelar" type="submit" formnovalidate>Ahora no</button>
+        <button class="btn btn-brasa" value="ok" type="submit" id="pro-ok">Quiero Pro</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="dlg-clave" class="dlg">
     <form method="dialog" id="form-clave">
       <h3>Nueva contraseña</h3>
