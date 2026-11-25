@@ -53,7 +53,7 @@ async function pintar() {
     modelos ? el("p", { class: "mono" }, "Modelos usados esta semana (tokens) — " + modelos) : null,
     el("h2", {}, `Quieren Pro (${(intz || []).filter((x) => !x.atendido).length} por atender)`),
     seccionInteresados(intz || []),
-    el("h2", {}, `Avisos por Telegram (${avisos?.conectados ?? 0} conectados)`),
+    el("h2", { id: "avisos" }, `Avisos por Telegram (${avisos?.conectados ?? 0} conectados)`),
     seccionAvisos(avisos),
     el("h2", {}, `Sugerencias (${(sugs || []).filter((x) => x.estado === "nueva").length} nuevas)`),
     seccionSugerencias(sugs || []),
@@ -230,7 +230,7 @@ function seccionAvisos(datos) {
       try { await api("/admin/avisos/" + a.id, { method: "DELETE" }); pintar(); } catch (e) { alert(e.message); }
     } }, "Cancelar"))));
   return el("div", {},
-    el("p", { class: "mono" }, "Les llega a quienes tocaron «📲 Avisos» en Simbi. Deja la fecha vacía para enviarlo ya (hora de Colombia)."),
+    el("p", { class: "mono" }, "Les llega a quienes conectaron Telegram en Simbi (⏰ Recordatorios). Deja la fecha vacía para enviarlo ya (hora de Colombia)."),
     texto, el("div", { class: "herr", style: "margin-top:10px;align-items:center" }, cuando, boton, ok),
     filas.length ? el("div", { class: "tabla" }, el("table", {},
       el("thead", {}, el("tr", {}, ["Cuándo", "Mensaje", "Estado", ""].map((t) => el("th", {}, t)))), el("tbody", {}, filas))) : null);

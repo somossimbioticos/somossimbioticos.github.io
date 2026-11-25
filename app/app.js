@@ -195,6 +195,7 @@ async function cargarEstado() {
   $("u-plan").onclick = plan === "pro" ? null : () => abrirPro();
   if (plan === "gratis") $("u-plan").textContent = "Gratis · ✨ Pro";
   $("lnk-admin").hidden = estado?.rol !== "admin";
+  $("btn-avisos-admin").hidden = estado?.rol !== "admin";
   $("btn-adjuntar").disabled = !esPro();
   pintarAtajos(); contar();
 }
@@ -429,28 +430,25 @@ async function bajarRuta(ruta, nombre) {
 /* ───────── 📲 Avisos por Telegram (@SimbiAlertasBot) ───────── */
 const tg = { conectado: false, usuario: "" };
 async function cargarTelegram() {
-  try {
-    Object.assign(tg, await apiNube("/telegram"));
-    $("telegram-estado").textContent = tg.conectado ? "✓" : "";
-    $("btn-telegram").title = tg.conectado ? `Conectado${tg.usuario ? " como " + tg.usuario : ""} · toca para desconectar`
-                                           : "Recibe avisos de Simbi en Telegram";
-  } catch { /* sin conexión: el botón sigue disponible */ }
+  try { Object.assign(tg, await apiNube("/telegram")); } catch { /* sin conexión */ }
+  return tg;
 }
-$("btn-telegram").onclick = async () => {
+async function conectarTelegram() {
+  const ventana = window.open("about:blank", "_blank");   // se abre ya para que el navegador no la bloquee
   try {
-    if (tg.conectado) {
-      if (!confirm(`Telegram está conectado${tg.usuario ? " (" + tg.usuario + ")" : ""}.\n¿Quieres desconectarlo y dejar de recibir avisos?`)) return;
-      await apiNube("/telegram", { method: "DELETE" });
-    } else {
-      const ventana = window.open("about:blank", "_blank");   // se abre ya para que el navegador no la bloquee
-      const { url } = await apiNube("/telegram/vincular", { method: "POST" });
-      if (ventana) ventana.location = url; else location.href = url;
-      alert("En Telegram toca «Iniciar» y listo: te avisaré cuando tus descargas y archivos estén listos.");
-    }
-  } catch (e) { alert("No se pudo: " + e.message); }
-  cargarTelegram();
-};
-window.addEventListener("focus", () => { if (!tg.conectado) cargarTelegram(); });
+    const { url } = await apiNube("/telegram/vincular", { method: "POST" });
+    if (ventana) ventana.location = url; else location.href = url;
+  } catch (e) { ventana?.close(); alert("No se pudo: " + e.message); }
+}
+async function desconectarTelegram() {
+  if (!confirm(`¿Desconectar Telegram${tg.usuario ? " (" + tg.usuario + ")" : ""}? Dejarás de recibir recordatorios y avisos.`)) return false;
+  try { await apiNube("/telegram", { method: "DELETE" }); tg.conectado = false; return true; } catch (e) { alert(e.message); return false; }
+}
+window.addEventListener("focus", async () => {                // al volver de Telegram, se actualiza solo
+  if (tg.conectado) return;
+  await cargarTelegram();
+  if (tg.conectado && $("dlg-recs").open) abrirMisRecordatorios();
+});
 
 /* ───────── ☁️ Mi nube: TODO en un solo lugar (Google Cloud Storage), con carpetas ───────── */
 const nube = { lista: [], carpetas: [], usado: 0, limite: 0, filtro: "todos", carpeta: "", q: "", mostrar: 60, urls: new Map() };
@@ -1660,8 +1658,7 @@ async function abrirRecordatorios() {
   let datos;
   try { datos = await apiNube("/recordatorios"); } catch (e) { return alert(e.message); }
   if (!datos.telegram) {
-    if (confirm("Para recibir recordatorios primero conecta Telegram (solo una vez).\n\n¿Conectarlo ahora?")) $("btn-telegram").click();
-    return;
+    return abrirMisRecordatorios();
   }
   const dosDig = (n) => String(n).padStart(2, "0");
   const fechaLocal = (d) => `${d.getFullYear()}-${dosDig(d.getMonth() + 1)}-${dosDig(d.getDate())}`;
@@ -1731,8 +1728,27 @@ async function abrirMisRecordatorios() {
   c.textContent = "";
   if (!d) { c.append(el("div", { class: "vacio" }, "No se pudieron cargar. Intenta de nuevo.")); return; }
   const nuevo = el("button", { type: "button", class: "btn btn-brasa btn-chico", onclick: () => { dlg.close(); abrirRecordatorios(); } }, "＋ Nuevo recordatorio");
-  if (!d.telegram) c.append(el("div", { class: "aviso-rec" }, "📲 Para que te lleguen, conecta Telegram (solo una vez). ",
-    el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: () => { dlg.close(); $("btn-telegram").click(); } }, "Conectar Telegram")));
+  Object.assign(tg, { conectado: d.telegram });
+  if (!d.telegram) {
+    c.append(el("div", { class: "tg-caja" },
+      el("div", { class: "tg-cab" }, el("span", { class: "tg-ico" }, "✈️"), el("div", {}, el("b", {}, "Conecta Telegram para recibir tus recordatorios"),
+        el("small", {}, "Solo una vez. Te llegarán por el bot @SimbiAlertasBot."))),
+      el("ol", { class: "tg-pasos" },
+        el("li", {}, "Toca ", el("b", {}, "Unirme al bot"), ": se abre Telegram."),
+        el("li", {}, "En Telegram toca ", el("b", {}, "Iniciar"), " (o envía /start)."),
+        el("li", {}, "Vuelve aquí: verás ", el("b", {}, "✅ Conectado"), ".")),
+      el("div", { class: "tg-acc" },
+        el("button", { type: "button", class: "btn btn-cian btn-chico", onclick: conectarTelegram }, "✈️ Unirme al bot"),
+        el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: () => abrirMisRecordatorios() }, "Ya lo hice ↻"))));
+  } else {
+    await cargarTelegram();
+    c.append(el("div", { class: "tg-caja ok" },
+      el("div", { class: "tg-cab" }, el("span", { class: "tg-ico" }, "✅"), el("div", {}, el("b", {}, "Telegram conectado" + (tg.usuario ? " · " + tg.usuario : "")),
+        el("small", {}, "Aquí te llegan tus recordatorios, el aviso cuando Simbi termina algo largo y los datos de tus webs."))),
+      el("div", { class: "tg-acc" },
+        el("a", { class: "btn btn-borde btn-chico", href: "https://t.me/SimbiAlertasBot", target: "_blank", rel: "noopener" }, "Abrir el bot"),
+        el("button", { type: "button", class: "enlace", onclick: async () => { if (await desconectarTelegram()) abrirMisRecordatorios(); } }, "Desconectar"))));
+  }
   const pend = (d.lista || []).filter((r) => !r.enviado).sort((a, b) => new Date(a.cuando) - new Date(b.cuando));
   const env = (d.lista || []).filter((r) => r.enviado);
   c.append(el("div", { class: "recs-cab" }, el("b", {}, pend.length ? `Pendientes (${pend.length})` : "No tienes recordatorios pendientes"), esPro() ? nuevo : null));

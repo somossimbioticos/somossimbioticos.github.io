@@ -447,3 +447,13 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 
 #btn-tema { color: var(--mut); }
 #btn-tema:hover { color: var(--cian); }
+
+/* ✈️ Conexión con Telegram dentro de ⏰ Recordatorios */
+.tg-caja { display: grid; gap: 10px; padding: 14px; border-radius: 14px; border: 1px solid var(--cian); background: var(--cian-suave); }
+.tg-caja.ok { border-color: var(--linea); background: var(--panel-2); padding: 10px 12px; }
+.tg-cab { display: flex; gap: 10px; align-items: center; }
+.tg-cab div { display: grid; gap: 2px; } .tg-cab small { color: var(--mut); font-size: 12.5px; }
+.tg-ico { font-size: 22px; flex: none; }
+.tg-pasos { margin: 0; padding-left: 22px; display: grid; gap: 4px; font-size: 13.5px; }
+.tg-acc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+a.btn-herr { text-decoration: none; color: inherit; }
