@@ -1025,12 +1025,76 @@ async function cargarWebsN() {
   try { const d = await apiNube("/sitios"); $("webs-n").textContent = d.sitios.length ? String(d.sitios.length) : ""; return d.sitios; }
   catch { return []; }
 }
+/* 🔌 Conexiones propias: GitHub (publicar en tu usuario.github.io) y Supabase (base de datos de tus webs) */
+function cajaConexiones(cx, alCambiar) {
+  const caja = el("div", { class: "conexiones" });
+  const guardarToken = async (servicio, input, boton) => {
+    const token = input.value.trim(); if (!token) return input.focus();
+    boton.disabled = true; boton.textContent = "Verificando…";
+    try { await apiNube("/conexiones/" + servicio, { method: "POST", body: JSON.stringify({ token }) }); input.value = ""; alCambiar(); }
+    catch (e) { alert(e.message); boton.disabled = false; boton.textContent = "Guardar"; }
+  };
+  const desconectar = async (servicio) => {
+    if (!confirm("¿Desconectar? El token se borra de Simbi. (Tus webs ya publicadas siguen funcionando.)")) return;
+    try { await apiNube("/conexiones/" + servicio, { method: "DELETE" }); alCambiar(); } catch (e) { alert(e.message); }
+  };
+  const formulario = (servicio, ph, ayuda) => {
+    const input = el("input", { type: "password", autocomplete: "off", spellcheck: "false", placeholder: ph });
+    const boton = el("button", { type: "button", class: "btn btn-brasa btn-chico" }, "Guardar");
+    boton.onclick = () => guardarToken(servicio, input, boton);
+    input.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); boton.click(); } };
+    return [el("div", { class: "con-fila" }, input, boton), el("details", {}, el("summary", {}, "¿Cómo lo consigo?"), el("ol", {}, ayuda.map((x) => el("li", {}, ...x))))];
+  };
+  const enlace = (href, t) => el("a", { href, target: "_blank", rel: "noopener" }, t);
+  // GitHub
+  const g = cx.github;
+  caja.append(el("div", { class: "con-tarj" + (g.conectado ? " ok" : "") },
+    el("b", {}, "🐙 GitHub · dónde se publica tu web"),
+    g.conectado
+      ? [el("span", {}, "✅ Conectado como ", el("b", {}, "@" + g.login), ` (token …${g.pista}). Tus webs quedan en `, enlace(g.sitio, g.sitio + "nombre-de-la-web/")),
+         el("div", { class: "con-fila" }, el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: () => desconectar("github") }, "Desconectar"))]
+      : [el("span", { class: "nota" }, "Sin conectar: tus webs se publican en Google Cloud (storage.googleapis.com/…). Con GitHub quedan en ", el("b", {}, "tuusuario.github.io/nombre-de-la-web/"), "."),
+         ...formulario("github", "ghp_… o github_pat_…", [
+           ["Entra a ", enlace("https://github.com/settings/tokens/new?description=Simbi&scopes=public_repo", "github.com/settings/tokens/new"), " (ya viene configurado)."],
+           ["Deja marcado ", el("b", {}, "public_repo"), ", elige la expiración y toca ", el("b", {}, "Generate token"), "."],
+           ["Copia el token (empieza por ghp_) y pégalo aquí."]])]));
+  // Supabase
+  const b = cx.supabase;
+  const selProy = b.conectado && b.proyectos.length ? el("select", {}, el("option", { value: "" }, "Elige el proyecto…"),
+    b.proyectos.map((p) => el("option", { value: p.ref, selected: p.ref === b.ref ? true : null }, `${p.nombre} (${p.region || ""})`))) : null;
+  if (selProy) selProy.onchange = async () => {
+    if (!selProy.value) return;
+    try { await apiNube("/conexiones/supabase/proyecto", { method: "POST", body: JSON.stringify({ ref: selProy.value }) }); alCambiar(); } catch (e) { alert(e.message); }
+  };
+  caja.append(el("div", { class: "con-tarj" + (b.conectado && b.ref ? " ok" : "") },
+    el("b", {}, "🗄️ Supabase · base de datos de tus webs (formularios, registros, pedidos…)"),
+    b.conectado
+      ? [el("span", {}, b.ref ? `✅ Conectado (token …${b.pista}). Los datos se guardan en tu proyecto «${b.proyecto}».` : `⚠️ Token guardado (…${b.pista}). Elige el proyecto donde se crearán las tablas:`),
+         el("div", { class: "con-fila" }, selProy,
+           b.proyectos.length < 2 ? el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: async (e) => {
+             if (!confirm("¿Crear un proyecto nuevo «simbi-webs» en tu cuenta de Supabase (plan gratis)?")) return;
+             e.target.disabled = true;
+             try { const r = await apiNube("/conexiones/supabase/crear", { method: "POST" }); alert(r.nota); alCambiar(); } catch (er) { alert(er.message); e.target.disabled = false; }
+           } }, "＋ Crear proyecto simbi-webs") : null,
+           el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: () => desconectar("supabase") }, "Desconectar"))]
+      : [el("span", { class: "nota" }, "Necesario solo si tu web guarda información. Cada web tiene sus propias tablas en TU Supabase."),
+         ...formulario("supabase", "sbp_…", [
+           ["Entra a ", enlace("https://supabase.com/dashboard/account/tokens", "supabase.com/dashboard/account/tokens"), " (crea tu cuenta gratis si no tienes)."],
+           ["Toca ", el("b", {}, "Generate new token"), ", ponle de nombre Simbi y cópialo (empieza por sbp_)."],
+           ["Pégalo aquí y elige el proyecto (o crea uno con un clic)."]])]));
+  caja.append(el("small", { class: "nota" }, "🔒 Tus tokens se guardan cifrados (AES-256, con la llave en Google Secret Manager) y nunca se vuelven a mostrar. Puedes desconectarlos cuando quieras."));
+  return caja;
+}
+
 async function abrirWebs() {
   const dlg = $("dlg-webs"), c = $("webs-cont");
   if (!dlg.open) dlg.showModal();
   c.textContent = ""; c.append(el("div", { class: "vacio" }, "Cargando…"));
-  const lista = await cargarWebsN();
+  const [lista, cx] = await Promise.all([cargarWebsN(), apiNube("/conexiones").catch(() => null)]);
   c.textContent = "";
+  if (cx && esPro()) c.append(el("details", { class: "con-det", open: !(cx.github.conectado && cx.supabase.ref) ? true : null },
+    el("summary", {}, "🔌 Conexiones: ", cx.github.conectado ? "GitHub ✅" : "GitHub —", " · ", cx.supabase.ref ? "Supabase ✅" : "Supabase —"),
+    cajaConexiones(cx, abrirWebs)));
   if (!lista.length) {
     c.append(el("div", { class: "vacio" }, esPro() ? "Aún no tienes webs. Pídele a Simbi: «crea una página web para mi negocio con formulario de contacto»."
       : "Crear y publicar páginas web es parte de la versión Pro.",
@@ -1079,7 +1143,7 @@ async function verDatosWeb(w, col, zona) {
           claves.map((k) => el("td", {}, texto(f.datos?.[k]))),
           el("td", {}, el("button", { type: "button", class: "btn-x", title: "Borrar", onclick: async () => {
             if (!confirm("¿Borrar este registro?")) return;
-            try { await apiNube(`/sitios/${w.id}/datos/${f.id}`, { method: "DELETE" }); tr.remove(); } catch (e) { alert(e.message); }
+            try { await apiNube(`/sitios/${w.id}/datos/${f.id}?coleccion=${encodeURIComponent(col)}`, { method: "DELETE" }); tr.remove(); } catch (e) { alert(e.message); }
           } }, "✕")));
         return tr;
       })))));
@@ -1407,7 +1471,7 @@ async function abrirAtajo(id, conAdjunta = false) {
       el("div", { class: "campo-titulo" }, "Guardar información (base de datos)"),
       el("div", { class: "opciones" }, funciones.map(([v, t]) => el("label", {}, el("input", { type: "checkbox", name: "fn", value: v }), t))),
       el("div", { class: "fila-2" }, el("label", {}, "Colores (opcional)", el("input", { type: "text", name: "colores", placeholder: "Ej.: café y crema, o #6D28D9" })), campoNivel("dificil")),
-    ], "Simbi la diseña y la publica con un enlace para compartir. Los datos que envíen los visitantes llegan a «🌐 Webs» (y a tu Telegram). Para cambiarla, pídeselo en la misma conversación. Si quieres usar tu logo o fotos, adjúntalos con ＋ antes. Recomendado: nivel Difícil.", "Crear y publicar",
+    ], "Simbi la diseña y la publica sola: en tu GitHub (tuusuario.github.io/…) si lo conectaste en «🌐 Webs › 🔌 Conexiones»; si no, en Google Cloud. Los formularios guardan en TU Supabase (conéctalo ahí mismo) y los ves en «🌐 Webs». Para cambiarla, pídeselo en la misma conversación. Si quieres usar tu logo o fotos, adjúntalos con ＋ antes. Recomendado: nivel Difícil.", "Crear y publicar",
       (f) => {
         const t = tipos.find((x) => x[0] === f.get("tipo"));
         const fns = f.getAll("fn").map((v) => funciones.find((x) => x[0] === v)[1].replace(/^\S+\s/, "").toLowerCase());
