@@ -261,7 +261,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 
 /* Barra lateral compacta */
 .btn-sugerir { width: 42px; flex-shrink: 0; margin: 0; padding: 0; font-size: 17px; border-radius: 12px; }
-.herr-lat { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.herr-lat { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
 .btn-herr { display: grid; justify-items: center; gap: 1px; background: var(--panel-2); border: 1px solid var(--linea); border-radius: 12px; padding: 7px 2px 6px; color: var(--papel); font-size: 10.5px; font-weight: 600; cursor: pointer; line-height: 1.2; }
 .btn-herr span { font-size: 17px; }
 .btn-herr small { font-family: var(--f-mono); font-size: 9.5px; font-weight: 400; color: var(--mut); min-height: 11px; }
@@ -305,3 +305,51 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 .prueba.codigo { cursor: pointer; background: var(--brasa-suave); color: var(--papel); border-color: rgba(255,77,46,.35); text-align: center; font-weight: 600; }
 #codigo-txt { text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
 .btn-pro { margin-top: 8px; }
+
+/* Botón de adjuntar más visible y selector de nivel junto a Enviar */
+.btn-adj { display: inline-flex; align-items: center; gap: 6px; flex: none; align-self: flex-end; height: 42px; padding: 0 14px 0 6px; border-radius: 999px; border: 0; cursor: pointer; font-weight: 700; font-size: 13.5px; color: var(--ink); background: linear-gradient(135deg, var(--cian), #8BF5F0); box-shadow: 0 4px 14px rgba(62,230,224,.28); transition: transform .15s, box-shadow .15s; }
+.btn-adj .mas { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(11,15,20,.14); font-size: 20px; line-height: 1; }
+.btn-adj:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(62,230,224,.4); }
+.btn-adj:disabled { filter: grayscale(.7); opacity: .55; cursor: not-allowed; box-shadow: none; }
+.nivel-sel { display: inline-flex; align-items: center; gap: 4px; flex: none; align-self: flex-end; height: 42px; padding: 0 4px 0 10px; border: 1px solid var(--linea); border-radius: 999px; background: var(--panel-2); }
+.nivel-sel select { border: 0; background: transparent; color: var(--papel); font-weight: 600; font-size: 13px; padding: 0 4px; width: auto; height: 40px; cursor: pointer; }
+.nivel-sel select option { background: var(--panel); }
+.barra .niveles { display: none; }
+@media (max-width: 640px) { .btn-adj { padding: 0 6px; } .btn-adj .txt { display: none; } .nivel-sel span { display: none; } .nivel-sel { padding: 0 2px 0 6px; } .nivel-sel select { font-size: 12px; max-width: 86px; } }
+
+/* Mi nube con carpetas */
+.nube-barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 4px 0 10px; }
+.nube-migas { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; flex: 1 1 220px; font-size: 14px; }
+.nube-migas button { background: none; border: 0; color: var(--cian); font-weight: 700; cursor: pointer; padding: 4px 6px; border-radius: 8px; }
+.nube-migas button:last-child { color: var(--papel); }
+.nube-migas span { color: var(--mut); }
+#nube-buscar { flex: 1 1 200px; max-width: 320px; }
+.btn-chico { padding: 7px 12px; font-size: 13px; }
+.item-arch.carpeta { cursor: pointer; }
+.item-arch.carpeta .vista { font-size: 42px; background: linear-gradient(135deg, rgba(62,230,224,.12), rgba(255,77,46,.08)); }
+.item-arch.carpeta:hover { border-color: var(--cian); }
+.item-arch .acc button.mini { padding: 4px 7px; }
+.item-arch .ruta-arch { color: var(--mut); font-size: 11px; }
+
+/* Tarjetas de estudio */
+.dlg-tarj { width: min(640px, calc(100% - 32px)); }
+.tj-prog { display: grid; gap: 6px; margin-bottom: 14px; font-size: 12.5px; color: var(--mut); }
+.tj-carta { display: grid; align-content: center; gap: 12px; width: 100%; min-height: 260px; padding: 28px 24px; border-radius: 22px; border: 1px solid var(--linea); background: linear-gradient(160deg, var(--panel-2), var(--panel)); color: var(--papel); cursor: pointer; text-align: center; font-size: 19px; line-height: 1.45; transition: transform .25s, border-color .25s; }
+.tj-carta:hover { border-color: var(--cian); }
+.tj-carta.volteada { border-color: var(--cian); background: linear-gradient(160deg, rgba(62,230,224,.10), var(--panel)); }
+.tj-carta .md { white-space: normal; }
+.tj-cara { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--cian); }
+.tj-carta small { color: var(--mut); font-size: 13px; }
+.tj-botones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+.tj-botones .btn { padding: 10px 4px; font-size: 13px; }
+@media (max-width: 560px) { .tj-botones { grid-template-columns: repeat(2, 1fr); } .tj-carta { min-height: 220px; font-size: 17px; } }
+.btn-repasar { white-space: nowrap; }
+.lista-rec { display: grid; gap: 6px; margin: 6px 0 12px; max-height: 190px; overflow-y: auto; }
+.lista-rec div { display: flex; gap: 8px; align-items: center; justify-content: space-between; background: var(--panel-2); border: 1px solid var(--linea); border-radius: 12px; padding: 8px 10px; font-size: 13px; }
+.lista-rec small { color: var(--mut); display: block; }
+.rapidos { display: flex; flex-wrap: wrap; gap: 6px; margin: -2px 0 10px; }
+.rapidos button { border: 1px solid var(--linea); background: var(--panel-2); color: var(--papel); border-radius: 999px; padding: 5px 11px; font-size: 12.5px; cursor: pointer; }
+.rapidos button:hover { border-color: var(--cian); }
+.fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.toast-listo { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 60; border: 1px solid rgba(62,230,224,.5); background: var(--panel); color: var(--papel); padding: 12px 18px; border-radius: 999px; box-shadow: var(--sombra); font-weight: 600; cursor: pointer; max-width: calc(100% - 32px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: subir .3s ease; }
+@keyframes subir { from { opacity: 0; transform: translate(-50%, 12px); } }

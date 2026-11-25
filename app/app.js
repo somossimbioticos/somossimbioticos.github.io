@@ -40,6 +40,8 @@ let convActual = null;
 let conversaciones = [];
 let adjuntos = [];          // {clave, nombre, mime, bytes, ruta, subiendo}
 let ocupado = false;
+let vistaStream = false;     // ¿el usuario mira la conversación que se está procesando?
+let streamNodo = null;
 let control = null;
 let modoCrear = false;
 
@@ -212,12 +214,23 @@ function pintarNiveles() {
   const cont = $("niveles"); cont.textContent = "";
   const permitidos = estado?.limites?.niveles || ["facil"];
   if (!permitidos.includes(nivel)) nivel = permitidos[permitidos.length - 1];
+  const sel = $("nivel-sel"); sel.textContent = "";
+  for (const n of NIVELES) sel.append(el("option", { value: n.id, disabled: !permitidos.includes(n.id) ? true : null, selected: n.id === nivel ? true : null },
+    (permitidos.includes(n.id) ? "" : "🔒 ") + n.nombre));
   for (const n of NIVELES) {
     const ok = permitidos.includes(n.id);
     cont.append(el("button", { type: "button", role: "radio", "aria-checked": String(n.id === nivel), disabled: !ok,
       title: ok ? "" : "Disponible en la versión Pro",
       onclick: () => { nivel = n.id; pintarNiveles(); } }, ok ? n.nombre : "🔒 " + n.nombre));
   }
+}
+
+$("nivel-sel").onchange = (e) => { nivel = e.target.value; pintarNiveles(); };
+function campoNivel() {
+  const permitidos = estado?.limites?.niveles || ["facil"];
+  const desc = { facil: " · rápido", medio: " · equilibrado", dificil: " · más inteligente", complejo: " · el más potente" };
+  return el("label", {}, "🧠 Nivel de IA", el("select", { name: "nivel_ia" }, NIVELES.map((n) =>
+    el("option", { value: n.id, disabled: !permitidos.includes(n.id) ? true : null, selected: n.id === nivel ? true : null }, n.nombre + desc[n.id]))));
 }
 
 function pintarCupos() {
@@ -324,74 +337,48 @@ const TIPOS_ARCH = [
   { id: "aud", nombre: "🔊 Audios", es: (m) => m.startsWith("audio/") },
   { id: "doc", nombre: "📄 Documentos", es: (m) => /pdf|word|document|presentation|text\/(plain|markdown|html)/.test(m) },
   { id: "hoja", nombre: "📊 Hojas de cálculo", es: (m) => /sheet|excel|csv/.test(m) },
-  { id: "otro", nombre: "📁 Otros", es: (m) => !TIPOS_ARCH.slice(1, 6).some((t) => t.es(m)) },
+  { id: "estudio", nombre: "🃏 Tarjetas", es: (m) => m === MIME_TARJETAS },
+  { id: "otro", nombre: "📁 Otros", es: (m) => !TIPOS_ARCH.slice(1, 7).some((t) => t.es(m)) },
 ];
-const POR_PAGINA = 48;
-let galeria = { lista: [], filtro: "todos", mostrados: POR_PAGINA };
-
+const MIME_TARJETAS = "application/vnd.simbi.tarjetas+json";
 function iconoArch(m) {
-  return /sheet|excel|csv/.test(m) ? "📊" : /word|document/.test(m) ? "📄" : /pdf/.test(m) ? "📕" : /presentation/.test(m) ? "📽️"
-    : /zip/.test(m) ? "🗜️" : m.startsWith("audio/") ? "🔊" : /text/.test(m) ? "📝" : "📁";
+  return m === MIME_TARJETAS ? "🃏" : /sheet|excel|csv/.test(m) ? "📊" : /word|document/.test(m) ? "📄" : /pdf/.test(m) ? "📕"
+    : /presentation/.test(m) ? "📽️" : /zip/.test(m) ? "🗜️" : m.startsWith("audio/") ? "🔊" : m.startsWith("video/") ? "🎬"
+    : m.startsWith("image/") ? "🖼️" : /text/.test(m) ? "📝" : "📁";
 }
 
-async function abrirArchivos() {
-  $("dlg-archivos").showModal();
-  const g = $("galeria"); g.textContent = ""; g.append(el("div", { class: "vacio" }, "Cargando…"));
-  const { data, error } = await sb.from("mensajes").select("id,conversacion_id,adjuntos,creado")
-    .eq("rol", "asistente").neq("adjuntos", "[]").order("id", { ascending: false }).limit(400);
-  if (error) { g.textContent = ""; g.append(el("div", { class: "vacio" }, "No se pudieron cargar tus archivos.")); return; }
-  const titulos = new Map(conversaciones.map((c) => [c.id, c.titulo]));
-  galeria.lista = (data || []).flatMap((m) => (m.adjuntos || []).filter((a) => a.ruta && a.origen !== "subido")
-    .map((a) => ({ ...a, mime: a.mime || "", creado: m.creado, conv: m.conversacion_id, titulo: titulos.get(m.conversacion_id) || "Conversación" })));
-  galeria.mostrados = POR_PAGINA;
-  pintarGaleria();
-}
-
-function pintarGaleria() {
-  const f = $("filtros-arch"); f.textContent = "";
-  for (const t of TIPOS_ARCH) {
-    const n = galeria.lista.filter((a) => t.es(a.mime)).length;
-    if (t.id !== "todos" && !n) continue;
-    f.append(el("button", { type: "button", role: "tab", "aria-selected": String(galeria.filtro === t.id),
-      onclick: () => { galeria.filtro = t.id; galeria.mostrados = POR_PAGINA; pintarGaleria(); } }, t.nombre, el("small", {}, String(n))));
-  }
-  const tipo = TIPOS_ARCH.find((t) => t.id === galeria.filtro) || TIPOS_ARCH[0];
-  const lista = galeria.lista.filter((a) => tipo.es(a.mime));
-  const g = $("galeria"); g.textContent = "";
-  if (!lista.length) { g.append(el("div", { class: "vacio" }, "Aún no hay archivos generados aquí. Pídele a Simbi una imagen, un Excel, un PDF o un audio.")); }
-  const visibles = lista.slice(0, galeria.mostrados);
-  $("mas-archivos").hidden = lista.length <= visibles.length;
-  if (!visibles.length) return;
-  const tarjetas = visibles.map((a) => {
-    const vista = el("div", { class: "vista" }, iconoArch(a.mime));
-    const acc = el("div", { class: "acc" });
-    const fecha = new Date(a.creado).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
-    const t = el("div", { class: "item-arch" }, vista, el("div", { class: "info" }, el("b", { title: a.nombre }, a.nombre),
-      el("small", { title: a.titulo }, `${fecha} · ${tam(a.bytes || 0)}`), el("small", {}, a.titulo), acc));
-    return { a, vista, acc, t };
-  });
-  g.append(...tarjetas.map((x) => x.t));
-  sb.storage.from("archivos").createSignedUrls(visibles.map((a) => a.ruta), 3600).then(({ data }) => {
-    tarjetas.forEach(({ a, vista, acc }, i) => {
-      const url = data?.[i]?.signedUrl;
-      if (!url) { vista.textContent = "⚠️"; acc.append(el("small", {}, "Ya no está disponible")); return; }
-      const urlBajar = url + (url.includes("?") ? "&" : "?") + "download=" + encodeURIComponent(a.nombre);
-      if (a.mime.startsWith("image/")) {
-        vista.textContent = ""; vista.append(el("img", { src: url, alt: a.nombre, loading: "lazy" }));
-        vista.onclick = () => { const v = el("div", { class: "visor", onclick: () => v.remove() }, el("img", { src: url, alt: a.nombre })); document.body.append(v); };
-      } else if (a.mime.startsWith("video/")) {
-        vista.textContent = ""; vista.append(el("video", { src: url, controls: true, playsinline: true, preload: "metadata" }));
-      } else if (a.mime.startsWith("audio/")) {
-        vista.textContent = ""; vista.append(el("audio", { src: url, controls: true, preload: "none" }));
-      } else {
-        vista.onclick = () => window.open(url, "_blank", "noopener");
+/* URLs firmadas de los archivos del chat (Google Cloud): se piden en lote → menos llamadas y más rapidez */
+const urlsCache = new Map();
+let loteRutas = null;
+function urlRuta(ruta) {
+  const c = urlsCache.get(ruta);
+  if (c && c.vence > Date.now()) return Promise.resolve(c.url);
+  if (!loteRutas) {
+    loteRutas = new Map();
+    setTimeout(async () => {
+      const lote = loteRutas; loteRutas = null;
+      const rutas = [...lote.keys()];
+      for (let i = 0; i < rutas.length; i += 150) {
+        const parte = rutas.slice(i, i + 150);
+        let r = {};
+        try { r = await apiNube("/archivos/urls", { method: "POST", body: JSON.stringify({ rutas: parte }) }); } catch { /* sin red */ }
+        for (const k of parte) {
+          const u = r[k] || null;
+          if (u) urlsCache.set(k, { url: u, vence: Date.now() + 50 * 60000 });
+          lote.get(k).forEach((f) => f(u));
+        }
       }
-      acc.append(el("a", { href: urlBajar, download: a.nombre }, "⬇ Descargar"),
-        el("button", { type: "button", onclick: () => { $("dlg-archivos").close(); abrirConversacion(a.conv); } }, "Ver chat"));
-    });
-  });
+    }, 25);
+  }
+  return new Promise((ok) => { const l = loteRutas.get(ruta) || []; l.push(ok); loteRutas.set(ruta, l); });
 }
-$("btn-archivos").onclick = abrirArchivos;
+async function bajarRuta(ruta, nombre) {
+  try {
+    const r = await apiNube("/archivos/urls", { method: "POST", body: JSON.stringify({ rutas: [ruta], nombres: { [ruta]: nombre } }) });
+    if (!r[ruta]) throw new Error("el archivo ya no está disponible");
+    const l = el("a", { href: r[ruta], download: nombre }); document.body.append(l); l.click(); l.remove();
+  } catch (e) { alert("No se pudo descargar: " + e.message); }
+}
 
 /* ───────── 📲 Avisos por Telegram (@SimbiAlertasBot) ───────── */
 const tg = { conectado: false, usuario: "" };
@@ -419,9 +406,10 @@ $("btn-telegram").onclick = async () => {
 };
 window.addEventListener("focus", () => { if (!tg.conectado) cargarTelegram(); });
 
-/* ───────── ☁️ Mi nube: almacenamiento personal (Google Cloud Storage, cupo por plan) ───────── */
-const nube = { lista: [], usado: 0, limite: 0, filtro: "todos", urls: new Map() };
+/* ───────── ☁️ Mi nube: TODO en un solo lugar (Google Cloud Storage), con carpetas ───────── */
+const nube = { lista: [], carpetas: [], usado: 0, limite: 0, filtro: "todos", carpeta: "", q: "", mostrar: 60, urls: new Map() };
 const gb = (b) => b >= 1e9 ? `${(b / 1e9).toFixed(2)} GB` : tam(b);
+const ICONO_CARPETA = { "Música": "🎵", "Imágenes": "🖼️", "Videos": "🎬", "Audios": "🔊", "Documentos": "📄", "Estudio": "📚", "Subidos al chat": "📎" };
 async function apiNube(ruta, opciones = {}) {
   const r = await fetch(API + ruta, { ...opciones, headers: { Authorization: "Bearer " + await token(),
     ...(opciones.body ? { "Content-Type": "application/json" } : {}) } });
@@ -440,45 +428,79 @@ async function cargarNube() {
   const g = $("nube-galeria");
   try {
     const d = await apiNube("/nube");
-    Object.assign(nube, { lista: d.archivos, usado: d.usado, limite: d.limite });
+    Object.assign(nube, { lista: d.archivos, carpetas: d.carpetas || [], usado: d.usado, limite: d.limite });
   } catch (e) { g.textContent = ""; g.append(el("div", { class: "vacio" }, "No se pudo cargar tu nube: " + e.message)); return; }
   pintarCupoNube(); pintarNube();
 }
-async function abrirNube() {
-  $("dlg-nube").showModal();
-  const g = $("nube-galeria"); g.textContent = ""; g.append(el("div", { class: "vacio" }, "Cargando…"));
+async function abrirNube(carpeta) {
+  if (typeof carpeta === "string") { nube.carpeta = carpeta; nube.q = ""; $("nube-buscar").value = ""; }
+  nube.filtro = "todos"; nube.mostrar = 60;
+  if (!$("dlg-nube").open) $("dlg-nube").showModal();
+  const g = $("nube-galeria");
+  if (!nube.lista.length) { g.textContent = ""; g.append(el("div", { class: "vacio" }, "Cargando…")); } else pintarNube();
   await cargarNube();
 }
+const carpetaDe = (a) => a.carpeta || "";
+function subcarpetas(c) {
+  const pref = c ? c + "/" : "";
+  return [...new Set(nube.carpetas.filter((x) => x.startsWith(pref) && x !== c).map((x) => pref + x.slice(pref.length).split("/")[0]))];
+}
+const contarEn = (c) => nube.lista.filter((a) => carpetaDe(a) === c || carpetaDe(a).startsWith(c + "/")).length;
+function irCarpeta(c) { nube.carpeta = c; nube.filtro = "todos"; nube.mostrar = 60; nube.q = ""; $("nube-buscar").value = ""; pintarNube(); }
+
 function pintarNube() {
+  const migas = $("nube-migas"); migas.textContent = "";
+  const partes = nube.carpeta ? nube.carpeta.split("/") : [];
+  migas.append(el("button", { type: "button", onclick: () => irCarpeta("") }, "☁️ Inicio"));
+  partes.forEach((p, i) => migas.append(el("span", {}, "›"), el("button", { type: "button", onclick: () => irCarpeta(partes.slice(0, i + 1).join("/")) }, p)));
+  $("nube-quitar").hidden = !nube.carpeta;
+  const q = nube.q.trim().toLowerCase();
+  const base = q ? nube.lista.filter((a) => a.nombre.toLowerCase().includes(q) || carpetaDe(a).toLowerCase().includes(q))
+                 : nube.lista.filter((a) => carpetaDe(a) === nube.carpeta);
   const f = $("nube-filtros"); f.textContent = "";
   for (const t of TIPOS_ARCH) {
-    const n = nube.lista.filter((a) => t.es(a.mime)).length;
+    const n = base.filter((a) => t.es(a.mime)).length;
     if (t.id !== "todos" && !n) continue;
     f.append(el("button", { type: "button", role: "tab", "aria-selected": String(nube.filtro === t.id),
-      onclick: () => { nube.filtro = t.id; pintarNube(); } }, t.nombre, el("small", {}, String(n))));
+      onclick: () => { nube.filtro = t.id; nube.mostrar = 60; pintarNube(); } }, t.nombre, el("small", {}, String(n))));
   }
   const tipo = TIPOS_ARCH.find((t) => t.id === nube.filtro) || TIPOS_ARCH[0];
-  const lista = nube.lista.filter((a) => tipo.es(a.mime)).slice(0, 300);
+  const todos = base.filter((a) => tipo.es(a.mime));
+  const lista = todos.slice(0, nube.mostrar);
+  $("nube-mas").hidden = todos.length <= nube.mostrar;
   const g = $("nube-galeria"); g.textContent = "";
-  if (!lista.length) {
-    g.append(el("div", { class: "vacio" }, nube.limite ? "Tu nube está vacía. Sube fotos, videos o documentos para guardarlos aquí."
-      : "«Mi nube» está disponible en la versión Pro (5 GB).",
-      nube.limite ? null : el("div", {}, el("button", { type: "button", class: "btn btn-brasa btn-pro", onclick: () => abrirPro("«Mi nube» es parte de la versión Pro.") }, "✨ Quiero Pro")))); return;
+  if (!nube.limite && !nube.lista.length) {
+    g.append(el("div", { class: "vacio" }, "«Mi nube» está disponible en la versión Pro (5 GB).",
+      el("div", {}, el("button", { type: "button", class: "btn btn-brasa btn-pro", onclick: () => abrirPro("«Mi nube» es parte de la versión Pro.") }, "✨ Quiero Pro"))));
+    return;
+  }
+  if (!q && nube.filtro === "todos") for (const c of subcarpetas(nube.carpeta)) {
+    const nombre = c.split("/").pop();
+    g.append(el("div", { class: "item-arch carpeta", role: "button", tabindex: "0", onclick: () => irCarpeta(c), onkeydown: (e) => e.key === "Enter" && irCarpeta(c) },
+      el("div", { class: "vista" }, ICONO_CARPETA[c] || "📁"), el("div", { class: "info" }, el("b", { title: c }, nombre), el("small", {}, `${contarEn(c)} archivos`))));
+  }
+  if (!lista.length && !g.childElementCount) {
+    g.append(el("div", { class: "vacio" }, q ? "No encontré archivos con ese nombre." : nube.carpeta ? "Esta carpeta está vacía. Arrastra archivos aquí o usa «Subir»." : "Tu nube está vacía. Sube fotos, videos o documentos para guardarlos aquí."));
+    return;
   }
   const tarjetas = lista.map((a) => {
     const vista = el("div", { class: "vista" }, iconoArch(a.mime));
     const acc = el("div", { class: "acc" });
     const fecha = new Date(a.creado).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
+    if (a.mime === MIME_TARJETAS) acc.append(el("button", { type: "button", class: "mini", onclick: () => abrirTarjetas(a.ruta, a.nombre) }, "🃏 Repasar"));
     acc.append(
-      el("button", { type: "button", onclick: () => bajarNube(a) }, "⬇ Descargar"),
-      el("button", { type: "button", class: "peligro", onclick: () => borrarNube(a) }, "🗑 Borrar"));
-    g.append(el("div", { class: "item-arch" }, vista, el("div", { class: "info" }, el("b", { title: a.nombre }, a.nombre),
-      el("small", {}, `${fecha} · ${gb(a.bytes)}`), acc)));
+      el("button", { type: "button", class: "mini", title: "Descargar", onclick: () => bajarNube(a) }, "⬇"),
+      el("button", { type: "button", class: "mini", title: "Mover a otra carpeta", onclick: () => moverNube([a]) }, "📁"),
+      el("button", { type: "button", class: "mini", title: "Renombrar", onclick: () => renombrarNube(a) }, "✏️"),
+      a.conversacion_id ? el("button", { type: "button", class: "mini", title: "Ver la conversación donde se creó", onclick: () => { $("dlg-nube").close(); abrirConversacion(a.conversacion_id); } }, "💬") : null,
+      el("button", { type: "button", class: "mini peligro", title: "Borrar", onclick: () => borrarNube(a) }, "🗑"));
+    g.append(el("div", { class: "item-arch" }, vista, el("div", { class: "info" }, el("b", { title: a.nombre }, a.nombre.replace(/\.tarjetas\.json$/, "")),
+      el("small", {}, `${fecha} · ${gb(a.bytes)}`), q && carpetaDe(a) ? el("small", { class: "ruta-arch" }, "📁 " + carpetaDe(a)) : null, acc)));
     return { a, vista };
   });
   const conVista = tarjetas.filter(({ a }) => /^(image|video|audio)\//.test(a.mime));
   const faltan = conVista.filter(({ a }) => !nube.urls.has(a.id)).map(({ a }) => a.id);
-  const lotes = []; for (let i = 0; i < faltan.length; i += 60) lotes.push(faltan.slice(i, i + 60));
+  const lotes = []; for (let i = 0; i < faltan.length; i += 100) lotes.push(faltan.slice(i, i + 100));
   Promise.all(lotes.map((ids) => apiNube("/nube/urls", { method: "POST", body: JSON.stringify({ ids }) })
     .then((u) => Object.entries(u).forEach(([k, v]) => nube.urls.set(k, v))).catch(() => {}))).then(() => {
     for (const { a, vista } of conVista) {
@@ -491,7 +513,41 @@ function pintarNube() {
       else vista.append(el("audio", { src: url, controls: true, preload: "none" }));
     }
   });
-  for (const { a, vista } of tarjetas) if (!/^(image|video|audio)\//.test(a.mime)) vista.onclick = () => abrirEnPestana(a);
+  for (const { a, vista } of tarjetas) if (!/^(image|video|audio)\//.test(a.mime)) vista.onclick = () => a.mime === MIME_TARJETAS ? abrirTarjetas(a.ruta, a.nombre) : abrirEnPestana(a);
+}
+$("nube-mas").onclick = () => { nube.mostrar += 60; pintarNube(); };
+$("nube-buscar").addEventListener("input", (e) => { nube.q = e.target.value; nube.mostrar = 60; pintarNube(); });
+$("nube-nueva").onclick = () => abrirDialogo("Nueva carpeta", [
+  el("label", {}, nube.carpeta ? `Nombre (dentro de «${nube.carpeta}»)` : "Nombre", el("input", { type: "text", name: "nombre", required: true, maxlength: 60, placeholder: "Ej.: Universidad, Fotos de la familia, Trabajo" })),
+], "", "Crear", async (f) => {
+  const nombre = (nube.carpeta ? nube.carpeta + "/" : "") + f.get("nombre").trim().replace(/\//g, "-");
+  try { const r = await apiNube("/nube/carpeta", { method: "POST", body: JSON.stringify({ nombre }) }); await cargarNube(); irCarpeta(r.nombre); }
+  catch (e) { alert(e.message); }
+});
+$("nube-quitar").onclick = async () => {
+  const c = nube.carpeta; if (!c) return;
+  if (!confirm(`¿Quitar la carpeta «${c}»?\nSus archivos NO se borran: pasan a la carpeta de arriba.`)) return;
+  try { await apiNube("/nube/carpeta/borrar", { method: "POST", body: JSON.stringify({ nombre: c }) }); } catch (e) { alert(e.message); return; }
+  irCarpeta(c.includes("/") ? c.slice(0, c.lastIndexOf("/")) : ""); await cargarNube();
+};
+function moverNube(archivos) {
+  const sel = el("select", { name: "destino" }, el("option", { value: "" }, "☁️ Inicio (sin carpeta)"),
+    nube.carpetas.map((c) => el("option", { value: c, selected: c === carpetaDe(archivos[0]) ? true : null }, "📁 " + c)));
+  abrirDialogo("Mover a carpeta", [el("label", {}, "Carpeta", sel),
+    el("label", {}, "…o crea una nueva", el("input", { type: "text", name: "nueva", maxlength: 120, placeholder: "Ej.: Universidad/Anatomía" }))],
+  archivos.length === 1 ? archivos[0].nombre : `${archivos.length} archivos`, "Mover", async (f) => {
+    const carpeta = (f.get("nueva") || "").trim() || f.get("destino") || "";
+    try { await apiNube("/nube/mover", { method: "POST", body: JSON.stringify({ ids: archivos.map((a) => a.id), carpeta }) }); await cargarNube(); }
+    catch (e) { alert(e.message); }
+  });
+}
+function renombrarNube(a) {
+  abrirDialogo("Renombrar", [el("label", {}, "Nuevo nombre", el("input", { type: "text", name: "nombre", required: true, maxlength: 180, value: a.nombre }))],
+    "", "Guardar", async (f) => {
+      const nombre = f.get("nombre").trim();
+      try { await apiNube(`/nube/${a.id}/renombrar`, { method: "POST", body: JSON.stringify({ nombre }) }); a.nombre = nombre; pintarNube(); }
+      catch (e) { alert(e.message); }
+    });
 }
 async function abrirEnPestana(a) {
   const w = window.open("", "_blank");
@@ -505,11 +561,13 @@ async function bajarNube(a) {
   } catch (e) { alert("No se pudo descargar: " + e.message); }
 }
 async function borrarNube(a) {
-  if (!confirm(`¿Borrar «${a.nombre}» de tu nube? No se puede deshacer.`)) return;
+  if (!confirm(`¿Borrar «${a.nombre}»? No se puede deshacer.`)) return;
   try { await apiNube("/nube/" + a.id, { method: "DELETE" }); } catch (e) { alert(e.message); return; }
   nube.lista = nube.lista.filter((x) => x.id !== a.id); nube.usado -= a.bytes; nube.urls.delete(a.id);
   pintarCupoNube(); pintarNube();
+  if ((a.mime || "").startsWith("audio/")) cargarMusica();
 }
+
 function putConProgreso(url, archivo, encabezados, alAvanzar) {
   return new Promise((ok, mal) => {
     const x = new XMLHttpRequest();
@@ -528,7 +586,7 @@ async function subirNube(archivos) {
     const fila = el("div", { class: "nube-sub" }, el("div", { class: "fila" }, el("span", {}, archivo.name), est), el("div", { class: "barra-c" }, barra));
     cont.append(fila);
     try {
-      const r = await apiNube("/nube/subir", { method: "POST", body: JSON.stringify({ nombre: archivo.name, mime: archivo.type || "application/octet-stream", bytes: archivo.size }) });
+      const r = await apiNube("/nube/subir", { method: "POST", body: JSON.stringify({ nombre: archivo.name, mime: mimeDe(archivo), bytes: archivo.size, carpeta: nube.carpeta }) });
       await putConProgreso(r.url, archivo, r.encabezados, (p) => { barra.style.width = (p * 100).toFixed(0) + "%"; est.textContent = (p * 100).toFixed(0) + "%"; });
       await apiNube(`/nube/${r.id}/listo`, { method: "POST" });
       est.textContent = "✓"; setTimeout(() => fila.remove(), 2500);
@@ -585,9 +643,9 @@ async function tocar(i) {
   musica.i = (i + musica.cola.length) % musica.cola.length;
   const c = musica.cola[musica.i];
   if (!c.url || c.vence < Date.now()) {
-    const { data } = await sb.storage.from("archivos").createSignedUrl(c.ruta, 6 * 3600);
-    if (!data?.signedUrl) { c.roto = true; return tocar(musica.i + 1); }
-    c.url = data.signedUrl; c.vence = Date.now() + 5.5 * 3600 * 1000;
+    const u = await urlRuta(c.ruta);
+    if (!u) { c.roto = true; return tocar(musica.i + 1); }
+    c.url = u; c.vence = Date.now() + 50 * 60 * 1000;
   }
   musica.audio.src = c.url;
   try { await musica.audio.play(); } catch { /* el navegador pide un clic */ }
@@ -691,7 +749,6 @@ $("btn-sugerir").onclick = () => abrirDialogo("Enviar una sugerencia", [
   const { error } = await sb.from("sugerencias").insert({ tipo: f.get("tipo"), texto });
   alert(error ? "No se pudo enviar: " + error.message : "✅ ¡Gracias! Tu sugerencia llegó al equipo.");
 });
-$("mas-archivos").onclick = () => { galeria.mostrados += POR_PAGINA; pintarGaleria(); };
 
 /* ───────── Conversaciones ───────── */
 async function cargarConversaciones() {
@@ -746,6 +803,7 @@ async function opcionesConv(e, c) {
 }
 
 function nuevaConversacion() {
+  vistaStream = false;
   convActual = null; guardar("simb_conv_" + usuario.id, "");
   nivel = "facil"; pintarNiveles();
   $("titulo-conv").textContent = "Nueva conversación";
@@ -755,7 +813,7 @@ function nuevaConversacion() {
 $("btn-nuevo").onclick = nuevaConversacion;
 
 async function abrirConversacion(id) {
-  if (ocupado) return;
+  vistaStream = ocupado && id === convProcesando;
   convActual = id; guardar("simb_conv_" + usuario.id, id);
   const c = conversaciones.find((x) => x.id === id);
   $("titulo-conv").textContent = c?.titulo || "Conversación";
@@ -778,6 +836,7 @@ async function abrirConversacion(id) {
       v.pie(m.nivel, m.tokens, modelos?.get(m.id));
     }
   }
+  if (vistaStream && streamNodo) cont.append(streamNodo);      // la respuesta en curso sigue viva
   cont.scrollTop = cont.scrollHeight;
 }
 
@@ -805,17 +864,20 @@ function nuevaRespuesta() {
   }, 1000);
   const cuerpo = el("div", { class: "cuerpo" }, eventos, progreso, archivos, pensando, md);
   const nodo = el("div", { class: "msj asistente" }, el("img", { class: "avatar", src: "../logo.svg", alt: "" }), cuerpo);
+  const cont0 = cont;
   cont.append(nodo);
   const chips = new Map();
   let pendiente = false;
   const v = {
+    nodo,
     texto: "",
     pintar(final = false) {
       pensando.remove();
       renderMd(md, v.texto || "");
       md.classList.toggle("cursor", !final);
-      const cerca = cont.scrollHeight - cont.scrollTop - cont.clientHeight < 160;
-      if (cerca) cont.scrollTop = cont.scrollHeight;
+      if (!nodo.isConnected) return;                    // el usuario está viendo otra conversación
+      const cerca = cont0.scrollHeight - cont0.scrollTop - cont0.clientHeight < 160;
+      if (cerca) cont0.scrollTop = cont0.scrollHeight;
     },
     agregar(d) {
       v.texto += d;
@@ -852,13 +914,16 @@ function nuevaRespuesta() {
 function tarjetaArchivo(a) {
   const caja = el("div");
   const mime = a.mime || "";
-  Promise.all([
-    sb.storage.from("archivos").createSignedUrl(a.ruta, 3600),
-    sb.storage.from("archivos").createSignedUrl(a.ruta, 3600, { download: a.nombre }),
-  ]).then(([ver, bajar]) => {
-    const url = ver.data?.signedUrl, urlBajar = bajar.data?.signedUrl;
+  const bajar = (txt = "⬇ Descargar") => el("a", { href: "#", onclick: (e) => { e.preventDefault(); bajarRuta(a.ruta, a.nombre); } }, txt);
+  if (mime === MIME_TARJETAS) {
+    caja.append(el("div", { class: "tarjeta-arch" }, el("span", { class: "ico" }, "🃏"),
+      el("div", { class: "meta" }, el("b", {}, a.nombre.replace(/\.tarjetas\.json$/, "").replace(/_/g, " ")), el("small", {}, "Tarjetas de estudio · guardadas en ☁️ Mi nube › Estudio")),
+      el("button", { type: "button", class: "btn btn-brasa btn-chico btn-repasar", onclick: () => abrirTarjetas(a.ruta, a.nombre) }, "Repasar")));
+    return caja;
+  }
+  urlRuta(a.ruta).then((url) => {
     if (!url) { caja.append(el("div", { class: "tarjeta-arch" }, el("span", { class: "ico" }, "⚠️"), el("div", { class: "meta" }, el("b", {}, a.nombre), el("small", {}, "El archivo ya no está disponible")))); return; }
-    const acc = el("div", { class: "archivo-acc" }, el("a", { href: urlBajar, download: a.nombre }, "⬇ Descargar"), el("span", { class: "mono", style: "font-size:10.5px" }, a.nombre + " · " + tam(a.bytes || 0)));
+    const acc = el("div", { class: "archivo-acc" }, bajar(), el("span", { class: "mono", style: "font-size:10.5px" }, a.nombre + " · " + tam(a.bytes || 0)));
     if (mime.startsWith("image/")) {
       const img = el("img", { src: url, alt: a.nombre, loading: "lazy" });
       img.onclick = () => { const v = el("div", { class: "visor", onclick: () => v.remove() }, el("img", { src: url, alt: a.nombre })); document.body.append(v); };
@@ -868,18 +933,83 @@ function tarjetaArchivo(a) {
     } else if (mime.startsWith("audio/")) {
       caja.append(el("div", { class: "archivo-aud" }, el("audio", { src: url, controls: true, preload: "metadata" })), acc);
     } else {
-      const ico = /sheet|excel|csv/.test(mime) ? "📊" : /word|document/.test(mime) ? "📄" : /pdf/.test(mime) ? "📕" : /presentation/.test(mime) ? "📽️" : /zip/.test(mime) ? "🗜️" : /text/.test(mime) ? "📝" : "📁";
-      caja.append(el("div", { class: "tarjeta-arch" }, el("span", { class: "ico" }, ico),
-        el("div", { class: "meta" }, el("b", {}, a.nombre), el("small", {}, tam(a.bytes || 0))),
-        el("a", { href: urlBajar, download: a.nombre }, "Descargar")));
+      caja.append(el("div", { class: "tarjeta-arch" }, el("span", { class: "ico" }, iconoArch(mime)),
+        el("div", { class: "meta" }, el("b", {}, a.nombre), el("small", {}, tam(a.bytes || 0))), bajar("Descargar")));
     }
   });
   return caja;
 }
 
+/* ───────── 🃏 Repasar tarjetas de estudio (tipo Anki: cajas de Leitner guardadas en este navegador) ───────── */
+const tj = { mazo: null, clave: "", cajas: {}, cola: [], actual: null, volteada: false, hechas: 0, total: 0 };
+async function abrirTarjetas(ruta, nombre) {
+  const dlg = $("dlg-tarjetas");
+  $("tj-titulo").textContent = (nombre || "Tarjetas").replace(/\.tarjetas\.json$/, "").replace(/_/g, " ");
+  $("tj-texto").textContent = "Cargando…"; $("tj-botones").hidden = true; $("tj-cont").textContent = ""; $("tj-pista").textContent = "";
+  tj.actual = null; tj.mazo = null;
+  if (!dlg.open) dlg.showModal();
+  try {
+    const url = await urlRuta(ruta);
+    if (!url) throw new Error("el archivo ya no está disponible");
+    const r = await fetch(url); if (!r.ok) throw new Error("Error " + r.status);
+    tj.mazo = await r.json();
+    if (!Array.isArray(tj.mazo?.tarjetas) || !tj.mazo.tarjetas.length) throw new Error("el mazo está vacío");
+  } catch (e) { $("tj-texto").textContent = "No se pudo abrir: " + e.message; tj.mazo = null; return; }
+  $("tj-titulo").textContent = tj.mazo.titulo || $("tj-titulo").textContent;
+  tj.clave = "simb_tj_" + ruta;
+  try { tj.cajas = JSON.parse(leer(tj.clave) || "{}"); } catch { tj.cajas = {}; }
+  iniciarRepaso();
+}
+function iniciarRepaso() {
+  const n = tj.mazo.tarjetas.length;
+  tj.cola = [...Array(n).keys()].sort(() => Math.random() - .5).sort((a, b) => (tj.cajas[a] || 0) - (tj.cajas[b] || 0));
+  tj.hechas = 0; tj.total = n;
+  siguienteTarjeta();
+}
+function siguienteTarjeta() {
+  const carta = $("tj-carta");
+  $("tj-barra").style.width = (tj.total ? tj.hechas / tj.total * 100 : 0) + "%";
+  $("tj-cont").textContent = `${tj.hechas} de ${tj.total} · dominadas: ${Object.values(tj.cajas).filter((c) => c >= 3).length}`;
+  if (!tj.cola.length) {
+    tj.actual = null; carta.classList.add("volteada");
+    $("tj-cara").textContent = "¡Terminaste! 🎉";
+    renderMd($("tj-texto"), `Repasaste las **${tj.total}** tarjetas.\n\nToca aquí para repasar de nuevo (primero salen las que más te cuestan).`);
+    $("tj-pista").textContent = ""; $("tj-botones").hidden = true; $("tj-nota").textContent = "Tu progreso queda guardado en este dispositivo."; return;
+  }
+  tj.actual = tj.cola.shift(); tj.volteada = false; carta.classList.remove("volteada");
+  const t = tj.mazo.tarjetas[tj.actual];
+  $("tj-cara").textContent = "Pregunta"; renderMd($("tj-texto"), String(t.frente || ""));
+  $("tj-pista").textContent = t.pista ? "💡 " + t.pista : ""; $("tj-botones").hidden = true;
+  $("tj-nota").textContent = "Toca la tarjeta (o la barra espaciadora) para ver la respuesta.";
+}
+function voltearTarjeta() {
+  if (!tj.mazo) return;
+  if (tj.actual === null) { iniciarRepaso(); return; }
+  if (tj.volteada) return;
+  tj.volteada = true; $("tj-carta").classList.add("volteada");
+  $("tj-cara").textContent = "Respuesta"; renderMd($("tj-texto"), String(tj.mazo.tarjetas[tj.actual].reverso || ""));
+  $("tj-pista").textContent = ""; $("tj-botones").hidden = false; $("tj-nota").textContent = "¿Qué tal te fue? (teclas 1-4)";
+}
+function calificarTarjeta(r) {
+  if (tj.actual === null || !tj.volteada) return;
+  const i = tj.actual, caja = tj.cajas[i] || 0;
+  if (r === 0) { tj.cajas[i] = 0; tj.cola.splice(Math.min(3, tj.cola.length), 0, i); }
+  else if (r === 1) { tj.cajas[i] = caja; tj.cola.push(i); }
+  else { tj.cajas[i] = caja + (r === 3 ? 2 : 1); tj.hechas++; }
+  guardar(tj.clave, JSON.stringify(tj.cajas));
+  siguienteTarjeta();
+}
+$("tj-carta").onclick = voltearTarjeta;
+$("tj-botones").onclick = (e) => { const b = e.target.closest("[data-r]"); if (b) calificarTarjeta(+b.dataset.r); };
+$("dlg-tarjetas").addEventListener("keydown", (e) => {
+  if (e.target.closest("button.btn-x")) return;
+  if (e.key === " " || e.key === "Enter") { e.preventDefault(); voltearTarjeta(); }
+  else if (tj.volteada && ["1", "2", "3", "4"].includes(e.key)) calificarTarjeta(+e.key - 1);
+});
+
 /* ───────── Envío y streaming ───────── */
 async function enviar({ mensaje = "", accion = null, params = {} } = {}) {
-  if (ocupado) return;
+  if (ocupado) { alert("Simbi está terminando otra respuesta. Mientras tanto puedes mirar otros chats; cuando termine podrás enviar este."); return; }
   if (!API_LISTA) { alert("Simbi se está terminando de instalar. Intenta de nuevo pronto."); return; }
   if (sinPrueba()) { abrirCodigo(); return; }
   if (pruebaVencida()) { pintarPrueba(); estado?.puede_canjear ? abrirCodigo("Tu día de prueba terminó. Si tienes otro código, escríbelo aquí.") : abrirPro("Tu día de prueba terminó."); return; }
@@ -891,7 +1021,9 @@ async function enviar({ mensaje = "", accion = null, params = {} } = {}) {
   convProcesando = convActual || "nueva"; pintarLista();
   pintarUsuario(mensaje || etiquetaAccion(accion, params), adj);
   $("texto").value = ""; adjuntos = []; pintarAdjuntos(); contar(); sugerir();
+  vistaStream = true;
   const v = nuevaRespuesta();
+  streamNodo = v.nodo;
   control = new AbortController();
   try {
     const r = await fetch(API + "/chat", {
@@ -922,18 +1054,17 @@ async function enviar({ mensaje = "", accion = null, params = {} } = {}) {
   } finally {
     v.pintar(true);
     ocupado = false; control = null; alternarEnvio(false);
-    convProcesando = null; pintarLista();
+    convProcesando = null; streamNodo = null; vistaStream = false; pintarLista();
   }
 }
 
 function manejar(ev, v) {
   switch (ev.t) {
     case "conv":
-      if (convActual !== ev.id) {
-        convActual = ev.id; guardar("simb_conv_" + usuario.id, ev.id); if (ocupado) convProcesando = ev.id;
-        if (!conversaciones.some((c) => c.id === ev.id)) conversaciones.unshift({ id: ev.id, titulo: ev.titulo, actualizado: new Date().toISOString() });
-        $("titulo-conv").textContent = ev.titulo; pintarLista();
-      }
+      if (ocupado) convProcesando = ev.id;
+      if (!conversaciones.some((c) => c.id === ev.id)) conversaciones.unshift({ id: ev.id, titulo: ev.titulo, actualizado: new Date().toISOString() });
+      if (vistaStream && convActual !== ev.id) { convActual = ev.id; guardar("simb_conv_" + usuario.id, ev.id); $("titulo-conv").textContent = ev.titulo; }
+      pintarLista();
       break;
     case "texto": v.agregar(ev.d); break;
     case "herramienta": v.evento(ev); break;
@@ -941,15 +1072,23 @@ function manejar(ev, v) {
     case "archivo": v.archivo(ev); break;
     case "error": v.error(ev.msg); if (ev.pro) abrirPro(ev.motivo ? `Quisiste usar: ${ev.motivo}.` : ""); if (ev.codigo) abrirCodigo(); break;
     case "fin":
+      convProcesandoUltima = convProcesando;
       v.pintar(true); v.pie(ev.nivel, ev.tokens, ev.modelo);
       if (ev.estado) { estado = ev.estado; pintarCupos(); contar(); }
       if (v.texto.includes("Mi música") || v.texto.startsWith("✅ Listo")) cargarMusica();
-      const c = conversaciones.find((x) => x.id === convActual);
+      const c = conversaciones.find((x) => x.id === convProcesando);
+      if (!vistaStream) avisoListo(c?.titulo);
       if (c) { c.actualizado = new Date().toISOString(); conversaciones = [c, ...conversaciones.filter((x) => x !== c)]; pintarLista(); }
       break;
   }
 }
 
+let convProcesandoUltima = null;
+function avisoListo(titulo) {
+  const t = el("button", { type: "button", class: "toast-listo", onclick: () => { t.remove(); if (convProcesandoUltima) abrirConversacion(convProcesandoUltima); } },
+    "✅ Simbi terminó «" + (titulo || "tu respuesta") + "» · Ver");
+  document.body.append(t); setTimeout(() => t.remove(), 10000);
+}
 function alternarEnvio(activo) { $("btn-enviar").hidden = activo; $("btn-parar").hidden = !activo; }
 $("btn-parar").onclick = () => control?.abort();
 $("form-chat").onsubmit = (e) => { e.preventDefault(); enviar({ mensaje: $("texto").value }); };
@@ -994,18 +1133,25 @@ document.addEventListener("paste", (e) => { const fs = [...(e.clipboardData?.fil
 async function subirArchivos(lista) {
   const subidos = [];
   for (const f of lista) {
-    if (f.size > MAX_BYTES) { alert(`"${f.name}" supera 50 MB.`); continue; }
+    if (f.size > MAX_BYTES) { alert(`"${f.name}" supera 50 MB. Para archivos grandes usa ☁️ Mi nube.`); continue; }
     const a = { clave: crypto.randomUUID(), nombre: f.name, mime: mimeDe(f), bytes: f.size, subiendo: true };
-    a.ruta = `subidas/${usuario.id}/${a.clave.slice(0, 8)}-${seguro(f.name)}`;
     adjuntos.push(a); pintarAdjuntos();
-    subidos.push(sb.storage.from("archivos").upload(a.ruta, f, { contentType: a.mime, upsert: true }).then(({ error }) => {
-      if (error) { alert(`No se pudo subir "${f.name}": ${error.message}`); adjuntos = adjuntos.filter((x) => x !== a); }
-      a.subiendo = false; pintarAdjuntos(); sugerir();
-      return error ? null : a;
-    }));
+    subidos.push((async () => {
+      try {
+        const r = await apiNube("/archivos/subir", { method: "POST", body: JSON.stringify({ nombre: f.name, mime: a.mime, bytes: f.size }) });
+        await putConProgreso(r.url, f, r.encabezados, () => {});
+        await apiNube(`/nube/${r.id}/listo`, { method: "POST" });
+        Object.assign(a, { ruta: r.ruta, nombre: r.nombre, mime: r.mime, subiendo: false });
+        pintarAdjuntos(); sugerir(); return a;
+      } catch (e) {
+        alert(`No se pudo subir "${f.name}": ${e.message}`);
+        adjuntos = adjuntos.filter((x) => x !== a); pintarAdjuntos(); return null;
+      }
+    })());
   }
   return (await Promise.all(subidos)).filter(Boolean);
 }
+
 function pintarAdjuntos() {
   const c = $("adjuntos"); c.textContent = "";
   for (const a of adjuntos) {
@@ -1017,19 +1163,39 @@ function pintarAdjuntos() {
 
 /* ───────── Atajos (no gastan tokens de chat) ───────── */
 const ATAJOS = [
-  { id: "imagen", ico: "🎨", titulo: "Crear una imagen", desc: "Describe lo que imaginas", pro: true },
-  { id: "video", ico: "🎬", titulo: "Video con IA", desc: "Clip de 1 a 5 segundos (Veo)", pro: true },
+  { id: "youtube", ico: "⬇️", titulo: "Descargar de YouTube", desc: "Música MP3 o video MP4 · cualquier enlace", pro: true },
   { id: "voz", ico: "🔊", titulo: "Texto a voz", desc: "Chirp HD o voz expresiva Gemini", pro: true },
-  { id: "transcribir", ico: "📝", titulo: "Transcribir audio o video", desc: "Convierte lo que dicen en texto", pro: true },
-  { id: "youtube", ico: "⬇️", titulo: "Descargar de YouTube", desc: "Música MP3 o video MP4 · varios enlaces", pro: true },
-  { id: "oficina", ico: "📊", titulo: "Excel, Word o PDF", desc: "Tablas, informes, gráficos", pro: true },
-  { id: "analizar", ico: "📁", titulo: "Analizar archivos", desc: "PDF, Word, Excel, código o ZIP", pro: true },
+  { id: "transcribir", ico: "📝", titulo: "Transcribir audio o video", desc: "Sube el archivo y obtén el texto", pro: true },
   { id: "video_codigo", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz Chirp o Gemini", pro: true },
   { id: "presentacion", ico: "📽️", titulo: "Presentación PowerPoint", desc: "Diapositivas editables con revisión de diseño", pro: true },
-  { id: "estudiar", ico: "📚", titulo: "Estudiar", desc: "Quiz, tarjetas o guía de estudio", pro: false },
+  { id: "estudiar", ico: "📚", titulo: "Estudiar", desc: "Tarjetas tipo Anki que se guardan, quiz o guía", pro: false },
+  { id: "imagen", ico: "🎨", titulo: "Crear una imagen", desc: "Describe lo que imaginas", pro: true },
+  { id: "video", ico: "🎬", titulo: "Video con IA", desc: "Clip de 3 a 8 segundos (Veo)", pro: true },
+  { id: "oficina", ico: "📊", titulo: "Excel, Word o PDF", desc: "Plantillas listas: presupuestos, informes, notas…", pro: true },
+  { id: "recordatorio", ico: "⏰", titulo: "Recordatorio por Telegram", desc: "Te aviso a la hora que elijas", pro: true },
   { id: "correo", ico: "✉️", titulo: "Redactar un correo", desc: "Plantillas: solicitud, seguimiento, ventas…", pro: false },
   { id: "redactar", ico: "✍️", titulo: "Redactar un texto", desc: "Publicaciones, guiones, artículos, ideas", pro: false },
 ];
+
+/* Plantillas de archivos de oficina: [formato, id, nombre, pedido, ejemplo] */
+const PLANTILLAS_OFICINA = [
+  ["excel", "presupuesto", "Presupuesto mensual", "un presupuesto mensual con ingresos y gastos por categoría, fórmulas de totales y saldo, formato de moneda y un gráfico de gastos por categoría", "Ej.: presupuesto familiar con un salario de 2.500.000 COP"],
+  ["excel", "inventario", "Inventario de productos", "un inventario con código, producto, cantidad, precio unitario y valor total con fórmulas, y alerta de stock bajo con formato condicional", "Ej.: tienda de útiles escolares, 20 productos"],
+  ["excel", "notas", "Planilla de notas", "una planilla de calificaciones con estudiantes, notas por periodo, promedio con fórmulas, colores según desempeño y resumen del grupo", "Ej.: 25 estudiantes, 4 notas por periodo, escala de 1 a 5"],
+  ["excel", "cotizacion", "Cotización o cuenta de cobro", "una cotización profesional con datos del cliente, ítems, cantidades, precios, subtotal, IVA y total con fórmulas", "Ej.: 3 talleres de IA para docentes a 400.000 COP cada uno"],
+  ["excel", "cronograma", "Cronograma u horario", "un cronograma tipo diagrama de Gantt (o un horario semanal) con fechas, responsables y colores por estado", "Ej.: proyecto de feria de ciencias de 6 semanas"],
+  ["excel", "datos", "Analizar o graficar mis datos", "un análisis de los datos: tabla limpia, estadísticas clave y gráficos claros", "Pega tus datos aquí o adjunta el archivo con ＋"],
+  ["word", "informe", "Informe", "un informe con portada, introducción, desarrollo con subtítulos, tablas si aplican y conclusiones", "Ej.: informe de resultados de la feria de ciencias 2026"],
+  ["word", "carta", "Carta formal", "una carta formal bien estructurada (lugar y fecha, destinatario, asunto, cuerpo y firma)", "Ej.: carta al rector solicitando el auditorio para el 5 de diciembre"],
+  ["word", "cv", "Hoja de vida", "una hoja de vida moderna y profesional (perfil, experiencia, estudios, habilidades)", "Ej.: ingeniero electrónico, 8 años de docente, experto en robótica"],
+  ["word", "acta", "Acta de reunión", "un acta de reunión con asistentes, orden del día, desarrollo, compromisos y responsables", "Ej.: reunión de padres de familia de grado 9, 3 compromisos"],
+  ["word", "plan", "Plan de clase", "un plan de clase con objetivos, competencias, momentos (inicio, desarrollo, cierre), recursos y evaluación", "Ej.: la célula para grado 6, 2 horas"],
+  ["pdf", "guia", "Guía o taller para imprimir", "una guía/taller para imprimir con explicación breve, ejemplos y ejercicios con espacio para responder", "Ej.: taller de fracciones para grado 5, 10 ejercicios"],
+  ["pdf", "certificado", "Certificado o diploma", "un certificado/diploma elegante en horizontal listo para imprimir", "Ej.: certificado de asistencia a la clase de IA, 26 de noviembre de 2026"],
+  ["pdf", "folleto", "Folleto o volante informativo", "un folleto/volante atractivo con título, beneficios, información clave y llamado a la acción", "Ej.: curso de robótica para niños, sábados 9 a. m."],
+  ["otro", "otro", "Otro (lo describo yo)", "", "Describe el archivo que necesitas"],
+];
+const NOMBRE_FORMATO = { excel: "un archivo Excel (.xlsx)", word: "un documento Word (.docx)", pdf: "un PDF" };
 
 /* Plantillas de prompts para redactar */
 const TIPOS_CORREO = [
@@ -1084,27 +1250,31 @@ function abrirDialogo(titulo, campos, nota, okTexto, alAceptar) {
   $("dlg-titulo").textContent = titulo; $("dlg-nota").textContent = nota || "";
   $("dlg-ok").textContent = okTexto || "Crear";
   const c = $("dlg-campos"); c.textContent = ""; c.append(...campos);
-  dlg.onclose = () => { if (dlg.returnValue === "ok") alAceptar(new FormData($("dlg-form"))); };
+  dlg.onclose = () => {
+    if (dlg.returnValue !== "ok") return;
+    const f = new FormData($("dlg-form"));
+    if (f.get("nivel_ia")) { nivel = f.get("nivel_ia"); pintarNiveles(); }
+    alAceptar(f);
+  };
   dlg.returnValue = ""; dlg.showModal();
 }
 const quedan = (k, l) => Math.max(0, (estado?.limites?.[l] || 0) - (estado?.usado?.[k] || 0));
 
 async function abrirAtajo(id, conAdjunta = false) {
-  const texto = $("texto");
   if (id === "imagen") {
     abrirDialogo(conAdjunta ? "Editar imagen" : "Crear imagen", [
       el("label", {}, "¿Qué quieres ver?", el("textarea", { name: "texto", required: true, placeholder: conAdjunta ? "Ej.: cambia el fondo por un páramo al amanecer" : "Ej.: un colibrí dorado sobre un frailejón al amanecer, foto realista" })),
       campoOpciones("formato", [["1:1", "Cuadrada"], ["4:5", "Instagram 4:5"], ["9:16", "Historia 9:16"], ["16:9", "Horizontal"]], "1:1"),
-    ], `Te quedan ${quedan("imagenes", "imagenes")} imágenes esta semana.`, "Crear imagen",
+    ], `Te quedan ${quedan("imagenes", "imagenes")} imágenes esta semana. Se guarda en ☁️ Mi nube › Imágenes.`, "Crear imagen",
       (f) => f.get("texto")?.trim() && enviar({ accion: "imagen", params: { texto: f.get("texto").trim(), formato: f.get("formato") } }));
   } else if (id === "video") {
     abrirDialogo("Video con IA", [
       el("label", {}, "Describe la escena", el("textarea", { name: "texto", required: true, placeholder: "Ej.: una bandada de estorninos al atardecer, cámara lenta" })),
       campoOpciones("formato", [["9:16", "Vertical 9:16"], ["16:9", "Horizontal 16:9"]], "9:16"),
       el("div", { class: "campo-titulo" }, "Duración"),
-      campoOpciones("segundos", [1, 2, 3, 4, 5].map((n) => [String(n), `${n} s`]), "3"),
+      campoOpciones("segundos", [3, 4, 5, 6, 7, 8].map((n) => [String(n), `${n} s`]), "4"),
     ], `Te quedan ${quedan("videos", "videos")} videos esta semana. Tarda alrededor de un minuto.`, "Crear video",
-      (f) => f.get("texto")?.trim() && enviar({ accion: "video", params: { texto: f.get("texto").trim(), formato: f.get("formato"), segundos: +f.get("segundos") || 3 } }));
+      (f) => f.get("texto")?.trim() && enviar({ accion: "video", params: { texto: f.get("texto").trim(), formato: f.get("formato"), segundos: Math.min(8, Math.max(3, +f.get("segundos") || 4)) } }));
   } else if (id === "voz") {
     const sel = el("select", { name: "voz" }, ["Femenina", "Masculina"].map((g) =>
       el("optgroup", { label: "Voces " + g.toLowerCase() + "s" }, VOCES.filter((v) => v.genero === g)
@@ -1117,79 +1287,109 @@ async function abrirAtajo(id, conAdjunta = false) {
     ], `Te quedan ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min de Chirp y ${(quedan("tts_gemini_seg", "tts_gemini_seg") / 60).toFixed(0)} min de Gemini.`, "Generar audio",
       (f) => f.get("texto")?.trim() && enviar({ accion: f.get("motor") === "gemini" ? "voz_gemini" : "voz_chirp", params: { texto: f.get("texto").trim(), voz: f.get("voz"), estilo: f.get("estilo") || "" } }));
   } else if (id === "youtube") {
+    const area = el("textarea", { name: "urls", required: true, placeholder: "Pega uno o varios enlaces (de la app, del navegador, Shorts, Music…)\nhttps://youtu.be/…\nhttps://www.youtube.com/watch?v=…" });
+    const vista = el("small", { class: "nota" });
+    area.oninput = () => { const n = enlacesYT(area.value).length; vista.textContent = n ? `✓ ${n} enlace${n > 1 ? "s" : ""} válido${n > 1 ? "s" : ""}` : ""; };
     abrirDialogo("Descargar de YouTube", [
-      el("label", {}, "Enlaces (uno por línea, hasta 10)", el("textarea", { name: "urls", required: true,
-        placeholder: "https://www.youtube.com/watch?v=…\nhttps://youtu.be/…" })),
+      el("label", {}, "Enlaces (hasta 10)", area), vista,
       campoOpciones("formato", [["mp3", "🎵 Solo audio MP3 (va a «Mi música»)"], ["mp4", "🎬 Video MP4"]], "mp3"),
-      campoOpciones("calidad", [["baja", "Baja"], ["media", "Media"], ["alta", "Alta"]], "media"),
-    ], "Máximo 48 MB por archivo. Descarga solo contenido que tengas derecho a usar.", "Descargar",
+      el("div", { class: "campo-titulo" }, "Calidad"),
+      campoOpciones("calidad", [["baja", "Baja (más rápida y liviana)"], ["media", "Media"], ["alta", "Alta"]], "baja"),
+    ], "Funciona con cualquier enlace de YouTube: se limpia solo (quita ?si=, listas, tiempos…). Máximo 48 MB por archivo. Descarga solo contenido que tengas derecho a usar.", "Descargar",
       (f) => {
         const urls = enlacesYT(f.get("urls") || "").slice(0, 10);
         if (!urls.length) return alert("No encontré enlaces de YouTube.");
         enviar({ accion: "youtube_" + f.get("formato"), params: { url: urls.join("\n"), urls, calidad: f.get("calidad") } });
       });
   } else if (id === "transcribir") {
-    $("archivo").accept = "audio/*,video/*";
-    $("archivo").onchange = async (e) => {
-      const [a] = await subirArchivos([...e.target.files].slice(0, 1)); e.target.value = "";
-      $("archivo").onchange = async (ev) => { await subirArchivos([...ev.target.files]); ev.target.value = ""; };
-      if (a) enviar({ accion: "transcribir", params: { archivo: a.nombre } });
-    };
-    $("archivo").click();
-  } else if (id === "analizar") {
-    texto.value = "Analiza estos archivos y dime los puntos clave: ";
-    $("archivo").accept = ""; $("archivo").click(); texto.focus(); contar();
+    const input = el("input", { type: "file", name: "archivo", accept: "audio/*,video/*", required: true });
+    abrirDialogo("Transcribir audio o video", [
+      el("label", {}, "Archivo de audio o video (máx. 50 MB)", input),
+      el("label", {}, "Idioma", el("select", { name: "idioma" }, [["auto", "Detectar automáticamente"], ["es-US", "Español"], ["en-US", "Inglés"],
+        ["pt-BR", "Portugués"], ["fr-FR", "Francés"], ["it-IT", "Italiano"], ["de-DE", "Alemán"]].map(([v, t]) => el("option", { value: v }, t)))),
+    ], `Te quedan ${(quedan("stt_seg", "stt_seg") / 60).toFixed(0)} min de transcripción esta semana. Luego puedes pedirle a Simbi un resumen, subtítulos o un acta.`, "Transcribir",
+      async (f) => {
+        const archivo = input.files?.[0]; if (!archivo) return;
+        const [a] = await subirArchivos([archivo]);
+        if (a) enviar({ accion: "transcribir", params: { archivo: a.nombre, idioma: f.get("idioma") || "auto" } });
+      });
+  } else if (id === "recordatorio") {
+    abrirRecordatorios();
   } else if (id === "oficina") {
-    texto.value = "Crea un archivo Excel con "; texto.focus(); contar();
+    const area = el("textarea", { name: "detalles", required: true });
+    const selFmt = el("select", { name: "formato" }, [["excel", "📊 Excel"], ["word", "📄 Word"], ["pdf", "📕 PDF"]].map(([v, t]) => el("option", { value: v }, t)));
+    const sel = el("select", { name: "plantilla" }, [["excel", "📊 Excel"], ["word", "📄 Word"], ["pdf", "📕 PDF"], ["otro", "✏️ Otro"]].map(([g, t]) =>
+      el("optgroup", { label: t }, PLANTILLAS_OFICINA.filter((p) => p[0] === g).map((p) => el("option", { value: p[1] }, p[2])))));
+    const alCambiar = () => { const p = PLANTILLAS_OFICINA.find((x) => x[1] === sel.value); area.placeholder = p[4]; if (p[0] !== "otro") selFmt.value = p[0]; };
+    sel.onchange = alCambiar; alCambiar();
+    abrirDialogo("Excel, Word o PDF", [
+      el("label", {}, "¿Qué necesitas? (plantilla)", sel),
+      el("label", {}, "Detalles", area),
+      el("div", { class: "fila-2" }, el("label", {}, "Formato", selFmt), campoNivel()),
+    ], "Si tienes un archivo de base (datos, borrador, logo), adjúntalo con ＋ antes. Un revisor de diseño mira el PDF/Word antes de entregarlo. Queda en ☁️ Mi nube › Documentos.", "Crear archivo",
+      (f) => {
+        const p = PLANTILLAS_OFICINA.find((x) => x[1] === f.get("plantilla"));
+        const fmt = NOMBRE_FORMATO[f.get("formato")] || "el archivo";
+        enviar({ mensaje: `Crea ${fmt}${p[3] ? " con " + p[3] : ""}.\nDetalles: ${f.get("detalles").trim()}\n` +
+          "Diseño profesional y claro, listo para usar." + (adjuntos.length ? " Usa el archivo que adjunto como base." : "") });
+      });
   } else if (id === "presentacion") {
     const paletas = [["azul", "Azul corporativo (#1E3A8A, #3B82F6, blanco)"], ["verde", "Verde natural (#14532D, #22C55E, crema)"],
       ["oscuro", "Oscuro moderno (#0F172A, #38BDF8, #F472B6)"], ["calido", "Cálido (#7C2D12, #F97316, #FDE68A)"],
       ["sobrio", "Blanco y negro elegante (#111111, #F5F5F5, acento #D4AF37)"], ["simbi", "Colores de Simbi (#0B1117, #2EE6D6, #FF5A3C)"]];
     abrirDialogo("Presentación PowerPoint", [
       el("label", {}, "Tema", el("textarea", { name: "tema", required: true, placeholder: "Ej.: La ley de Ohm para grado 9, con ejemplos de la vida diaria y ejercicios" })),
-      el("label", {}, "Número de diapositivas", el("input", { type: "number", name: "n", min: 3, max: 25, value: 10 })),
+      el("div", { class: "fila-2" }, el("label", {}, "Número de diapositivas", el("input", { type: "number", name: "n", min: 1, max: 25, value: 2 })), campoNivel()),
       el("label", {}, "Colores", el("select", { name: "paleta" }, paletas.map(([v, t]) => el("option", { value: v }, t)), el("option", { value: "propia" }, "Otros (los escribo abajo)"))),
       el("label", {}, "Colores propios (opcional)", el("input", { type: "text", name: "colores", placeholder: "Ej.: morado y amarillo, o #6D28D9 y #FACC15" })),
       campoOpciones("estilo", [["minimalista", "Minimalista"], ["corporativo", "Corporativo"], ["creativo", "Creativo"], ["educativo", "Educativo"]], "educativo"),
       el("label", { class: "check" }, el("input", { type: "checkbox", name: "notas", checked: true }), " Incluir notas del orador"),
-    ], "Simbi crea un .pptx editable y un revisor de diseño mira las diapositivas antes de entregarlo. Si adjuntas un documento (📎) antes, lo usa como fuente. Recomendado: Difícil o Muy complejo.", "Crear presentación",
+    ], "Simbi crea un .pptx editable y un revisor de diseño mira las diapositivas antes de entregarlo. Si adjuntas un documento (＋) antes, lo usa como fuente.", "Crear presentación",
       (f) => {
         const pal = paletas.find((x) => x[0] === f.get("paleta"));
         const colores = f.get("colores")?.trim() || (pal ? pal[1] : "a tu criterio, sobria");
-        enviar({ mensaje: `Crea una presentación de PowerPoint (.pptx editable) de ${Math.min(25, Math.max(3, +f.get("n") || 10))} diapositivas sobre: ${f.get("tema").trim()}\n` +
+        const n = Math.min(25, Math.max(1, +f.get("n") || 2));
+        enviar({ mensaje: `Crea una presentación de PowerPoint (.pptx editable) de ${n} diapositiva${n > 1 ? "s" : ""} sobre: ${f.get("tema").trim()}\n` +
           `Estilo: ${f.get("estilo")}. Colores: ${colores}.\n` +
-          `Incluye portada, agenda, desarrollo con una idea por diapositiva y elementos visuales, y cierre.` +
+          (n >= 4 ? "Incluye portada, agenda, desarrollo con una idea por diapositiva y elementos visuales, y cierre." : "Aprovecha cada diapositiva con una idea clara y elementos visuales.") +
           (f.get("notas") ? " Agrega notas del orador en cada diapositiva." : "") +
           (adjuntos.length ? " Usa como fuente el documento que adjunto." : "") });
       });
   } else if (id === "estudiar") {
+    const pro = esPro();
     abrirDialogo("Estudiar", [
-      el("label", {}, "Tema o texto (o adjunta un documento con 📎 antes)", el("textarea", { name: "tema", required: !adjuntos.length,
-        placeholder: "Ej.: la célula y sus partes · o pega aquí tus apuntes" })),
+      el("label", {}, "Tema o texto (o adjunta tus apuntes/PDF con ＋ antes)", el("textarea", { name: "tema", required: !adjuntos.length,
+        placeholder: "Ej.: farmacología de antibióticos betalactámicos · o pega aquí tus apuntes" })),
       el("div", { class: "campo-titulo" }, "¿Qué quieres?"),
-      campoOpciones("tipo", [["quiz", "📝 Quiz de opción múltiple"], ["tarjetas", "🃏 Tarjetas de estudio"], ["guia", "📖 Guía de estudio"], ["todo", "✨ Todo"]], "quiz"),
-      el("label", {}, "Cantidad de preguntas o tarjetas", el("input", { type: "number", name: "n", min: 3, max: 40, value: 10 })),
-      el("div", { class: "campo-titulo" }, "Nivel"),
-      campoOpciones("nivel", [["primaria", "Primaria"], ["secundaria", "Secundaria"], ["universidad", "Universidad"], ["profesional", "Profesional"]], "secundaria"),
+      campoOpciones("tipo", [["tarjetas", "🃏 Tarjetas para repasar (tipo Anki)"], ["quiz", "📝 Quiz de opción múltiple"], ["guia", "📖 Guía de estudio"], ["todo", "✨ Todo"]], "tarjetas"),
+      el("div", { class: "fila-2" }, el("label", {}, "Cantidad", el("input", { type: "number", name: "n", min: 3, max: 60, value: 15 })), campoNivel()),
+      el("div", { class: "campo-titulo" }, "Nivel académico"),
+      campoOpciones("nivel", [["primaria", "Primaria"], ["secundaria", "Secundaria"], ["universidad", "Universidad"], ["profesional", "Profesional / especialización"]], "universidad"),
       el("div", { class: "campo-titulo" }, "Entrega"),
-      campoOpciones("salida", [["chat", "En el chat"], ["pdf", "PDF para imprimir"], ["excel", "Excel (tarjetas, importable a Anki/Quizlet)"]], "chat"),
-    ], "En el chat es lo más rápido y gasta menos tokens. El PDF y el Excel son de la versión Pro.", "Crear",
+      campoOpciones("salida", [["nube", "🃏 Guardar para repasar (☁️ Mi nube › Estudio)" + (pro ? "" : " · Pro")], ["chat", "En el chat"], ["pdf", "PDF para imprimir" + (pro ? "" : " · Pro")], ["excel", "Excel (Anki/Quizlet)" + (pro ? "" : " · Pro")]], pro ? "nube" : "chat"),
+    ], "Las tarjetas guardadas se repasan con «Repasar»: primero salen las que más te cuestan y tu progreso queda en este dispositivo.", "Crear",
       (f) => {
         const tema = f.get("tema")?.trim();
         if (!tema && !adjuntos.length) return;
         const salida = f.get("salida");
-        if (salida !== "chat" && !esPro()) return abrirPro("El PDF y el Excel son de la versión Pro.");
-        const n = Math.min(40, Math.max(3, +f.get("n") || 10));
+        if (salida !== "chat" && !esPro()) return abrirPro("Guardar tarjetas, PDF y Excel son de la versión Pro.");
+        const n = Math.min(60, Math.max(3, +f.get("n") || 15));
+        const tipo = f.get("tipo");
+        const fuente = (tema ? `Tema / contenido: ${tema}\n` : "Usa como contenido el material que adjunto.\n") + "Basa todo en información correcta y actual; si adjunto material, cíñete a él.";
+        if (salida === "nube" && (tipo === "tarjetas" || tipo === "todo")) {
+          enviar({ mensaje: `Crea ${n} tarjetas de estudio tipo Anki (frente: pregunta o concepto concreto; reverso: respuesta precisa y breve, ` +
+            `con un dato clave o mnemotecnia si ayuda) para nivel ${f.get("nivel")} y guárdalas con guardar_tarjetas.\n${fuente}` +
+            (tipo === "todo" ? `\nAdemás, en el chat dame una guía de estudio breve y un quiz de ${Math.min(10, n)} preguntas con la clave al final.` : "") });
+          return;
+        }
         const que = { quiz: `un quiz de ${n} preguntas de opción múltiple (4 opciones, una correcta) con la clave de respuestas y una explicación breve de cada una AL FINAL`,
           tarjetas: `${n} tarjetas de estudio (pregunta → respuesta corta)`,
           guia: "una guía de estudio con conceptos clave, resumen por secciones, ejemplos y errores comunes",
-          todo: `una guía de estudio breve, ${n} tarjetas de estudio y un quiz de ${n} preguntas de opción múltiple con la clave de respuestas al final` }[f.get("tipo")];
-        const formato = { chat: "Respóndelo aquí en el chat, bien organizado con Markdown.",
+          todo: `una guía de estudio breve, ${n} tarjetas de estudio y un quiz de ${n} preguntas de opción múltiple con la clave de respuestas al final` }[tipo];
+        const formato = { chat: "Respóndelo aquí en el chat, bien organizado con Markdown.", nube: "Respóndelo aquí en el chat, bien organizado con Markdown.",
           pdf: "Entrégalo como PDF elegante para imprimir (preguntas primero y la clave de respuestas en una página aparte).",
           excel: "Entrégalo como Excel con columnas Pregunta y Respuesta (y Opciones si es quiz), listo para importar a Anki o Quizlet." }[salida];
-        enviar({ mensaje: `Ayúdame a estudiar. Crea ${que}, para nivel ${f.get("nivel")}.\n` +
-          (tema ? `Tema / contenido: ${tema}\n` : "Usa como contenido el material que adjunto.\n") +
-          `Basa todo en información correcta; si adjunto material, cíñete a él. ${formato}` });
+        enviar({ mensaje: `Ayúdame a estudiar. Crea ${que}, para nivel ${f.get("nivel")}.\n${fuente} ${formato}` });
       });
   } else if (id === "correo") {
     const area = el("textarea", { name: "puntos", required: true });
@@ -1198,7 +1398,7 @@ async function abrirAtajo(id, conAdjunta = false) {
       el("label", {}, "¿Para quién?", el("input", { type: "text", name: "para", placeholder: "Ej.: el rector, un cliente, mi jefe, la profesora Ana" })),
       el("label", {}, "¿Qué quieres decir? (puntos clave)", area),
       campoOpciones("tono", [["formal", "Formal"], ["cercano", "Cercano"], ["persuasivo", "Persuasivo"], ["directo", "Directo"]], "formal"),
-      campoOpciones("largo", [["corto", "Corto"], ["medio", "Medio"], ["largo", "Largo"]], "medio"),
+      el("div", { class: "fila-2" }, el("div", {}, el("div", { class: "campo-titulo" }, "Extensión"), campoOpciones("largo", [["corto", "Corto"], ["medio", "Medio"], ["largo", "Largo"]], "medio")), campoNivel()),
     ], "Simbi escribe el asunto (con 2 alternativas), el saludo, el cuerpo y la despedida. Luego puedes pedirle cambios.", "Redactar",
       (f) => {
         const t = TIPOS_CORREO.find((x) => x[0] === f.get("tipo"));
@@ -1214,7 +1414,7 @@ async function abrirAtajo(id, conAdjunta = false) {
       el("label", {}, "Tema o contenido", area),
       el("label", {}, "Público (opcional)", el("input", { type: "text", name: "publico", placeholder: "Ej.: padres de familia, jóvenes de 15 a 20 años, docentes" })),
       campoOpciones("tono", [["cercano", "Cercano"], ["profesional", "Profesional"], ["inspirador", "Inspirador"], ["divertido", "Divertido"]], "cercano"),
-      campoOpciones("largo", [["corto", "Corto"], ["medio", "Medio"], ["largo", "Largo"]], "medio"),
+      el("div", { class: "fila-2" }, el("div", {}, el("div", { class: "campo-titulo" }, "Extensión"), campoOpciones("largo", [["corto", "Corto"], ["medio", "Medio"], ["largo", "Largo"]], "medio")), campoNivel()),
     ], "Elige una plantilla y Simbi arma el pedido completo. Después puedes iterar en el chat.", "Redactar",
       (f) => {
         const t = TIPOS_TEXTO.find((x) => x[0] === f.get("tipo"));
@@ -1229,19 +1429,63 @@ async function abrirAtajo(id, conAdjunta = false) {
     abrirDialogo("Video con código", [
       el("label", {}, "¿Qué video quieres?", el("textarea", { name: "texto", required: true, placeholder: "Ej.: video explicativo de la ley de Ohm con fondo oscuro, títulos animados, la fórmula V = I × R y un ejemplo con números" })),
       campoOpciones("formato", [["9:16", "Vertical 9:16"], ["16:9", "Horizontal 16:9"]], "9:16"),
-      el("label", {}, "Duración aproximada (segundos)", el("input", { type: "number", name: "duracion", min: 5, max: 90, value: 20 })),
+      el("div", { class: "fila-2" }, el("label", {}, "Duración aproximada (segundos)", el("input", { type: "number", name: "duracion", min: 5, max: 90, value: 20 })), campoNivel()),
       el("div", { class: "campo-titulo" }, "Narración (voz)"),
       campoOpciones("motor", [["ninguna", "Sin voz"], ["chirp", "Chirp HD (natural)"], ["gemini", "Gemini (expresiva)"]], "chirp"),
       el("label", {}, "Voz", sel),
       el("label", {}, "Texto de la narración (opcional: si lo dejas vacío, Simbi lo escribe)", el("textarea", { name: "guion", placeholder: "Escribe exactamente lo que dirá la voz" })),
       el("label", {}, "Estilo de la voz (solo Gemini)", el("input", { type: "text", name: "estilo", placeholder: "Ej.: entusiasta, como profesor joven" })),
     ], `La voz se descuenta de tus minutos (te quedan ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min Chirp y ${(quedan("tts_gemini_seg", "tts_gemini_seg") / 60).toFixed(0)} min Gemini). ` +
-      "Para música de fondo, adjunta un MP3 (📎) antes de crear. Recomendado: nivel Difícil o Muy complejo. Luego puedes pedir cambios en el chat.", "Crear video",
+      "Para música de fondo, adjunta un MP3 (＋) antes de crear. Recomendado: nivel Difícil o Muy complejo.", "Crear video",
       (f) => f.get("texto")?.trim() && enviar({ accion: "video_codigo", params: { texto: f.get("texto").trim(), formato: f.get("formato"),
         duracion: Math.min(90, Math.max(5, +f.get("duracion") || 20)), motor: f.get("motor"), voz: f.get("voz"),
         guion: f.get("guion") || "", estilo: f.get("estilo") || "" } }));
   }
 }
+
+/* ───────── ⏰ Recordatorios por Telegram (sin gastar tokens) ───────── */
+async function abrirRecordatorios() {
+  let datos;
+  try { datos = await apiNube("/recordatorios"); } catch (e) { return alert(e.message); }
+  if (!datos.telegram) {
+    if (confirm("Para recibir recordatorios primero conecta Telegram (solo una vez).\n\n¿Conectarlo ahora?")) $("btn-telegram").click();
+    return;
+  }
+  const dosDig = (n) => String(n).padStart(2, "0");
+  const fechaLocal = (d) => `${d.getFullYear()}-${dosDig(d.getMonth() + 1)}-${dosDig(d.getDate())}`;
+  const en1h = new Date(Date.now() + 3600e3);
+  const fecha = el("input", { type: "date", name: "fecha", required: true, value: fechaLocal(en1h), min: fechaLocal(new Date()) });
+  const hora = el("input", { type: "time", name: "hora", required: true, value: `${dosDig(en1h.getHours())}:00` });
+  const poner = (d) => { fecha.value = fechaLocal(d); hora.value = `${dosDig(d.getHours())}:${dosDig(d.getMinutes())}`; };
+  const manana = (h) => { const d = new Date(); d.setDate(d.getDate() + 1); d.setHours(h, 0, 0, 0); return d; };
+  const rapidos = el("div", { class: "rapidos" },
+    el("button", { type: "button", onclick: () => poner(new Date(Date.now() + 30 * 60e3)) }, "En 30 min"),
+    el("button", { type: "button", onclick: () => poner(new Date(Date.now() + 3600e3)) }, "En 1 hora"),
+    el("button", { type: "button", onclick: () => poner(manana(7)) }, "Mañana 7 a. m."),
+    el("button", { type: "button", onclick: () => poner(manana(18)) }, "Mañana 6 p. m."));
+  const pendientes = (datos.lista || []).filter((r) => !r.enviado);
+  const lista = el("div", { class: "lista-rec" }, pendientes.map((r) => {
+    const fila = el("div", {}, el("span", {}, r.texto, el("small", {}, new Date(r.cuando).toLocaleString("es-CO", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }))),
+      el("button", { type: "button", class: "btn-x", title: "Cancelar", onclick: async () => {
+        try { await apiNube("/recordatorios/" + r.id, { method: "DELETE" }); fila.remove(); } catch (e) { alert(e.message); }
+      } }, "✕"));
+    return fila;
+  }));
+  abrirDialogo("Recordatorio por Telegram", [
+    el("label", {}, "¿Qué te recuerdo?", el("textarea", { name: "texto", required: true, maxlength: 1000, placeholder: "Ej.: tomar el medicamento · pagar el arriendo · estudiar anatomía 30 min" })),
+    el("div", { class: "fila-2" }, el("label", {}, "Fecha", fecha), el("label", {}, "Hora (Colombia)", hora)),
+    rapidos,
+    pendientes.length ? el("div", { class: "campo-titulo" }, `Pendientes (${pendientes.length})`) : null,
+    pendientes.length ? lista : null,
+  ], "Te llegará un mensaje de @SimbiAlertasBot a esa hora. También puedes pedírselo a Simbi en el chat: «recuérdame mañana a las 7 llamar a mamá».", "Programar",
+    async (f) => {
+      try {
+        const r = await apiNube("/recordatorios", { method: "POST", body: JSON.stringify({ texto: f.get("texto").trim(), cuando: `${f.get("fecha")} ${f.get("hora")}` }) });
+        alert("⏰ Listo: te aviso por Telegram el " + r.cuando + ".");
+      } catch (e) { alert("No se pudo programar: " + e.message); }
+    });
+}
+
 function etiquetaAccion(accion, p) {
   return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz Chirp: ", voz_gemini: "🔊 Voz Gemini: ",
     youtube_mp4: "⬇️ YouTube MP4: ", youtube_mp3: "🎵 YouTube MP3: ", transcribir: "📝 Transcribir: ", video_codigo: "🎞️ Video con código: " })[accion] +

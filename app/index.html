@@ -67,8 +67,7 @@
         </div>
         <div class="herr-lat">
           <button class="btn-herr" id="btn-musica" type="button" aria-haspopup="dialog" title="Mi música"><span>🎧</span>Música <small id="musica-n"></small></button>
-          <button class="btn-herr" id="btn-archivos" type="button" aria-haspopup="dialog" title="Mis archivos"><span>🗂️</span>Archivos</button>
-          <button class="btn-herr" id="btn-nube" type="button" aria-haspopup="dialog" title="Mi nube: guarda tus fotos, videos y archivos"><span>☁️</span>Nube <small id="nube-resumen"></small></button>
+          <button class="btn-herr" id="btn-nube" type="button" aria-haspopup="dialog" title="Mi nube: guarda tus fotos, videos y archivos"><span>☁️</span>Mi nube <small id="nube-resumen"></small></button>
           <button class="btn-herr" id="btn-telegram" type="button" title="Recibe avisos de Simbi en Telegram"><span>📲</span>Avisos <small id="telegram-estado"></small></button>
           <button class="btn-herr" id="btn-limites" type="button" aria-haspopup="dialog" title="Límite semanal"><span>📊</span>Límite <small id="limite-resumen"></small></button>
         </div>
@@ -105,9 +104,10 @@
         <div id="sugeridos" class="sugeridos" hidden></div>
         <div id="adjuntos" class="adjuntos"></div>
         <div class="caja">
-          <button type="button" class="icono clip" id="btn-adjuntar" aria-label="Adjuntar archivos" title="Adjuntar archivos (Pro)">📎</button>
+          <button type="button" class="btn-adj" id="btn-adjuntar" aria-label="Adjuntar archivos" title="Adjuntar archivos (fotos, PDF, Word, Excel, audio, video…)"><span class="mas">＋</span><span class="txt">Adjuntar</span></button>
           <input type="file" id="archivo" multiple hidden>
           <textarea id="texto" rows="1" placeholder="Escribe tu mensaje…  (Enter envía · Shift+Enter nueva línea)" aria-label="Mensaje"></textarea>
+          <label class="nivel-sel" title="Potencia de la IA para este mensaje"><span>🧠</span><select id="nivel-sel" aria-label="Nivel de IA"></select></label>
           <button class="btn btn-brasa enviar" id="btn-enviar" type="submit" aria-label="Enviar">➤</button>
           <button class="btn btn-borde enviar" id="btn-parar" type="button" aria-label="Detener" hidden>■</button>
         </div>
@@ -138,14 +138,6 @@
     </form>
   </dialog>
 
-  <dialog id="dlg-archivos" class="dlg dlg-ancho">
-    <form method="dialog">
-      <div class="dlg-cab"><h3>Mis archivos</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
-      <div class="filtros-arch" id="filtros-arch" role="tablist"></div>
-      <div id="galeria" class="galeria" aria-live="polite"></div>
-      <div class="dlg-acc"><button class="btn btn-borde" id="mas-archivos" type="button" hidden>Ver más</button></div>
-    </form>
-  </dialog>
 
   <dialog id="dlg-nube" class="dlg dlg-ancho">
     <form method="dialog">
@@ -154,10 +146,17 @@
         <div class="cupo nube-cupo"><div class="fila"><span>Espacio usado</span><b id="nube-uso">…</b></div><div class="barra-c"><i id="nube-barra" style="width:0"></i></div></div>
         <label class="btn btn-prim nube-subir">⬆ Subir archivos<input id="nube-input" type="file" multiple hidden></label>
       </div>
+      <div class="nube-barra">
+        <nav id="nube-migas" class="nube-migas" aria-label="Carpeta actual"></nav>
+        <input id="nube-buscar" type="search" placeholder="Buscar en toda mi nube…" aria-label="Buscar archivos">
+        <button type="button" class="btn btn-borde btn-chico" id="nube-nueva">＋ Carpeta</button>
+        <button type="button" class="btn btn-borde btn-chico" id="nube-quitar" hidden>Quitar carpeta</button>
+      </div>
       <div id="nube-subidas" class="nube-subidas" aria-live="polite"></div>
       <div class="filtros-arch" id="nube-filtros" role="tablist"></div>
       <div id="nube-galeria" class="galeria nube-zona" aria-live="polite"></div>
-      <p class="nota nube-nota">Arrastra archivos aquí o usa «Subir». Solo tú puedes verlos.</p>
+      <div class="dlg-acc"><button class="btn btn-borde" id="nube-mas" type="button" hidden>Ver más</button></div>
+      <p class="nota nube-nota">Aquí está todo: lo que subes, lo que adjuntas en el chat y lo que crea Simbi (música, imágenes, videos, documentos y tarjetas de estudio). Arrastra archivos para subirlos a la carpeta abierta. Solo tú puedes verlos.</p>
     </form>
   </dialog>
 
@@ -188,6 +187,21 @@
         <label class="check"><input type="checkbox" id="rep-ocultas"> Ver ocultas</label>
       </div>
       <ol class="rep-lista" id="rep-lista"></ol>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-tarjetas" class="dlg dlg-tarj">
+    <form method="dialog">
+      <div class="dlg-cab"><h3 id="tj-titulo">Repasar</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
+      <div class="tj-prog"><span id="tj-cont" class="mono"></span><div class="barra-c"><i id="tj-barra" style="width:0"></i></div></div>
+      <button type="button" id="tj-carta" class="tj-carta" aria-live="polite"><span id="tj-cara" class="tj-cara">Pregunta</span><div id="tj-texto" class="md"></div><small id="tj-pista"></small></button>
+      <div id="tj-botones" class="tj-botones" hidden>
+        <button type="button" class="btn btn-borde" data-r="0">😵 Otra vez</button>
+        <button type="button" class="btn btn-borde" data-r="1">🤔 Difícil</button>
+        <button type="button" class="btn btn-borde" data-r="2">🙂 Bien</button>
+        <button type="button" class="btn btn-brasa" data-r="3">😎 Fácil</button>
+      </div>
+      <p class="nota" id="tj-nota">Toca la tarjeta (o la barra espaciadora) para ver la respuesta.</p>
     </form>
   </dialog>
 
