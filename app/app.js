@@ -197,6 +197,7 @@ async function iniciarApp() {
     .catch(() => { $("aviso-api").hidden = false; $("aviso-api").textContent = "No pude conectar con el servidor de Simbi. Si el problema sigue, intenta en unos minutos."; });
   await cargarEstado();
   await cargarConversaciones();
+  cargarTelegram();
   const ultima = leer("simb_conv_" + usuario.id);
   if (ultima && conversaciones.some((c) => c.id === ultima)) abrirConversacion(ultima); else nuevaConversacion();
   cargarMusica();
@@ -335,6 +336,32 @@ function pintarGaleria() {
   });
 }
 $("btn-archivos").onclick = abrirArchivos;
+
+/* ───────── 📲 Avisos por Telegram (@SimbiAlertasBot) ───────── */
+const tg = { conectado: false, usuario: "" };
+async function cargarTelegram() {
+  try {
+    Object.assign(tg, await apiNube("/telegram"));
+    $("telegram-estado").textContent = tg.conectado ? "✓" : "";
+    $("btn-telegram").title = tg.conectado ? `Conectado${tg.usuario ? " como " + tg.usuario : ""} · toca para desconectar`
+                                           : "Recibe avisos de Simbi en Telegram";
+  } catch { /* sin conexión: el botón sigue disponible */ }
+}
+$("btn-telegram").onclick = async () => {
+  try {
+    if (tg.conectado) {
+      if (!confirm(`Telegram está conectado${tg.usuario ? " (" + tg.usuario + ")" : ""}.\n¿Quieres desconectarlo y dejar de recibir avisos?`)) return;
+      await apiNube("/telegram", { method: "DELETE" });
+    } else {
+      const ventana = window.open("about:blank", "_blank");   // se abre ya para que el navegador no la bloquee
+      const { url } = await apiNube("/telegram/vincular", { method: "POST" });
+      if (ventana) ventana.location = url; else location.href = url;
+      alert("En Telegram toca «Iniciar» y listo: te avisaré cuando tus descargas y archivos estén listos.");
+    }
+  } catch (e) { alert("No se pudo: " + e.message); }
+  cargarTelegram();
+};
+window.addEventListener("focus", () => { if (!tg.conectado) cargarTelegram(); });
 
 /* ───────── ☁️ Mi nube: almacenamiento personal (Google Cloud Storage, cupo por plan) ───────── */
 const nube = { lista: [], usado: 0, limite: 0, filtro: "todos", urls: new Map() };
