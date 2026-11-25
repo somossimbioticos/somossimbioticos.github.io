@@ -1148,7 +1148,7 @@ async function abrirWebs() {
   for (const w of lista) {
     const zona = el("div");
     const cols = el("div", { class: "cols" }, w.colecciones.map((col) => el("button", { type: "button", onclick: () => verDatosWeb(w, col.nombre, zona) },
-      `📋 ${col.nombre} (${w.conteo?.[col.nombre] ?? 0})${col.publico_leer ? " · pública" : ""}`)));
+      `${col.privada ? "🔐" : "📋"} ${col.nombre} (${w.conteo?.[col.nombre] ?? 0})${col.privada ? " · con inicio de sesión" : col.publico_leer ? " · pública" : ""}`)));
     c.append(el("div", { class: "web-tarj" },
       el("div", { class: "cab" }, el("b", {}, w.titulo),
         el("a", { class: "btn btn-brasa btn-chico", href: w.url, target: "_blank", rel: "noopener" }, "Abrir"),
@@ -1158,7 +1158,10 @@ async function abrirWebs() {
           if (!confirm(`¿Borrar «${w.titulo}»? El enlace dejará de funcionar y se borran sus datos.`)) return;
           try { await apiNube("/sitios/" + w.id, { method: "DELETE" }); abrirWebs(); } catch (e) { alert(e.message); }
         } }, "🗑")),
-      el("span", { class: "url" }, w.url),
+      el("span", { class: "url" }, (w.hosting === "github" ? "GitHub · " : "Google Cloud · ") + w.url),
+      w.url_respaldo ? el("small", { class: "nota" }, "Copia en Google Cloud: ",
+        el("a", { href: w.url_respaldo, target: "_blank", rel: "noopener" }, "abrir"), " · ",
+        el("button", { type: "button", class: "enlace", onclick: () => copiar(w.url_respaldo) }, "copiar enlace")) : null,
       el("small", { class: "nota" }, `Actualizada ${new Date(w.actualizado).toLocaleString("es-CO", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })} · ${w.archivos} archivos`),
       w.colecciones.length ? cols : el("small", { class: "nota" }, "Sin base de datos (pídele a Simbi un formulario si la necesitas)."),
       zona));
