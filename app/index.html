@@ -68,6 +68,7 @@
         <div class="herr-lat">
           <button class="btn-herr" id="btn-musica" type="button" aria-haspopup="dialog" title="Mi música"><span>🎧</span>Música <small id="musica-n"></small></button>
           <button class="btn-herr" id="btn-nube" type="button" aria-haspopup="dialog" title="Mi nube: guarda tus fotos, videos y archivos"><span>☁️</span>Mi nube <small id="nube-resumen"></small></button>
+          <button class="btn-herr" id="btn-webs" type="button" aria-haspopup="dialog" title="Las páginas web que creó Simbi y sus datos"><span>🌐</span>Webs <small id="webs-n"></small></button>
           <button class="btn-herr" id="btn-telegram" type="button" title="Recibe avisos de Simbi en Telegram"><span>📲</span>Avisos <small id="telegram-estado"></small></button>
           <button class="btn-herr" id="btn-limites" type="button" aria-haspopup="dialog" title="Límite semanal"><span>📊</span>Límite <small id="limite-resumen"></small></button>
         </div>
@@ -141,10 +142,11 @@
 
   <dialog id="dlg-nube" class="dlg dlg-ancho">
     <form method="dialog">
-      <div class="dlg-cab"><h3>☁️ Mi nube</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
-      <div class="nube-cab">
-        <div class="cupo nube-cupo"><div class="fila"><span>Espacio usado</span><b id="nube-uso">…</b></div><div class="barra-c"><i id="nube-barra" style="width:0"></i></div></div>
-        <label class="btn btn-prim nube-subir">⬆ Subir archivos<input id="nube-input" type="file" multiple hidden></label>
+      <div class="dlg-cab nube-top">
+        <h3>☁️ Mi nube</h3>
+        <div class="nube-cupo-mini" title="Espacio usado"><span id="nube-uso">…</span><div class="barra-c"><i id="nube-barra" style="width:0"></i></div></div>
+        <label class="btn btn-prim btn-chico nube-subir">⬆ Subir<input id="nube-input" type="file" multiple hidden></label>
+        <button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button>
       </div>
       <div class="nube-barra">
         <nav id="nube-migas" class="nube-migas" aria-label="Carpeta actual"></nav>
@@ -156,7 +158,7 @@
       <div class="filtros-arch" id="nube-filtros" role="tablist"></div>
       <div id="nube-galeria" class="galeria nube-zona" aria-live="polite"></div>
       <div class="dlg-acc"><button class="btn btn-borde" id="nube-mas" type="button" hidden>Ver más</button></div>
-      <p class="nota nube-nota">Aquí está todo: lo que subes, lo que adjuntas en el chat y lo que crea Simbi (música, imágenes, videos, documentos y tarjetas de estudio). Arrastra archivos para subirlos a la carpeta abierta. Solo tú puedes verlos.</p>
+      <p class="nota nube-nota">Todo lo tuyo y lo que crea Simbi. Arrastra archivos para subirlos a la carpeta abierta · Solo tú puedes verlos.</p>
     </form>
   </dialog>
 
@@ -187,6 +189,14 @@
         <label class="check"><input type="checkbox" id="rep-ocultas"> Ver ocultas</label>
       </div>
       <ol class="rep-lista" id="rep-lista"></ol>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-webs" class="dlg dlg-ancho">
+    <form method="dialog">
+      <div class="dlg-cab"><h3>🌐 Mis webs</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
+      <div id="webs-cont" class="webs-cont" aria-live="polite"></div>
+      <p class="nota">Pídele a Simbi «crea una página web para…» o usa el atajo 🌐. Para cambiarla, escríbele en la misma conversación: el enlace no cambia. Los datos de formularios llegan aquí (y por Telegram si lo conectaste).</p>
     </form>
   </dialog>
 

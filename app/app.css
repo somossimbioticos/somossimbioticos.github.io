@@ -261,7 +261,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 
 /* Barra lateral compacta */
 .btn-sugerir { width: 42px; flex-shrink: 0; margin: 0; padding: 0; font-size: 17px; border-radius: 12px; }
-.herr-lat { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.herr-lat { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
 .btn-herr { display: grid; justify-items: center; gap: 1px; background: var(--panel-2); border: 1px solid var(--linea); border-radius: 12px; padding: 7px 2px 6px; color: var(--papel); font-size: 10.5px; font-weight: 600; cursor: pointer; line-height: 1.2; }
 .btn-herr span { font-size: 17px; }
 .btn-herr small { font-family: var(--f-mono); font-size: 9.5px; font-weight: 400; color: var(--mut); min-height: 11px; }
@@ -353,3 +353,33 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 .fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .toast-listo { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 60; border: 1px solid rgba(62,230,224,.5); background: var(--panel); color: var(--papel); padding: 12px 18px; border-radius: 999px; box-shadow: var(--sombra); font-weight: 600; cursor: pointer; max-width: calc(100% - 32px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: subir .3s ease; }
 @keyframes subir { from { opacity: 0; transform: translate(-50%, 12px); } }
+
+/* Mi nube: cabecera compacta para que se vean más archivos */
+.nube-top { align-items: center; gap: 12px; margin-bottom: 6px; }
+.nube-top h3 { margin: 0; font-size: 26px; flex: none; }
+.nube-cupo-mini { display: grid; gap: 3px; flex: 1 1 140px; max-width: 260px; margin-left: auto; font-size: 11.5px; color: var(--mut); font-family: var(--f-mono); }
+.nube-cupo-mini .barra-c { height: 4px; background: var(--ink); border-radius: 9px; overflow: hidden; }
+.nube-cupo-mini .barra-c i { display: block; height: 100%; background: var(--cian); border-radius: 9px; transition: width .4s; }
+.nube-top .nube-subir { flex: none; }
+.nube-barra { margin: 0 0 6px; }
+.nube-nota { font-size: 11.5px !important; margin: 6px 0 0 !important; }
+#dlg-nube .filtros-arch { margin-bottom: 8px; }
+@media (max-width: 560px) { .nube-top h3 { font-size: 20px; } .nube-cupo-mini { order: 5; flex-basis: 100%; max-width: none; } }
+
+/* 🌐 Webs */
+.webs-cont { display: grid; gap: 12px; overflow-y: auto; min-height: 120px; flex: 1; align-content: start; }
+.web-tarj { background: var(--panel-2); border: 1px solid var(--linea); border-radius: 16px; padding: 14px 16px; display: grid; gap: 8px; }
+.web-tarj .cab { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.web-tarj .cab b { font-size: 16px; flex: 1; min-width: 160px; }
+.web-tarj .url { font-family: var(--f-mono); font-size: 11.5px; color: var(--cian); word-break: break-all; }
+.web-tarj .cols { display: flex; flex-wrap: wrap; gap: 6px; }
+.web-tarj .cols button { border: 1px solid var(--linea); background: var(--panel); color: var(--papel); border-radius: 999px; padding: 5px 11px; font-size: 12.5px; cursor: pointer; }
+.web-tarj .cols button:hover { border-color: var(--cian); }
+.tabla-datos { overflow-x: auto; border: 1px solid var(--linea); border-radius: 12px; max-height: 360px; }
+.tabla-datos table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tabla-datos th, .tabla-datos td { padding: 7px 10px; border-bottom: 1px solid var(--linea); text-align: left; vertical-align: top; max-width: 280px; }
+.tabla-datos th { position: sticky; top: 0; background: var(--panel); color: var(--mut); font-family: var(--f-mono); font-size: 10.5px; text-transform: uppercase; }
+.sitio-card { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: linear-gradient(135deg, rgba(62,230,224,.10), rgba(255,77,46,.06)); border: 1px solid rgba(62,230,224,.35); border-radius: 16px; padding: 12px 14px; margin: 6px 0; }
+.sitio-card .ico { font-size: 26px; }
+.sitio-card .meta { flex: 1; min-width: 180px; display: grid; gap: 2px; }
+.sitio-card .meta small { color: var(--mut); font-family: var(--f-mono); font-size: 11px; word-break: break-all; }

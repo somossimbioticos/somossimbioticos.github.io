@@ -203,7 +203,7 @@ async function iniciarApp() {
     .catch(() => { $("aviso-api").hidden = false; $("aviso-api").textContent = "No pude conectar con el servidor de Simbi. Si el problema sigue, intenta en unos minutos."; });
   await cargarEstado();
   await cargarConversaciones();
-  cargarTelegram();
+  cargarTelegram(); cargarWebsN();
   if (estado?.sin_prueba) abrirCodigo();
   const ultima = leer("simb_conv_" + usuario.id);
   if (ultima && conversaciones.some((c) => c.id === ultima)) abrirConversacion(ultima); else nuevaConversacion();
@@ -226,11 +226,12 @@ function pintarNiveles() {
 }
 
 $("nivel-sel").onchange = (e) => { nivel = e.target.value; pintarNiveles(); };
-function campoNivel() {
+function campoNivel(sugerido) {
   const permitidos = estado?.limites?.niveles || ["facil"];
+  const elegido = sugerido && permitidos.includes(sugerido) ? sugerido : nivel;
   const desc = { facil: " · rápido", medio: " · equilibrado", dificil: " · más inteligente", complejo: " · el más potente" };
   return el("label", {}, "🧠 Nivel de IA", el("select", { name: "nivel_ia" }, NIVELES.map((n) =>
-    el("option", { value: n.id, disabled: !permitidos.includes(n.id) ? true : null, selected: n.id === nivel ? true : null }, n.nombre + desc[n.id]))));
+    el("option", { value: n.id, disabled: !permitidos.includes(n.id) ? true : null, selected: n.id === elegido ? true : null }, n.nombre + desc[n.id]))));
 }
 
 function pintarCupos() {
@@ -408,7 +409,7 @@ window.addEventListener("focus", () => { if (!tg.conectado) cargarTelegram(); })
 
 /* ───────── ☁️ Mi nube: TODO en un solo lugar (Google Cloud Storage), con carpetas ───────── */
 const nube = { lista: [], carpetas: [], usado: 0, limite: 0, filtro: "todos", carpeta: "", q: "", mostrar: 60, urls: new Map() };
-const gb = (b) => b >= 1e9 ? `${(b / 1e9).toFixed(2)} GB` : tam(b);
+const gb = (b) => b >= 1073741824 * 0.95 ? `${+(b / 1073741824).toFixed(2)} GB` : tam(b);
 const ICONO_CARPETA = { "Música": "🎵", "Imágenes": "🖼️", "Videos": "🎬", "Audios": "🔊", "Documentos": "📄", "Estudio": "📚", "Subidos al chat": "📎" };
 async function apiNube(ruta, opciones = {}) {
   const r = await fetch(API + ruta, { ...opciones, headers: { Authorization: "Bearer " + await token(),
@@ -458,6 +459,7 @@ function pintarNube() {
   const base = q ? nube.lista.filter((a) => a.nombre.toLowerCase().includes(q) || carpetaDe(a).toLowerCase().includes(q))
                  : nube.lista.filter((a) => carpetaDe(a) === nube.carpeta);
   const f = $("nube-filtros"); f.textContent = "";
+  f.hidden = !base.length;
   for (const t of TIPOS_ARCH) {
     const n = base.filter((a) => t.es(a.mime)).length;
     if (t.id !== "todos" && !n) continue;
@@ -830,7 +832,7 @@ async function abrirConversacion(id) {
     if (m.rol === "usuario") pintarUsuario(m.contenido, m.adjuntos);
     else {
       const v = nuevaRespuesta();
-      for (const ev of m.eventos || []) v.evento({ ...ev, t: "herramienta" });
+      for (const ev of m.eventos || []) ev.url ? v.sitio(ev) : v.evento({ ...ev, t: "herramienta" });
       for (const a of m.adjuntos || []) v.archivo(a);
       v.texto = m.contenido; v.pintar(true);
       v.pie(m.nivel, m.tokens, modelos?.get(m.id));
@@ -902,6 +904,7 @@ function nuevaRespuesta() {
       else progreso.textContent = t;
     },
     archivo(a) { pensando.remove(); archivos.append(tarjetaArchivo(a)); },
+    sitio(w) { pensando.remove(); archivos.append(tarjetaSitio(w)); },
     error(t) { pensando.remove(); md.classList.remove("cursor"); cuerpo.append(el("div", { class: "error-msj" }, t)); },
     pie(nv, tokens, modelo) {
       cuerpo.append(el("div", { class: "pie-msj" }, `${NOMBRE_NIVEL[nv] || ""}${tokens ? " · " + fmt(tokens) + " tokens" : ""}`,
@@ -1007,6 +1010,82 @@ $("dlg-tarjetas").addEventListener("keydown", (e) => {
   else if (tj.volteada && ["1", "2", "3", "4"].includes(e.key)) calificarTarjeta(+e.key - 1);
 });
 
+/* ───────── 🌐 Webs creadas por Simbi ───────── */
+async function copiar(texto) {
+  try { await navigator.clipboard.writeText(texto); alert("🔗 Enlace copiado"); } catch { prompt("Copia el enlace:", texto); }
+}
+function tarjetaSitio(w) {
+  return el("div", { class: "sitio-card" }, el("span", { class: "ico" }, "🌐"),
+    el("div", { class: "meta" }, el("b", {}, w.titulo || "Tu página web"), el("small", {}, w.url)),
+    el("a", { class: "btn btn-brasa btn-chico", href: w.url, target: "_blank", rel: "noopener" }, "Abrir"),
+    el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: () => copiar(w.url) }, "Copiar enlace"),
+    el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: () => abrirWebs() }, "Mis webs"));
+}
+async function cargarWebsN() {
+  try { const d = await apiNube("/sitios"); $("webs-n").textContent = d.sitios.length ? String(d.sitios.length) : ""; return d.sitios; }
+  catch { return []; }
+}
+async function abrirWebs() {
+  const dlg = $("dlg-webs"), c = $("webs-cont");
+  if (!dlg.open) dlg.showModal();
+  c.textContent = ""; c.append(el("div", { class: "vacio" }, "Cargando…"));
+  const lista = await cargarWebsN();
+  c.textContent = "";
+  if (!lista.length) {
+    c.append(el("div", { class: "vacio" }, esPro() ? "Aún no tienes webs. Pídele a Simbi: «crea una página web para mi negocio con formulario de contacto»."
+      : "Crear y publicar páginas web es parte de la versión Pro.",
+      esPro() ? el("div", {}, el("button", { type: "button", class: "btn btn-brasa btn-chico", onclick: () => { dlg.close(); abrirAtajo("web"); } }, "🌐 Crear mi primera web"))
+        : el("div", {}, el("button", { type: "button", class: "btn btn-brasa btn-pro", onclick: () => abrirPro("Las páginas web son parte de la versión Pro.") }, "✨ Quiero Pro"))));
+    return;
+  }
+  for (const w of lista) {
+    const zona = el("div");
+    const cols = el("div", { class: "cols" }, w.colecciones.map((col) => el("button", { type: "button", onclick: () => verDatosWeb(w, col.nombre, zona) },
+      `📋 ${col.nombre} (${w.conteo?.[col.nombre] ?? 0})${col.publico_leer ? " · pública" : ""}`)));
+    c.append(el("div", { class: "web-tarj" },
+      el("div", { class: "cab" }, el("b", {}, w.titulo),
+        el("a", { class: "btn btn-brasa btn-chico", href: w.url, target: "_blank", rel: "noopener" }, "Abrir"),
+        el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: () => copiar(w.url) }, "Copiar enlace"),
+        w.conversacion_id ? el("button", { type: "button", class: "btn btn-borde btn-chico", title: "Pídele cambios a Simbi en esta conversación", onclick: () => { $("dlg-webs").close(); abrirConversacion(w.conversacion_id); } }, "✏️ Editar") : null,
+        el("button", { type: "button", class: "btn-x", title: "Borrar la web y sus datos", onclick: async () => {
+          if (!confirm(`¿Borrar «${w.titulo}»? El enlace dejará de funcionar y se borran sus datos.`)) return;
+          try { await apiNube("/sitios/" + w.id, { method: "DELETE" }); abrirWebs(); } catch (e) { alert(e.message); }
+        } }, "🗑")),
+      el("span", { class: "url" }, w.url),
+      el("small", { class: "nota" }, `Actualizada ${new Date(w.actualizado).toLocaleString("es-CO", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })} · ${w.archivos} archivos`),
+      w.colecciones.length ? cols : el("small", { class: "nota" }, "Sin base de datos (pídele a Simbi un formulario si la necesitas)."),
+      zona));
+  }
+}
+async function verDatosWeb(w, col, zona) {
+  zona.textContent = "Cargando…";
+  let filas;
+  try { filas = (await apiNube(`/sitios/${w.id}/datos?coleccion=${encodeURIComponent(col)}`)).datos; } catch (e) { zona.textContent = e.message; return; }
+  zona.textContent = "";
+  if (!filas.length) { zona.append(el("small", { class: "nota" }, `«${col}» aún no tiene datos.`)); return; }
+  const claves = [...new Set(filas.flatMap((f) => Object.keys(f.datos || {})))].slice(0, 12);
+  const texto = (v) => typeof v === "object" && v !== null ? JSON.stringify(v) : String(v ?? "");
+  const csv = () => {
+    const esc = (v) => `"${texto(v).replace(/"/g, '""')}"`;
+    const lineas = [["fecha", ...claves].map(esc).join(","), ...filas.map((f) => [new Date(f.creado).toLocaleString("es-CO"), ...claves.map((k) => f.datos?.[k])].map(esc).join(","))];
+    const a = el("a", { href: URL.createObjectURL(new Blob(["\ufeff" + lineas.join("\n")], { type: "text/csv" })), download: `${col}.csv` });
+    document.body.append(a); a.click(); a.remove();
+  };
+  zona.append(el("div", { class: "cab" }, el("b", {}, `📋 ${col} · ${filas.length}`), el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: csv }, "⬇ Excel/CSV")),
+    el("div", { class: "tabla-datos" }, el("table", {},
+      el("thead", {}, el("tr", {}, el("th", {}, "Fecha"), claves.map((k) => el("th", {}, k)), el("th", {}, ""))),
+      el("tbody", {}, filas.map((f) => {
+        const tr = el("tr", {}, el("td", {}, new Date(f.creado).toLocaleString("es-CO", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })),
+          claves.map((k) => el("td", {}, texto(f.datos?.[k]))),
+          el("td", {}, el("button", { type: "button", class: "btn-x", title: "Borrar", onclick: async () => {
+            if (!confirm("¿Borrar este registro?")) return;
+            try { await apiNube(`/sitios/${w.id}/datos/${f.id}`, { method: "DELETE" }); tr.remove(); } catch (e) { alert(e.message); }
+          } }, "✕")));
+        return tr;
+      })))));
+}
+$("btn-webs").onclick = () => abrirWebs();
+
 /* ───────── Envío y streaming ───────── */
 async function enviar({ mensaje = "", accion = null, params = {} } = {}) {
   if (ocupado) { alert("Simbi está terminando otra respuesta. Mientras tanto puedes mirar otros chats; cuando termine podrás enviar este."); return; }
@@ -1070,6 +1149,7 @@ function manejar(ev, v) {
     case "herramienta": v.evento(ev); break;
     case "progreso": v.progreso(ev.msg); break;
     case "archivo": v.archivo(ev); break;
+    case "sitio": v.sitio(ev); cargarWebsN(); break;
     case "error": v.error(ev.msg); if (ev.pro) abrirPro(ev.motivo ? `Quisiste usar: ${ev.motivo}.` : ""); if (ev.codigo) abrirCodigo(); break;
     case "fin":
       convProcesandoUltima = convProcesando;
@@ -1169,6 +1249,7 @@ const ATAJOS = [
   { id: "video_codigo", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz Chirp o Gemini", pro: true },
   { id: "presentacion", ico: "📽️", titulo: "Presentación PowerPoint", desc: "Diapositivas editables con revisión de diseño", pro: true },
   { id: "estudiar", ico: "📚", titulo: "Estudiar", desc: "Tarjetas tipo Anki que se guardan, quiz o guía", pro: false },
+  { id: "web", ico: "🌐", titulo: "Crear página web", desc: "Con enlace propio y base de datos para formularios", pro: true },
   { id: "imagen", ico: "🎨", titulo: "Crear una imagen", desc: "Describe lo que imaginas", pro: true },
   { id: "video", ico: "🎬", titulo: "Video con IA", desc: "Clip de 3 a 8 segundos (Veo)", pro: true },
   { id: "oficina", ico: "📊", titulo: "Excel, Word o PDF", desc: "Plantillas listas: presupuestos, informes, notas…", pro: true },
@@ -1312,6 +1393,28 @@ async function abrirAtajo(id, conAdjunta = false) {
         const archivo = input.files?.[0]; if (!archivo) return;
         const [a] = await subirArchivos([archivo]);
         if (a) enviar({ accion: "transcribir", params: { archivo: a.nombre, idioma: f.get("idioma") || "auto" } });
+      });
+  } else if (id === "web") {
+    const tipos = [["negocio", "Negocio o emprendimiento"], ["evento", "Evento, clase o invitación"], ["portafolio", "Portafolio / hoja de vida"],
+      ["catalogo", "Catálogo de productos con pedidos"], ["formulario", "Formulario, encuesta o inscripción"], ["educativa", "Página educativa o de un curso"],
+      ["enlaces", "Página de enlaces (link in bio)"], ["otro", "Otra (la describo yo)"]];
+    const funciones = [["contacto", "📩 Formulario de contacto"], ["registro", "📝 Inscripción o registro"], ["reservas", "📅 Reservas o citas"],
+      ["pedidos", "🛒 Pedidos"], ["comentarios", "💬 Comentarios públicos"], ["encuesta", "📊 Encuesta"]];
+    abrirDialogo("Crear página web", [
+      el("label", {}, "Tipo de página", el("select", { name: "tipo" }, tipos.map(([v, t]) => el("option", { value: v }, t)))),
+      el("label", {}, "Nombre", el("input", { type: "text", name: "nombre", required: true, maxlength: 80, placeholder: "Ej.: Panadería La Espiga" })),
+      el("label", {}, "Describe qué debe tener", el("textarea", { name: "desc", required: true, placeholder: "Ej.: panadería artesanal en Pasto, horarios, productos con precios, ubicación, botón de WhatsApp 300 123 4567" })),
+      el("div", { class: "campo-titulo" }, "Guardar información (base de datos)"),
+      el("div", { class: "opciones" }, funciones.map(([v, t]) => el("label", {}, el("input", { type: "checkbox", name: "fn", value: v }), t))),
+      el("div", { class: "fila-2" }, el("label", {}, "Colores (opcional)", el("input", { type: "text", name: "colores", placeholder: "Ej.: café y crema, o #6D28D9" })), campoNivel("dificil")),
+    ], "Simbi la diseña y la publica con un enlace para compartir. Los datos que envíen los visitantes llegan a «🌐 Webs» (y a tu Telegram). Para cambiarla, pídeselo en la misma conversación. Si quieres usar tu logo o fotos, adjúntalos con ＋ antes. Recomendado: nivel Difícil.", "Crear y publicar",
+      (f) => {
+        const t = tipos.find((x) => x[0] === f.get("tipo"));
+        const fns = f.getAll("fn").map((v) => funciones.find((x) => x[0] === v)[1].replace(/^\S+\s/, "").toLowerCase());
+        enviar({ mensaje: `Crea y publica una página web (${t[1].toLowerCase()}) llamada «${f.get("nombre").trim()}».\n${f.get("desc").trim()}\n` +
+          (fns.length ? `Debe guardar información con base de datos: ${fns.join(", ")}.\n` : "") +
+          (f.get("colores")?.trim() ? `Colores: ${f.get("colores").trim()}.\n` : "") +
+          "Diseño moderno, atractivo y adaptado a celular." + (adjuntos.length ? " Usa las imágenes que adjunto." : "") });
       });
   } else if (id === "recordatorio") {
     abrirRecordatorios();
