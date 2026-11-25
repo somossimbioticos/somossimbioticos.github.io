@@ -203,7 +203,7 @@ async function iniciarApp() {
     .catch(() => { $("aviso-api").hidden = false; $("aviso-api").textContent = "No pude conectar con el servidor de Simbi. Si el problema sigue, intenta en unos minutos."; });
   await cargarEstado();
   await cargarConversaciones();
-  cargarTelegram(); cargarWebsN();
+  cargarTelegram(); cargarWebsN(); cargarRecsN();
   if (estado?.sin_prueba) abrirCodigo();
   const ultima = leer("simb_conv_" + usuario.id);
   if (ultima && conversaciones.some((c) => c.id === ultima)) abrirConversacion(ultima); else nuevaConversacion();
@@ -1648,10 +1648,77 @@ async function abrirRecordatorios() {
     async (f) => {
       try {
         const r = await apiNube("/recordatorios", { method: "POST", body: JSON.stringify({ texto: f.get("texto").trim(), cuando: `${f.get("fecha")} ${f.get("hora")}` }) });
-        alert("⏰ Listo: te aviso por Telegram el " + r.cuando + ".");
+        alert("⏰ Listo: te aviso por Telegram el " + r.cuando + ".\n\nPuedes verlo o cambiarlo en ⏰ Recordatorios."); cargarRecsN();
       } catch (e) { alert("No se pudo programar: " + e.message); }
     });
 }
+
+/* ⏰ Mis recordatorios: ver, cambiar y cancelar */
+const fechaRec = (c) => new Date(c).toLocaleString("es-CO", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+async function cargarRecsN() {
+  try {
+    const d = await apiNube("/recordatorios");
+    const n = (d.lista || []).filter((r) => !r.enviado).length;
+    $("recs-n").textContent = n ? String(n) : "";
+    return d;
+  } catch { return null; }
+}
+async function abrirMisRecordatorios() {
+  const dlg = $("dlg-recs"), c = $("recs-cont");
+  if (!dlg.open) dlg.showModal();
+  c.textContent = ""; c.append(el("div", { class: "vacio" }, "Cargando…"));
+  const d = await cargarRecsN();
+  c.textContent = "";
+  if (!d) { c.append(el("div", { class: "vacio" }, "No se pudieron cargar. Intenta de nuevo.")); return; }
+  const nuevo = el("button", { type: "button", class: "btn btn-brasa btn-chico", onclick: () => { dlg.close(); abrirRecordatorios(); } }, "＋ Nuevo recordatorio");
+  if (!d.telegram) c.append(el("div", { class: "aviso-rec" }, "📲 Para que te lleguen, conecta Telegram (solo una vez). ",
+    el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: () => { dlg.close(); $("btn-telegram").click(); } }, "Conectar Telegram")));
+  const pend = (d.lista || []).filter((r) => !r.enviado).sort((a, b) => new Date(a.cuando) - new Date(b.cuando));
+  const env = (d.lista || []).filter((r) => r.enviado);
+  c.append(el("div", { class: "recs-cab" }, el("b", {}, pend.length ? `Pendientes (${pend.length})` : "No tienes recordatorios pendientes"), esPro() ? nuevo : null));
+  if (!esPro() && !pend.length) c.append(el("small", { class: "nota" }, "Programar recordatorios por Telegram es parte de la versión Pro."));
+  const lista = el("div", { class: "recs-lista" });
+  for (const r of pend) lista.append(filaRec(r));
+  c.append(lista);
+  if (env.length) c.append(el("details", { class: "recs-env" }, el("summary", {}, `Ya enviados (${env.length})`),
+    el("div", { class: "recs-lista" }, env.map((r) => el("div", { class: "rec-fila enviado" },
+      el("div", { class: "rec-txt" }, el("span", {}, r.texto), el("small", {}, (r.resultado && r.resultado !== "ok" ? "⚠️ No se pudo enviar · " : "✅ Enviado · ") + fechaRec(r.cuando))))))));
+}
+function filaRec(r) {
+  const fila = el("div", { class: "rec-fila" });
+  const ver = () => {
+    fila.textContent = "";
+    fila.append(el("div", { class: "rec-txt" }, el("span", {}, r.texto), el("small", {}, "🕑 " + fechaRec(r.cuando))),
+      el("div", { class: "rec-acc" },
+        el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: editar }, "✏️ Cambiar"),
+        el("button", { type: "button", class: "btn-x", title: "Cancelar recordatorio", onclick: async () => {
+          if (!confirm(`¿Cancelar «${r.texto.slice(0, 60)}»?`)) return;
+          try { await apiNube("/recordatorios/" + r.id, { method: "DELETE" }); fila.remove(); cargarRecsN(); } catch (e) { alert(e.message); }
+        } }, "✕")));
+  };
+  const editar = () => {
+    const dd = (n) => String(n).padStart(2, "0"), f = new Date(r.cuando);
+    const texto = el("textarea", { maxlength: 1000, rows: 2 }); texto.value = r.texto;
+    const fecha = el("input", { type: "date", value: `${f.getFullYear()}-${dd(f.getMonth() + 1)}-${dd(f.getDate())}` });
+    const hora = el("input", { type: "time", value: `${dd(f.getHours())}:${dd(f.getMinutes())}` });
+    const guardar = el("button", { type: "button", class: "btn btn-brasa btn-chico", onclick: async () => {
+      if (!texto.value.trim() || !fecha.value || !hora.value) return alert("Completa el texto, la fecha y la hora.");
+      guardar.disabled = true;
+      try {
+        const res = await apiNube("/recordatorios/" + r.id, { method: "POST", body: JSON.stringify({ texto: texto.value.trim(), cuando: `${fecha.value} ${hora.value}` }) });
+        r.texto = texto.value.trim(); r.cuando = new Date(`${fecha.value}T${hora.value}:00-05:00`).toISOString();
+        ver(); fila.querySelector(".rec-txt small").textContent = "✅ Cambiado · te aviso el " + res.cuando;
+      } catch (e) { alert(e.message); guardar.disabled = false; }
+    } }, "Guardar");
+    fila.textContent = "";
+    fila.append(el("div", { class: "rec-edit" }, texto, el("div", { class: "fila-2" }, fecha, hora),
+      el("div", { class: "rec-acc" }, guardar, el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: ver }, "Cancelar"))));
+    texto.focus();
+  };
+  ver();
+  return fila;
+}
+$("btn-recs").onclick = () => abrirMisRecordatorios();
 
 function etiquetaAccion(accion, p) {
   return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz Chirp: ", voz_gemini: "🔊 Voz Gemini: ",

@@ -69,6 +69,7 @@
           <button class="btn-herr" id="btn-musica" type="button" aria-haspopup="dialog" title="Mi música"><span>🎧</span>Música <small id="musica-n"></small></button>
           <button class="btn-herr" id="btn-nube" type="button" aria-haspopup="dialog" title="Mi nube: guarda tus fotos, videos y archivos"><span>☁️</span>Mi nube <small id="nube-resumen"></small></button>
           <button class="btn-herr" id="btn-webs" type="button" aria-haspopup="dialog" title="Las páginas web que creó Simbi y sus datos"><span>🌐</span>Webs <small id="webs-n"></small></button>
+          <button class="btn-herr" id="btn-recs" type="button" aria-haspopup="dialog" title="Ver, cambiar o cancelar tus recordatorios"><span>⏰</span>Recordatorios <small id="recs-n"></small></button>
           <button class="btn-herr" id="btn-telegram" type="button" title="Recibe avisos de Simbi en Telegram"><span>📲</span>Avisos <small id="telegram-estado"></small></button>
           <button class="btn-herr" id="btn-limites" type="button" aria-haspopup="dialog" title="Límite semanal"><span>📊</span>Límite <small id="limite-resumen"></small></button>
         </div>
@@ -197,6 +198,14 @@
       <div class="dlg-cab"><h3>🌐 Mis webs</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
       <div id="webs-cont" class="webs-cont" aria-live="polite"></div>
       <p class="nota">Pídele a Simbi «crea una página web para…» o usa el atajo 🌐. Para cambiarla, escríbele en la misma conversación: el enlace no cambia. Los datos de formularios llegan aquí (y por Telegram si lo conectaste).</p>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-recs" class="dlg dlg-ancho">
+    <form method="dialog">
+      <div class="dlg-cab"><h3>⏰ Mis recordatorios</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
+      <div id="recs-cont" class="recs-cont" aria-live="polite"></div>
+      <p class="nota">Te llegan por Telegram (@SimbiAlertasBot) a la hora de Colombia. También puedes pedírselos a Simbi en el chat: «recuérdame mañana a las 7 llamar a mamá».</p>
     </form>
   </dialog>
 
