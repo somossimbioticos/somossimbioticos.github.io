@@ -291,6 +291,7 @@ function pintarCupos() {
     ["Voz Chirp", U.tts_chirp_seg / 60, L.tts_chirp_seg / 60, (x) => `${x.toFixed(0)} min`],
     ["Voz Gemini", U.tts_gemini_seg / 60, L.tts_gemini_seg / 60, (x) => `${x.toFixed(0)} min`],
     ["Transcripción", U.stt_seg / 60, (L.stt_seg || 0) / 60, (x) => `${x.toFixed(0)} min`],
+    ["Música", U.musica || 0, L.musica || 0, fmt],
   ];
   for (const [nom, u, l, f] of filas) {
     if (!l) continue;
@@ -663,7 +664,7 @@ async function cargarMusica() {
   musica.todas = (data || []).flatMap((m) => {
     const deYoutube = (m.eventos || []).some((e) => e.nombre === "descargar_youtube");
     return (m.adjuntos || []).filter((a) => (a.mime || "").startsWith("audio/") && a.ruta && !vistos.has(a.ruta) && vistos.add(a.ruta))
-      .map((a) => ({ ...a, titulo: tituloCancion(a.nombre), youtube: deYoutube && !/^voz_/.test(a.nombre), creado: m.creado }));
+      .map((a) => ({ ...a, titulo: tituloCancion(a.nombre), youtube: (deYoutube || /^musica_/.test(a.nombre)) && !/^voz_/.test(a.nombre), creado: m.creado }));
   }).filter((c) => {                     // la misma canción descargada varias veces aparece una sola vez (la más reciente)
     const k = c.titulo.toLowerCase();
     if (titulos.has(k)) return false;
@@ -1357,6 +1358,12 @@ const ATAJOS = [
   { id: "presentacion", ico: "📽️", titulo: "Presentación PowerPoint", desc: "Diapositivas editables con revisión de diseño", pro: true },
   { id: "estudiar", ico: "📚", titulo: "Estudiar", desc: "Tarjetas tipo Anki que se guardan, quiz o guía", pro: false },
   { id: "web", ico: "🌐", titulo: "Crear página web", desc: "Con enlace propio y base de datos para formularios", pro: true },
+  { id: "foto", ico: "🖼️", titulo: "Mejorar foto", desc: "Quitar fondo, mejorar, restaurar, colorear o retrato pro", pro: true },
+  { id: "producto", ico: "🛍️", titulo: "Foto de producto pro", desc: "De foto de celular a foto de catálogo", pro: true },
+  { id: "musica", ico: "🎵", titulo: "Crear música", desc: "Pista instrumental original de ~30 s", pro: true },
+  { id: "subtitulos", ico: "✂️", titulo: "Subtítulos para videos", desc: "Estilo TikTok o clásico, quemados en el video", pro: true },
+  { id: "doblar", ico: "🌎", titulo: "Traducir y doblar", desc: "Tu audio o video con voz en otro idioma", pro: true },
+  { id: "hoja_vida", ico: "📋", titulo: "Hoja de vida", desc: "CV profesional en PDF y Word (y carta)", pro: true },
   { id: "imagen", ico: "🎨", titulo: "Crear una imagen", desc: "Describe lo que imaginas", pro: true },
   { id: "video", ico: "🎬", titulo: "Video con IA", desc: "Clip de 3 a 8 segundos (Veo)", pro: true },
   { id: "oficina", ico: "📊", titulo: "Excel, Word o PDF", desc: "Plantillas listas: presupuestos, informes, notas…", pro: true },
@@ -1433,6 +1440,24 @@ function campoOpciones(nombre, opciones, valor) {
   return el("div", { class: "opciones" }, opciones.map(([v, t]) =>
     el("label", {}, el("input", { type: "radio", name: nombre, value: v, checked: v === valor }), t)));
 }
+/* Campo de archivo para los atajos: usa el adjunto que ya tengas del tipo pedido, o el que elijas aquí */
+function campoArchivo(accept, etiqueta, prefijo) {
+  const tipos = prefijo.split("|");
+  const ya = [...adjuntos].reverse().find((a) => !a.subiendo && tipos.some((t) => (a.mime || "").startsWith(t)));
+  const input = el("input", { type: "file", accept, required: ya ? null : true });
+  const campo = el("label", {}, etiqueta + (ya ? ` · usaré «${ya.nombre}» (o elige otro)` : ""), input);
+  const obtener = async () => {
+    const f = input.files?.[0];
+    if (!f) return !!ya;
+    const subidos = await subirArchivos([f]);
+    return subidos.length > 0;
+  };
+  return { campo, obtener };
+}
+function campoIdioma(nombre, auto, etiqueta = "Idioma del audio") {
+  return el("label", {}, etiqueta, el("select", { name: nombre }, [...(auto ? [["auto", "Detectar automáticamente"]] : []), ["es-US", "Español"], ["en-US", "Inglés"],
+    ["pt-BR", "Portugués"], ["fr-FR", "Francés"], ["it-IT", "Italiano"], ["de-DE", "Alemán"]].map(([v, t]) => el("option", { value: v }, t))));
+}
 function abrirDialogo(titulo, campos, nota, okTexto, alAceptar) {
   const dlg = $("dlg");
   $("dlg-titulo").textContent = titulo; $("dlg-nota").textContent = nota || "";
@@ -1488,6 +1513,125 @@ async function abrirAtajo(id, conAdjunta = false) {
         const urls = enlacesYT(f.get("urls") || "").slice(0, 10);
         if (!urls.length) return alert("No encontré enlaces de YouTube.");
         enviar({ accion: "youtube_" + f.get("formato"), params: { url: urls.join("\n"), urls, calidad: f.get("calidad") } });
+      });
+  } else if (id === "foto" || id === "producto") {
+    const { campo, obtener } = campoArchivo("image/*", "Foto", "image/");
+    const esProd = id === "producto";
+    const detalle = el("input", { type: "text", name: "detalle", maxlength: 300 });
+    const fondo = el("div", {}, el("div", { class: "campo-titulo" }, "Fondo"),
+      campoOpciones("fondo", [["transparente", "Transparente (PNG)"], ["blanco", "Blanco"]], "transparente"));
+    const modos = [["quitar_fondo", "✂️ Quitar fondo"], ["mejorar", "✨ Mejorar calidad"], ["restaurar", "🩹 Restaurar foto antigua"],
+      ["colorear", "🎨 Colorear blanco y negro"], ["cambiar_fondo", "🏞️ Cambiar fondo"], ["retrato", "👔 Retrato profesional (CV)"]];
+    const ayudas = { quitar_fondo: "Opcional: algo a tener en cuenta", mejorar: "Opcional: ej. más luz, colores más cálidos",
+      restaurar: "Opcional: ej. quitar la mancha de la esquina", colorear: "Opcional: ej. vestido azul, carro rojo",
+      cambiar_fondo: "Obligatorio: ej. playa del Caribe al atardecer", retrato: "Opcional: ej. camisa blanca, sin corbata" };
+    const pintarModo = (m) => { fondo.hidden = m !== "quitar_fondo"; detalle.placeholder = ayudas[m]; detalle.required = m === "cambiar_fondo"; };
+    const escenas = [["estudio", "⬜ Estudio blanco"], ["marmol", "🤍 Mármol"], ["madera", "🪵 Madera rústica"], ["naturaleza", "🌿 Naturaleza"],
+      ["lujo", "🖤 Lujo oscuro"], ["colores", "🎨 Fondo de color"], ["uso", "🙋 En uso (lifestyle)"], ["flatlay", "📐 Vista desde arriba"]];
+    const campos = esProd ? [
+      campo,
+      el("div", { class: "campo-titulo" }, "Escena"), campoOpciones("escena", escenas, "estudio"),
+      el("div", { class: "campo-titulo" }, "Formato"), campoOpciones("formato", [["1:1", "Cuadrada"], ["4:5", "Instagram 4:5"], ["9:16", "Historia 9:16"], ["16:9", "Horizontal"]], "1:1"),
+      el("div", { class: "campo-titulo" }, "¿Cuántas versiones?"), campoOpciones("variantes", [["1", "1"], ["2", "2"], ["3", "3"]], "1"),
+      el("label", {}, "Detalles (opcional)", Object.assign(detalle, { placeholder: "Ej.: con granos de café alrededor, ambiente navideño" })),
+    ] : [campo, el("div", { class: "campo-titulo" }, "¿Qué hago?"), campoOpciones("modo", modos, "quitar_fondo"), fondo,
+      el("label", {}, "Detalles", detalle)];
+    abrirDialogo(esProd ? "Foto de producto pro" : "Mejorar foto", campos,
+      `Cada foto cuenta como 1 imagen de tu cupo (usa Nano Banana). Te quedan ${quedan("imagenes", "imagenes")} esta semana.`
+        + (esProd ? " Tip: una foto nítida y con buena luz da mejores resultados." : ""), esProd ? "Crear fotos" : "Aplicar",
+      async (f) => {
+        const n = esProd ? +f.get("variantes") || 1 : 1;
+        if (n > quedan("imagenes", "imagenes")) return alert(`Te quedan ${quedan("imagenes", "imagenes")} imágenes esta semana.`);
+        if (!(await obtener())) return;
+        enviar(esProd
+          ? { accion: "producto", params: { escena: f.get("escena"), formato: f.get("formato"), variantes: n, detalle: f.get("detalle") || "" } }
+          : { accion: "foto", params: { modo: f.get("modo"), fondo: f.get("fondo") || "transparente", detalle: f.get("detalle") || "" } });
+      });
+    if (!esProd) { pintarModo("quitar_fondo"); $("dlg-campos").querySelectorAll('input[name="modo"]').forEach((r) => r.addEventListener("change", () => pintarModo(r.value))); }
+  } else if (id === "musica") {
+    const generos = ["Cumbia", "Salsa", "Vallenato", "Reguetón", "Pop", "Rock", "Lo-fi", "Electrónica", "Hip hop", "Jazz", "Acústica",
+      "Orquestal / cine", "Ambiental / relajante", "Infantil", "Corporativa"];
+    abrirDialogo("Crear música", [
+      el("label", {}, "¿Para qué es o cómo la imaginas?", el("textarea", { name: "descripcion", required: true, maxlength: 600, placeholder: "Ej.: fondo alegre para un video de mi panadería, con guitarra y percusión suave" })),
+      el("div", { class: "fila-2" },
+        el("label", {}, "Género", el("select", { name: "estilo" }, el("option", { value: "" }, "Que lo elija Simbi"), generos.map((g) => el("option", { value: g }, g)))),
+        el("label", {}, "Instrumentos (opcional)", el("input", { type: "text", name: "instrumentos", placeholder: "Ej.: piano y violín" }))),
+      el("div", { class: "campo-titulo" }, "Ánimo"),
+      campoOpciones("animo", [["alegre", "😄 Alegre"], ["tranquilo", "😌 Tranquilo"], ["motivador", "💪 Motivador"], ["épico", "🔥 Épico"],
+        ["romántico", "❤️ Romántico"], ["nostálgico", "🌧️ Nostálgico"], ["misterioso", "🕵️ Misterioso"]], "alegre"),
+      el("div", { class: "campo-titulo" }, "Ritmo"), campoOpciones("tempo", [["lento", "Lento"], ["medio", "Medio"], ["rápido", "Rápido"]], "medio"),
+      el("div", { class: "campo-titulo" }, "Versiones"), campoOpciones("variantes", [["1", "1"], ["2", "2 (para elegir)"]], "1"),
+    ], `Música instrumental original de ~30 s (sin voz), libre para tus videos. Cada versión cuenta 1 canción: te quedan ${quedan("musica", "musica")} esta semana. Queda en 🎧 Mi música.`, "Crear música",
+      (f) => {
+        const n = +f.get("variantes") || 1;
+        if (n > quedan("musica", "musica")) return alert(`Te quedan ${quedan("musica", "musica")} canciones esta semana.`);
+        enviar({ accion: "musica", params: { descripcion: f.get("descripcion").trim(), estilo: f.get("estilo"), animo: f.get("animo"),
+          tempo: f.get("tempo"), instrumentos: f.get("instrumentos") || "", variantes: n } });
+      });
+  } else if (id === "subtitulos") {
+    const { campo, obtener } = campoArchivo("video/*", "Video (máx. 3 min)", "video/");
+    abrirDialogo("Subtítulos para videos", [
+      campo,
+      el("div", { class: "campo-titulo" }, "Estilo"),
+      campoOpciones("estilo", [["tiktok", "🔥 TikTok (palabras grandes)"], ["clasico", "🎬 Clásico (con caja)"], ["simple", "✏️ Simple"]], "tiktok"),
+      el("div", { class: "campo-titulo" }, "Posición"), campoOpciones("posicion", [["abajo", "Abajo"], ["centro", "Centro"], ["arriba", "Arriba"]], "abajo"),
+      el("div", { class: "fila-2" }, campoIdioma("idioma", true),
+        el("label", { class: "opcion-sola" }, el("input", { type: "checkbox", name: "mayusculas", checked: true }), "EN MAYÚSCULAS")),
+    ], `Usa minutos de transcripción: te quedan ${(quedan("stt_seg", "stt_seg") / 60).toFixed(0)} min esta semana. Recibes el video y el archivo .srt.`, "Subtitular",
+      async (f) => {
+        if (!(await obtener())) return;
+        enviar({ accion: "subtitulos", params: { estilo: f.get("estilo"), posicion: f.get("posicion"), idioma: f.get("idioma"), mayusculas: !!f.get("mayusculas") } });
+      });
+  } else if (id === "doblar") {
+    const { campo, obtener } = campoArchivo("audio/*,video/*", "Audio o video (máx. 5 min)", "audio/|video/");
+    const sel = el("select", { name: "voz" }, ["Femenina", "Masculina"].map((g) =>
+      el("optgroup", { label: "Voces " + g.toLowerCase() + "s" }, VOCES.filter((v) => v.genero === g)
+        .map((v) => el("option", { value: v.id, selected: v.id === "Puck" ? true : null }, `${g} · ${v.tipo}`)))));
+    abrirDialogo("Traducir y doblar", [
+      campo,
+      el("div", { class: "fila-2" },
+        el("label", {}, "Traducir al", el("select", { name: "destino" }, [["en-US", "🇺🇸 Inglés"], ["es-US", "🇨🇴 Español"], ["pt-BR", "🇧🇷 Portugués"],
+          ["fr-FR", "🇫🇷 Francés"], ["it-IT", "🇮🇹 Italiano"], ["de-DE", "🇩🇪 Alemán"]].map(([v, t]) => el("option", { value: v }, t)))),
+        el("label", {}, "Voz del doblaje", sel)),
+      el("div", { class: "fila-2" }, campoIdioma("origen", true, "Idioma original"),
+        el("label", { class: "opcion-sola" }, el("input", { type: "checkbox", name: "fondo", checked: true }), "Dejar el sonido original bajito")),
+    ], `Usa minutos de transcripción y de voz Chirp (te quedan ${(quedan("stt_seg", "stt_seg") / 60).toFixed(0)} y ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min). Recibes el archivo doblado y la traducción en texto.`, "Doblar",
+      async (f) => {
+        if (!(await obtener())) return;
+        enviar({ accion: "doblar", params: { idioma_destino: f.get("destino"), voz: f.get("voz"), idioma_origen: f.get("origen"), conservar_fondo: !!f.get("fondo") } });
+      });
+  } else if (id === "hoja_vida") {
+    const foto = el("input", { type: "file", accept: "image/*" });
+    const anterior = el("input", { type: "file", accept: ".pdf,.doc,.docx,.txt" });
+    const t = (name, ph, req) => el("textarea", { name, placeholder: ph, required: req ? true : null, rows: 3, maxlength: 3000 });
+    abrirDialogo("Hoja de vida", [
+      el("div", { class: "fila-2" },
+        el("label", {}, "Nombre completo", el("input", { type: "text", name: "nombre", required: true, maxlength: 100 })),
+        el("label", {}, "Cargo al que aspiras", el("input", { type: "text", name: "cargo", maxlength: 120, placeholder: "Ej.: Auxiliar contable" }))),
+      el("label", {}, "Contacto", el("input", { type: "text", name: "contacto", maxlength: 300, placeholder: "Celular · correo · ciudad · LinkedIn (opcional)" })),
+      el("label", {}, "Sobre ti (perfil)", t("perfil", "2-3 frases: quién eres, en qué eres bueno y qué buscas")),
+      el("label", {}, "Experiencia", t("experiencia", "Empresa · cargo · fechas · qué lograste. Ej.: Tienda XYZ, cajera, 2022-2024, manejé caja de 3M diarios sin descuadres", true)),
+      el("label", {}, "Estudios", t("educacion", "Ej.: Técnico en contabilidad, SENA, 2021")),
+      el("div", { class: "fila-2" },
+        el("label", {}, "Habilidades", t("habilidades", "Excel, atención al cliente, trabajo en equipo…")),
+        el("label", {}, "Idiomas, cursos y otros", t("otros", "Inglés básico, curso de IA, licencia de conducción…"))),
+      el("div", { class: "campo-titulo" }, "Estilo"),
+      campoOpciones("estilo", [["moderno", "🟦 Moderno"], ["clasico", "📄 Clásico"], ["creativo", "🎨 Creativo"], ["ats", "🤖 Para plataformas (ATS)"]], "moderno"),
+      el("div", { class: "fila-2" },
+        el("label", {}, "Foto (opcional)", foto),
+        el("label", {}, "Hoja de vida anterior (opcional)", anterior)),
+      el("div", { class: "fila-2" },
+        el("label", {}, "Color (opcional)", el("input", { type: "text", name: "color", placeholder: "Ej.: azul oscuro, vinotinto" })),
+        el("label", { class: "opcion-sola" }, el("input", { type: "checkbox", name: "carta" }), "También carta de presentación")),
+      campoNivel("medio"),
+    ], "Recibes la hoja de vida en PDF y en Word editable. Simbi no inventa datos: lo que no pongas no aparece. Tip: con 🖼️ Mejorar foto › Retrato profesional puedes preparar tu foto antes.", "Crear hoja de vida",
+      async (f) => {
+        const archivos = [foto.files?.[0], anterior.files?.[0]].filter(Boolean);
+        if (archivos.length && (await subirArchivos(archivos)).length < archivos.length) return;
+        const params = {};
+        for (const k of ["nombre", "cargo", "contacto", "perfil", "experiencia", "educacion", "habilidades", "otros", "estilo", "color"]) params[k] = (f.get(k) || "").trim();
+        params.carta = f.get("carta") ? "1" : "";
+        enviar({ accion: "hoja_vida", params });
       });
   } else if (id === "transcribir") {
     const input = el("input", { type: "file", name: "archivo", accept: "audio/*,video/*", required: true });
