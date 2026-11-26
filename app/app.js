@@ -34,6 +34,10 @@ function limpiarYT(url) {
   return m ? `https://www.youtube.com/watch?v=${m[1]}` : url;
 }
 const enlacesYT = (texto) => [...new Set((String(texto).match(new RegExp(RX_YT.source, "gi")) || []).map(limpiarYT))];
+// Publicaciones de redes sociales (se descargan con yt-dlp + gallery-dl en el servidor)
+const RX_REDES = /https?:\/\/(?:[\w-]+\.)*(?:instagram\.com|instagr\.am|tiktok\.com|facebook\.com|fb\.watch|fb\.com|x\.com|twitter\.com|threads\.net|threads\.com|pinterest\.(?:com|es|co\.uk)|pin\.it|reddit\.com|redd\.it|vimeo\.com|linkedin\.com|twitch\.tv|soundcloud\.com|dailymotion\.com|dai\.ly|snapchat\.com|kwai\.com)\/[^\s,;<>"']+/i;
+const enlacesRedes = (texto) => [...new Set((String(texto).match(new RegExp(RX_REDES.source, "gi")) || []).map((u) => u.replace(/[).]+$/, "")))];
+const enlacesDescarga = (texto) => [...enlacesYT(texto), ...enlacesRedes(texto)];
 const MAX_BYTES = 50 * 1024 * 1024;
 
 let usuario = null;
@@ -662,7 +666,7 @@ async function cargarMusica() {
     .eq("rol", "asistente").neq("adjuntos", "[]").order("id", { ascending: false }).limit(600);
   const vistos = new Set(), titulos = new Set();
   musica.todas = (data || []).flatMap((m) => {
-    const deYoutube = (m.eventos || []).some((e) => e.nombre === "descargar_youtube");
+    const deYoutube = (m.eventos || []).some((e) => e.nombre === "descargar_youtube" || e.nombre === "descargar_redes");
     return (m.adjuntos || []).filter((a) => (a.mime || "").startsWith("audio/") && a.ruta && !vistos.has(a.ruta) && vistos.add(a.ruta))
       .map((a) => ({ ...a, titulo: tituloCancion(a.nombre), youtube: (deYoutube || /^musica_/.test(a.nombre)) && !/^voz_/.test(a.nombre), creado: m.creado }));
   }).filter((c) => {                     // la misma canción descargada varias veces aparece una sola vez (la más reciente)
@@ -730,7 +734,7 @@ function pintarMusica() {
   const vis = listaVisible();
   if (!vis.length) {
     lista.append(el("li", { class: "vacio" }, musica.verOcultas ? "No tienes canciones ocultas." : musica.todas.length ? "Nada coincide con la búsqueda." :
-      "Aún no tienes música. Usa «⬇️ Descargar de YouTube» → «Solo audio MP3» (puedes pegar varios enlaces)."));
+      "Aún no tienes música. Usa «⬇️ Descargar videos y fotos» → «Solo audio MP3» (puedes pegar varios enlaces)."));
   }
   vis.forEach((x, k) => lista.append(el("li", { class: x === c ? "actual" : "", onclick: () => { armarCola(x); tocar(0); } },
     el("span", { class: "n" }, x === c && sonando ? "▶" : String(k + 1)), el("span", { class: "t", title: x.titulo }, x.titulo),
@@ -1304,6 +1308,11 @@ function sugerir() {
     caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp3", params: { url: limpiarYT(yt[0]) } }) }, "🎵 Solo audio MP3"),
       el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp4", params: { url: limpiarYT(yt[0]) } }) }, "⬇️ Video MP4"));
   }
+  const red = !yt && enlacesRedes($("texto").value)[0];
+  if (red) {
+    caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp4", params: { url: red } }) }, "📲 Descargar video o fotos"),
+      el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp3", params: { url: red } }) }, "🎵 Solo audio MP3"));
+  }
   const medio = adjuntos.find((a) => !a.subiendo && /^(audio|video)\//.test(a.mime));
   if (medio) caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "transcribir", params: { archivo: medio.nombre } }) }, "📝 Transcribir " + medio.nombre));
   const img = adjuntos.find((a) => !a.subiendo && a.mime.startsWith("image/"));
@@ -1351,8 +1360,8 @@ function pintarAdjuntos() {
 
 /* ───────── Atajos (no gastan tokens de chat) ───────── */
 const ATAJOS = [
-  { id: "youtube", ico: "⬇️", titulo: "Descargar de YouTube", desc: "Música MP3 o video MP4 · cualquier enlace", pro: true },
-  { id: "voz", ico: "🔊", titulo: "Texto a voz", desc: "Voz natural o voz expresiva", pro: true },
+  { id: "youtube", ico: "⬇️", titulo: "Descargar videos y fotos", desc: "YouTube, Instagram, TikTok, Facebook, X…", pro: true },
+  { id: "voz", ico: "🔊", titulo: "Texto a voz", desc: "Chirp HD o voz expresiva Gemini", pro: true },
   { id: "transcribir", ico: "📝", titulo: "Transcribir audio o video", desc: "Sube el archivo y obtén el texto", pro: true },
   { id: "video_codigo", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz natural o expresiva", pro: true },
   { id: "presentacion", ico: "📽️", titulo: "Presentación PowerPoint", desc: "Diapositivas editables con revisión de diseño", pro: true },
@@ -1500,18 +1509,21 @@ async function abrirAtajo(id, conAdjunta = false) {
     ], `Te quedan ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min de voz natural y ${(quedan("tts_gemini_seg", "tts_gemini_seg") / 60).toFixed(0)} min de voz expresiva.`, "Generar audio",
       (f) => f.get("texto")?.trim() && enviar({ accion: f.get("motor") === "gemini" ? "voz_gemini" : "voz_chirp", params: { texto: f.get("texto").trim(), voz: f.get("voz"), estilo: f.get("estilo") || "" } }));
   } else if (id === "youtube") {
-    const area = el("textarea", { name: "urls", required: true, placeholder: "Pega uno o varios enlaces (de la app, del navegador, Shorts, Music…)\nhttps://youtu.be/…\nhttps://www.youtube.com/watch?v=…" });
+    const area = el("textarea", { name: "urls", required: true, placeholder: "Pega uno o varios enlaces (botón «Compartir» → «Copiar enlace»)\nhttps://youtu.be/…\nhttps://www.instagram.com/p/…  ·  https://www.tiktok.com/@…/video/…\nhttps://www.facebook.com/…  ·  https://x.com/…/status/…" });
     const vista = el("small", { class: "nota" });
-    area.oninput = () => { const n = enlacesYT(area.value).length; vista.textContent = n ? `✓ ${n} enlace${n > 1 ? "s" : ""} válido${n > 1 ? "s" : ""}` : ""; };
-    abrirDialogo("Descargar de YouTube", [
+    area.oninput = () => {
+      const yt = enlacesYT(area.value).length, rs = enlacesRedes(area.value).length, n = yt + rs;
+      vista.textContent = n ? `✓ ${n} enlace${n > 1 ? "s" : ""} válido${n > 1 ? "s" : ""}` + (rs ? ` (${rs} de redes sociales)` : "") : "";
+    };
+    abrirDialogo("Descargar videos y fotos", [
       el("label", {}, "Enlaces (hasta 10)", area), vista,
-      campoOpciones("formato", [["mp3", "🎵 Solo audio MP3 (va a «Mi música»)"], ["mp4", "🎬 Video MP4"]], "mp3"),
+      campoOpciones("formato", [["mp4", "🎬 Video MP4 (y fotos o carruseles tal cual)"], ["mp3", "🎵 Solo audio MP3 (va a «Mi música»)"]], "mp4"),
       el("div", { class: "campo-titulo" }, "Calidad"),
       campoOpciones("calidad", [["baja", "Baja (más rápida y liviana)"], ["media", "Media"], ["alta", "Alta"]], "baja"),
-    ], "Funciona con cualquier enlace de YouTube: se limpia solo (quita ?si=, listas, tiempos…). Máximo 48 MB por archivo. Descarga solo contenido que tengas derecho a usar.", "Descargar",
+    ], "YouTube, Instagram (reels, fotos y carruseles), TikTok, Facebook, X, Threads, Pinterest, Reddit, Vimeo y más. Solo publicaciones públicas. Máximo 48 MB por archivo y 10 archivos por publicación. Descarga solo contenido que tengas derecho a usar.", "Descargar",
       (f) => {
-        const urls = enlacesYT(f.get("urls") || "").slice(0, 10);
-        if (!urls.length) return alert("No encontré enlaces de YouTube.");
+        const urls = enlacesDescarga(f.get("urls") || "").slice(0, 10);
+        if (!urls.length) return alert("No encontré enlaces de YouTube ni de redes sociales.");
         enviar({ accion: "youtube_" + f.get("formato"), params: { url: urls.join("\n"), urls, calidad: f.get("calidad") } });
       });
   } else if (id === "foto" || id === "producto") {
@@ -1967,8 +1979,8 @@ function filaRec(r) {
 $("btn-recs").onclick = () => abrirMisRecordatorios();
 
 function etiquetaAccion(accion, p) {
-  return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz natural: ", voz_gemini: "🔊 Voz expresiva: ",
-    youtube_mp4: "⬇️ YouTube MP4: ", youtube_mp3: "🎵 YouTube MP3: ", transcribir: "📝 Transcribir: ", video_codigo: "🎞️ Video con código: " })[accion] +
+  return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz Chirp: ", voz_gemini: "🔊 Voz Gemini: ",
+    youtube_mp4: "⬇️ Descargar: ", youtube_mp3: "🎵 Audio MP3: ", transcribir: "📝 Transcribir: ", video_codigo: "🎞️ Video con código: " })[accion] +
     (p.texto || p.url || p.archivo || "");
 }
 
