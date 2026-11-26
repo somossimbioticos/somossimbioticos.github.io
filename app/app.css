@@ -457,3 +457,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--cian); outline: 
 .tg-pasos { margin: 0; padding-left: 22px; display: grid; gap: 4px; font-size: 13.5px; }
 .tg-acc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 a.btn-herr { text-decoration: none; color: inherit; }
+
+.opcion-sola { display: flex !important; align-items: center; gap: 8px; font-size: 14px; margin: 2px 0 10px; cursor: pointer; }
+.con-det summary small, .con-det summary .estado { color: var(--mut); font-weight: 500; }

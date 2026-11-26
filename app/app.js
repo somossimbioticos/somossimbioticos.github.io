@@ -1082,7 +1082,7 @@ function cajaConexiones(cx, alCambiar) {
     try { await apiNube("/conexiones/" + servicio, { method: "DELETE" }); alCambiar(); } catch (e) { alert(e.message); }
   };
   const formulario = (servicio, ph, ayuda) => {
-    const input = el("input", { type: "password", autocomplete: "off", spellcheck: "false", placeholder: ph });
+    const input = el("input", { type: "password", autocomplete: "off", spellcheck: "false", placeholder: ph, "data-servicio": servicio });
     const boton = el("button", { type: "button", class: "btn btn-brasa btn-chico" }, "Guardar");
     boton.onclick = () => guardarToken(servicio, input, boton);
     input.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); boton.click(); } };
@@ -1133,11 +1133,8 @@ async function abrirWebs() {
   const dlg = $("dlg-webs"), c = $("webs-cont");
   if (!dlg.open) dlg.showModal();
   c.textContent = ""; c.append(el("div", { class: "vacio" }, "Cargando…"));
-  const [lista, cx] = await Promise.all([cargarWebsN(), apiNube("/conexiones").catch(() => null)]);
+  const lista = await cargarWebsN();
   c.textContent = "";
-  if (cx && esPro()) c.append(el("details", { class: "con-det", open: !(cx.github.conectado && cx.supabase.ref) ? true : null },
-    el("summary", {}, "🔌 Conexiones: ", cx.github.conectado ? "GitHub ✅" : "GitHub —", " · ", cx.supabase.ref ? "Supabase ✅" : "Supabase —"),
-    cajaConexiones(cx, abrirWebs)));
   if (!lista.length) {
     c.append(el("div", { class: "vacio" }, esPro() ? "Aún no tienes webs. Pídele a Simbi: «crea una página web para mi negocio con formulario de contacto»."
       : "Crear y publicar páginas web es parte de la versión Pro.",
@@ -1505,6 +1502,17 @@ async function abrirAtajo(id, conAdjunta = false) {
         if (a) enviar({ accion: "transcribir", params: { archivo: a.nombre, idioma: f.get("idioma") || "auto" } });
       });
   } else if (id === "web") {
+    // 🔌 Tokens propios (opcionales): si están, se publica en su GitHub y la base va a su Supabase
+    const zonaCx = el("div", {}, el("small", { class: "nota" }, "Cargando…"));
+    const pintarCx = async () => {
+      const cx = await apiNube("/conexiones").catch(() => null);
+      zonaCx.textContent = "";
+      if (!cx) { zonaCx.append(el("small", { class: "nota" }, "No se pudieron cargar las conexiones.")); return; }
+      det.querySelector("summary .estado").textContent = (cx.github.conectado ? "GitHub ✅" : "GitHub —") + " · " + (cx.supabase.ref ? "Supabase ✅" : "Supabase —");
+      zonaCx.append(cajaConexiones(cx, pintarCx));
+    };
+    const det = el("details", { class: "con-det" }, el("summary", {}, "🔌 Tu GitHub y tu Supabase ", el("small", {}, "(opcional) "), el("span", { class: "estado" }, "")), zonaCx);
+    pintarCx();
     const tipos = [["negocio", "Negocio o emprendimiento"], ["evento", "Evento, clase o invitación"], ["portafolio", "Portafolio / hoja de vida"],
       ["catalogo", "Catálogo de productos con pedidos"], ["formulario", "Formulario, encuesta o inscripción"], ["educativa", "Página educativa o de un curso"],
       ["enlaces", "Página de enlaces (link in bio)"], ["otro", "Otra (la describo yo)"]];
@@ -1516,13 +1524,28 @@ async function abrirAtajo(id, conAdjunta = false) {
       el("label", {}, "Describe qué debe tener", el("textarea", { name: "desc", required: true, placeholder: "Ej.: panadería artesanal en Pasto, horarios, productos con precios, ubicación, botón de WhatsApp 300 123 4567" })),
       el("div", { class: "campo-titulo" }, "Guardar información (base de datos)"),
       el("div", { class: "opciones" }, funciones.map(([v, t]) => el("label", {}, el("input", { type: "checkbox", name: "fn", value: v }), t))),
+      el("label", { class: "opcion-sola" }, el("input", { type: "checkbox", name: "login" }), "🔐 Con inicio de sesión (cada persona ve solo sus datos: mi cuenta, mis pedidos…)"),
       el("div", { class: "fila-2" }, el("label", {}, "Colores (opcional)", el("input", { type: "text", name: "colores", placeholder: "Ej.: café y crema, o #6D28D9" })), campoNivel("dificil")),
-    ], "Simbi la diseña y la publica sola: en tu GitHub (tuusuario.github.io/…) si lo conectaste en «🌐 Webs › 🔌 Conexiones»; si no, en Google Cloud. Los formularios guardan en TU Supabase (conéctalo ahí mismo) y los ves en «🌐 Webs». Para cambiarla, pídeselo en la misma conversación. Si quieres usar tu logo o fotos, adjúntalos con ＋ antes. Recomendado: nivel Difícil.", "Crear y publicar",
-      (f) => {
+      esPro() ? det : null,
+    ], "Simbi la diseña y la publica sola, siempre con copia en Google Cloud. Si pones tu token de GitHub queda además en tuusuario.github.io/…; con tu token de Supabase los formularios guardan en TU base de datos. Tus webs aparecen en «🌐 Webs». Para cambiarla, pídeselo en la misma conversación. Recomendado: nivel Difícil.", "Crear y publicar",
+      async (f) => {
+        // Tokens pegados pero sin tocar «Guardar»: se conectan solos antes de crear la web
+        for (const inp of det.querySelectorAll("input[data-servicio]")) {
+          const token = inp.value.trim();
+          if (!token) continue;
+          try {
+            const r = await apiNube("/conexiones/" + inp.dataset.servicio, { method: "POST", body: JSON.stringify({ token }) });
+            if (inp.dataset.servicio === "supabase" && !r.ref && (r.proyectos || []).length > 1)
+              alert("Supabase quedó conectado. Tienes varios proyectos: elige cuál usar en «🌐 Crear página web › 🔌 Tu GitHub y tu Supabase».");
+          } catch (e) {
+            if (!confirm(`No se pudo conectar ${inp.dataset.servicio === "github" ? "GitHub" : "Supabase"}: ${e.message}\n\n¿Crear la web de todos modos?`)) return;
+          }
+        }
         const t = tipos.find((x) => x[0] === f.get("tipo"));
         const fns = f.getAll("fn").map((v) => funciones.find((x) => x[0] === v)[1].replace(/^\S+\s/, "").toLowerCase());
         enviar({ mensaje: `Crea y publica una página web (${t[1].toLowerCase()}) llamada «${f.get("nombre").trim()}».\n${f.get("desc").trim()}\n` +
           (fns.length ? `Debe guardar información con base de datos: ${fns.join(", ")}.\n` : "") +
+          (f.get("login") ? "Debe tener inicio de sesión con correo: cada persona ve y gestiona solo sus propios datos (colecciones privadas).\n" : "") +
           (f.get("colores")?.trim() ? `Colores: ${f.get("colores").trim()}.\n` : "") +
           "Diseño moderno, atractivo y adaptado a celular." + (adjuntos.length ? " Usa las imágenes que adjunto." : "") });
       });
