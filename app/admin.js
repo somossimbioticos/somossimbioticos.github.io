@@ -53,7 +53,7 @@ async function pintar() {
     modelos ? el("p", { class: "mono" }, "Modelos usados esta semana (tokens) — " + modelos) : "",
     el("h2", {}, `Quieren Pro (${(intz || []).filter((x) => !x.atendido).length} por atender)`),
     seccionInteresados(intz || []),
-    el("h2", { id: "avisos" }, `Avisos por Telegram (${avisos?.conectados ?? 0} conectados)`),
+    el("h2", { id: "avisos" }, `📣 Difusión por Telegram (${avisos?.conectados ?? 0} conectados)`),
     seccionAvisos(avisos),
     el("h2", {}, `Sugerencias (${(sugs || []).filter((x) => x.estado === "nueva").length} nuevas)`),
     seccionSugerencias(sugs || []),
@@ -125,7 +125,7 @@ function interruptor(u, campo, opciones) {
 
 const CAMPOS = [
   ["chat_tokens", "Tokens de chat"], ["imagenes", "Imágenes"], ["videos", "Videos"], ["video_seg_max", "Segundos por video (máx.)"],
-  ["tts_gemini_seg", "Voz expresiva (segundos)"], ["tts_chirp_seg", "Voz natural (segundos)"], ["stt_seg", "Transcripción (segundos)"], ["musica", "Música (canciones de 30 s)"],
+  ["tts_gemini_seg", "Voz Gemini (segundos)"], ["tts_chirp_seg", "Voz Chirp (segundos)"], ["stt_seg", "Transcripción (segundos)"], ["musica", "Música (canciones de 30 s)"], ["descargas", "Descargas (YouTube y redes)"],
   ["prueba_horas", "Horas de prueba (0 = sin vencimiento)"], ["nube_gb", "Mi nube (GB por usuario)"],
 ];
 const GB = 1073741824;

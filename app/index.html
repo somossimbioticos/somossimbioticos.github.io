@@ -70,8 +70,8 @@
           <button class="btn-herr" id="btn-musica" type="button" aria-haspopup="dialog" title="Mi música"><span>🎧</span>Música <small id="musica-n"></small></button>
           <button class="btn-herr" id="btn-nube" type="button" aria-haspopup="dialog" title="Mi nube: guarda tus fotos, videos y archivos"><span>☁️</span>Mi nube <small id="nube-resumen"></small></button>
           <button class="btn-herr" id="btn-webs" type="button" aria-haspopup="dialog" title="Las páginas web que creó Simbi y sus datos"><span>🌐</span>Webs <small id="webs-n"></small></button>
-          <button class="btn-herr" id="btn-recs" type="button" aria-haspopup="dialog" title="Ver, cambiar o cancelar tus recordatorios"><span>⏰</span>Recordar <small id="recs-n"></small></button>
-          <a class="btn-herr" id="btn-avisos-admin" href="admin.html#avisos" title="Enviar avisos por Telegram a todos los usuarios conectados" hidden><span>📲</span>Avisos <small>admin</small></a>
+          <button class="btn-herr" id="btn-recs" type="button" aria-haspopup="dialog" title="Tus avisos por Telegram: ver, cambiar o cancelar"><span>⏰</span>Avisos <small id="recs-n"></small></button>
+          <a class="btn-herr" id="btn-avisos-admin" href="admin.html#avisos" title="Enviar un mensaje por Telegram a todos los usuarios conectados" hidden><span>📣</span>Difusión <small>admin</small></a>
           <button class="btn-herr" id="btn-limites" type="button" aria-haspopup="dialog" title="Límite semanal"><span>📊</span>Límite <small id="limite-resumen"></small></button>
         </div>
       </div>
@@ -99,7 +99,7 @@
         <div id="bienvenida" class="bienvenida">
           <img src="../logo.svg" alt="" width="64" height="64">
           <h1 class="titulo">¿Qué hacemos <span class="cian">hoy?</span></h1>
-          <p>Pregunta lo que quieras o usa un atajo. Los atajos no gastan tokens de chat.</p>
+          <p>Pregunta lo que quieras o elige una herramienta. Las herramientas no gastan tokens de chat.</p>
           <div class="atajos" id="atajos"></div>
         </div>
       </section>
@@ -208,9 +208,9 @@
 
   <dialog id="dlg-recs" class="dlg dlg-ancho">
     <form method="dialog">
-      <div class="dlg-cab"><h3>⏰ Mis recordatorios</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
+      <div class="dlg-cab"><h3>⏰ Mis avisos</h3><button class="btn-x" value="cerrar" type="submit" aria-label="Cerrar">✕</button></div>
       <div id="recs-cont" class="recs-cont" aria-live="polite"></div>
-      <p class="nota">Te llegan por Telegram (@SimbiAlertasBot) a la hora de Colombia. También puedes pedírselos a Simbi en el chat: «recuérdame mañana a las 7 llamar a mamá».</p>
+      <p class="nota">Te llegan por Telegram (@SimbiAlertasBot) a la hora de Colombia. También puedes pedírselos a Simbi en el chat: «avísame mañana a las 7 que llame a mamá».</p>
     </form>
   </dialog>
 
@@ -248,7 +248,7 @@
       <p class="nota" id="pro-motivo"></p>
       <ul class="pro-lista">
         <li>🎨 Imágenes y 🎬 videos con IA</li><li>📄 PDF, Word, Excel y PowerPoint</li>
-        <li>🎵 Música y videos de YouTube</li><li>🔊 Texto a voz y 📝 transcripciones</li>
+        <li>⬇️ Descargas de YouTube, Instagram y TikTok</li><li>🔊 Texto a voz y 📝 transcripciones</li>
         <li>☁️ 5 GB en «Mi nube» y ⏰ avisos por Telegram</li>
       </ul>
       <p class="pro-correo">Para actualizar escríbenos a<br><a id="pro-mail" href="mailto:somossimbioticos@gmail.com">somossimbioticos@gmail.com</a></p>

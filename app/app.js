@@ -37,7 +37,20 @@ const enlacesYT = (texto) => [...new Set((String(texto).match(new RegExp(RX_YT.s
 // Publicaciones de redes sociales (se descargan con yt-dlp + gallery-dl en el servidor)
 const RX_REDES = /https?:\/\/(?:[\w-]+\.)*(?:instagram\.com|instagr\.am|tiktok\.com|facebook\.com|fb\.watch|fb\.com|x\.com|twitter\.com|threads\.net|threads\.com|pinterest\.(?:com|es|co\.uk)|pin\.it|reddit\.com|redd\.it|vimeo\.com|linkedin\.com|twitch\.tv|soundcloud\.com|dailymotion\.com|dai\.ly|snapchat\.com|kwai\.com)\/[^\s,;<>"']+/i;
 const enlacesRedes = (texto) => [...new Set((String(texto).match(new RegExp(RX_REDES.source, "gi")) || []).map((u) => u.replace(/[).]+$/, "")))];
-const enlacesDescarga = (texto) => [...enlacesYT(texto), ...enlacesRedes(texto)];
+// Nombre e ícono de cada red (para mostrar qué se detectó en los enlaces)
+const REDES_UI = [
+  { rx: /instagram\.com|instagr\.am/, ico: "📸", nombre: "Instagram" }, { rx: /tiktok\.com/, ico: "🎵", nombre: "TikTok" },
+  { rx: /facebook\.com|fb\.watch|fb\.com/, ico: "📘", nombre: "Facebook" }, { rx: /(^|\.)x\.com|twitter\.com/, ico: "✖️", nombre: "X" },
+  { rx: /threads\.(net|com)/, ico: "🧵", nombre: "Threads" }, { rx: /pinterest\.|pin\.it/, ico: "📌", nombre: "Pinterest" },
+  { rx: /reddit\.com|redd\.it/, ico: "👽", nombre: "Reddit" }, { rx: /vimeo\.com/, ico: "🎞️", nombre: "Vimeo" },
+  { rx: /linkedin\.com/, ico: "💼", nombre: "LinkedIn" }, { rx: /twitch\.tv/, ico: "🎮", nombre: "Twitch" },
+  { rx: /soundcloud\.com/, ico: "☁️", nombre: "SoundCloud" }, { rx: /dailymotion\.com|dai\.ly/, ico: "▶️", nombre: "Dailymotion" },
+  { rx: /snapchat\.com/, ico: "👻", nombre: "Snapchat" }, { rx: /kwai\.com/, ico: "🎬", nombre: "Kwai" },
+];
+function redDe(url) {
+  let host = ""; try { host = new URL(url).hostname.replace(/^www\./, ""); } catch { /* enlace raro */ }
+  return REDES_UI.find((r) => r.rx.test(host)) || { ico: "🔗", nombre: host || "Enlace" };
+}
 const MAX_BYTES = 50 * 1024 * 1024;
 
 let usuario = null;
@@ -286,7 +299,7 @@ function campoNivel(sugerido) {
 
 function pintarCupos() {
   const c = $("cupos"); c.textContent = "";
-  if (!estado) return;
+  if (!estado) { c.append(el("div", { class: "reinicio" }, "Cargando tus límites…")); return; }
   const L = estado.limites, U = estado.usado;
   const filas = [
     ["Tokens de chat", U.chat_tokens, L.chat_tokens, fmt],
@@ -296,6 +309,7 @@ function pintarCupos() {
     ["Voz expresiva", U.tts_gemini_seg / 60, L.tts_gemini_seg / 60, (x) => `${x.toFixed(0)} min`],
     ["Transcripción", U.stt_seg / 60, (L.stt_seg || 0) / 60, (x) => `${x.toFixed(0)} min`],
     ["Música", U.musica || 0, L.musica || 0, fmt],
+    ["Descargas (YouTube y redes)", U.descargas || 0, L.descargas || 0, fmt],
   ];
   for (const [nom, u, l, f] of filas) {
     if (!l) continue;
@@ -446,7 +460,7 @@ async function conectarTelegram() {
   } catch (e) { ventana?.close(); alert("No se pudo: " + e.message); }
 }
 async function desconectarTelegram() {
-  if (!confirm(`¿Desconectar Telegram${tg.usuario ? " (" + tg.usuario + ")" : ""}? Dejarás de recibir recordatorios y avisos.`)) return false;
+  if (!confirm(`¿Desconectar Telegram${tg.usuario ? " (" + tg.usuario + ")" : ""}? Dejarás de recibir tus avisos.`)) return false;
   try { await apiNube("/telegram", { method: "DELETE" }); tg.conectado = false; return true; } catch (e) { alert(e.message); return false; }
 }
 window.addEventListener("focus", async () => {                // al volver de Telegram, se actualiza solo
@@ -734,7 +748,7 @@ function pintarMusica() {
   const vis = listaVisible();
   if (!vis.length) {
     lista.append(el("li", { class: "vacio" }, musica.verOcultas ? "No tienes canciones ocultas." : musica.todas.length ? "Nada coincide con la búsqueda." :
-      "Aún no tienes música. Usa «⬇️ Descargar videos y fotos» → «Solo audio MP3» (puedes pegar varios enlaces)."));
+      "Aún no tienes música. Usa «⬇️ Descargar de YouTube» o «📲 Descargar de redes» → «Solo audio MP3» (puedes pegar varios enlaces)."));
   }
   vis.forEach((x, k) => lista.append(el("li", { class: x === c ? "actual" : "", onclick: () => { armarCola(x); tocar(0); } },
     el("span", { class: "n" }, x === c && sonando ? "▶" : String(k + 1)), el("span", { class: "t", title: x.titulo }, x.titulo),
@@ -1310,8 +1324,8 @@ function sugerir() {
   }
   const red = !yt && enlacesRedes($("texto").value)[0];
   if (red) {
-    caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp4", params: { url: red } }) }, "📲 Descargar video o fotos"),
-      el("button", { type: "button", onclick: () => enviar({ accion: "youtube_mp3", params: { url: red } }) }, "🎵 Solo audio MP3"));
+    caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "redes_mp4", params: { url: red } }) }, `📲 Descargar de ${redDe(red).nombre}`),
+      el("button", { type: "button", onclick: () => enviar({ accion: "redes_mp3", params: { url: red } }) }, "🎵 Solo audio MP3"));
   }
   const medio = adjuntos.find((a) => !a.subiendo && /^(audio|video)\//.test(a.mime));
   if (medio) caja.append(el("button", { type: "button", onclick: () => enviar({ accion: "transcribir", params: { archivo: medio.nombre } }) }, "📝 Transcribir " + medio.nombre));
@@ -1359,26 +1373,35 @@ function pintarAdjuntos() {
 }
 
 /* ───────── Atajos (no gastan tokens de chat) ───────── */
+// Herramientas del inicio, agrupadas por categoría (g). nuevo = muestra la etiqueta «NUEVO».
+const GRUPOS = [
+  ["crear", "🎨", "Crear con IA"],
+  ["editar", "🖼️", "Fotos y video"],
+  ["docs", "📄", "Documentos"],
+  ["descargas", "⬇️", "Descargas"],
+  ["mas", "🌐", "Web y avisos"],
+];
 const ATAJOS = [
-  { id: "youtube", ico: "⬇️", titulo: "Descargar videos y fotos", desc: "YouTube, Instagram, TikTok, Facebook, X…", pro: true },
-  { id: "voz", ico: "🔊", titulo: "Texto a voz", desc: "Chirp HD o voz expresiva Gemini", pro: true },
-  { id: "transcribir", ico: "📝", titulo: "Transcribir audio o video", desc: "Sube el archivo y obtén el texto", pro: true },
-  { id: "video_codigo", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz natural o expresiva", pro: true },
-  { id: "presentacion", ico: "📽️", titulo: "Presentación PowerPoint", desc: "Diapositivas editables con revisión de diseño", pro: true },
-  { id: "estudiar", ico: "📚", titulo: "Estudiar", desc: "Tarjetas tipo Anki que se guardan, quiz o guía", pro: false },
-  { id: "web", ico: "🌐", titulo: "Crear página web", desc: "Con enlace propio y base de datos para formularios", pro: true },
-  { id: "foto", ico: "🖼️", titulo: "Mejorar foto", desc: "Quitar fondo, mejorar, restaurar, colorear o retrato pro", pro: true },
-  { id: "producto", ico: "🛍️", titulo: "Foto de producto pro", desc: "De foto de celular a foto de catálogo", pro: true },
-  { id: "musica", ico: "🎵", titulo: "Crear música", desc: "Pista instrumental original de ~30 s", pro: true },
-  { id: "subtitulos", ico: "✂️", titulo: "Subtítulos para videos", desc: "Estilo TikTok o clásico, quemados en el video", pro: true },
-  { id: "doblar", ico: "🌎", titulo: "Traducir y doblar", desc: "Tu audio o video con voz en otro idioma", pro: true },
-  { id: "hoja_vida", ico: "📋", titulo: "Hoja de vida", desc: "CV profesional en PDF y Word (y carta)", pro: true },
-  { id: "imagen", ico: "🎨", titulo: "Crear una imagen", desc: "Describe lo que imaginas", pro: true },
-  { id: "video", ico: "🎬", titulo: "Video con IA", desc: "Clip de 3 a 8 segundos (Veo)", pro: true },
-  { id: "oficina", ico: "📊", titulo: "Excel, Word o PDF", desc: "Plantillas listas: presupuestos, informes, notas…", pro: true },
-  { id: "recordatorio", ico: "⏰", titulo: "Recordatorio por Telegram", desc: "Te aviso a la hora que elijas", pro: true },
-  { id: "correo", ico: "✉️", titulo: "Redactar un correo", desc: "Plantillas: solicitud, seguimiento, ventas…", pro: false },
-  { id: "redactar", ico: "✍️", titulo: "Redactar un texto", desc: "Publicaciones, guiones, artículos, ideas", pro: false },
+  { id: "imagen", g: "crear", ico: "🎨", titulo: "Crear una imagen", desc: "Describe lo que imaginas", pro: true },
+  { id: "video", g: "crear", ico: "🎬", titulo: "Video con IA", desc: "Clip de 3 a 8 segundos (Veo)", pro: true },
+  { id: "musica", g: "crear", ico: "🎵", titulo: "Crear música", desc: "Pista instrumental original de ~30 s", pro: true },
+  { id: "voz", g: "crear", ico: "🔊", titulo: "Texto a voz", desc: "Chirp HD o voz expresiva Gemini", pro: true },
+  { id: "video_codigo", g: "crear", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz Chirp o Gemini", pro: true },
+  { id: "foto", g: "editar", ico: "🖼️", titulo: "Mejorar foto", desc: "Quitar fondo, mejorar, restaurar, colorear o retrato pro", pro: true },
+  { id: "producto", g: "editar", ico: "🛍️", titulo: "Foto de producto pro", desc: "De foto de celular a foto de catálogo", pro: true },
+  { id: "subtitulos", g: "editar", ico: "✂️", titulo: "Subtítulos para videos", desc: "Estilo TikTok o clásico, quemados en el video", pro: true },
+  { id: "doblar", g: "editar", ico: "🌎", titulo: "Traducir y doblar", desc: "Tu audio o video con voz en otro idioma", pro: true },
+  { id: "transcribir", g: "editar", ico: "📝", titulo: "Transcribir audio o video", desc: "Sube el archivo y obtén el texto", pro: true },
+  { id: "oficina", g: "docs", ico: "📊", titulo: "Excel, Word o PDF", desc: "Plantillas listas: presupuestos, informes, notas…", pro: true },
+  { id: "presentacion", g: "docs", ico: "📽️", titulo: "Presentación PowerPoint", desc: "Diapositivas editables con revisión de diseño", pro: true },
+  { id: "hoja_vida", g: "docs", ico: "📋", titulo: "Hoja de vida", desc: "CV profesional en PDF y Word (y carta)", pro: true },
+  { id: "estudiar", g: "docs", ico: "📚", titulo: "Estudiar", desc: "Tarjetas tipo Anki que se guardan, quiz o guía", pro: false },
+  { id: "correo", g: "docs", ico: "✉️", titulo: "Redactar un correo", desc: "Plantillas: solicitud, seguimiento, ventas…", pro: false },
+  { id: "redactar", g: "docs", ico: "✍️", titulo: "Redactar un texto", desc: "Publicaciones, guiones, artículos, ideas", pro: false },
+  { id: "redes", g: "descargas", ico: "📲", titulo: "Descargar de redes", desc: "Videos, fotos y carruseles de Instagram, TikTok, Facebook, X…", pro: true, nuevo: true },
+  { id: "youtube", g: "descargas", ico: "⬇️", titulo: "Descargar de YouTube", desc: "Música MP3 o video MP4 · cualquier enlace", pro: true },
+  { id: "web", g: "mas", ico: "🌐", titulo: "Crear página web", desc: "Con enlace propio y base de datos para formularios", pro: true },
+  { id: "recordatorio", g: "mas", ico: "⏰", titulo: "Aviso por Telegram", desc: "Te escribo a la hora que elijas", pro: true },
 ];
 
 /* Plantillas de archivos de oficina: [formato, id, nombre, pedido, ejemplo] */
@@ -1436,12 +1459,27 @@ function selectorPlantilla(nombre, tipos, area) {
   area.placeholder = tipos[0][3];
   return sel;
 }
+let grupoAtajos = (() => { try { return localStorage.getItem("simb_grupo") || "todas"; } catch { return "todas"; } })();
+function tarjetaAtajo(a) {
+  const bloqueado = a.pro && !esPro();
+  return el("button", { type: "button", class: "atajo g-" + a.g + (bloqueado ? " bloqueado" : ""), "data-id": a.id,
+    onclick: () => bloqueado ? abrirPro(`«${a.titulo}» es parte de la versión Pro.`) : abrirAtajo(a.id) },
+    el("span", { class: "at-ico", "aria-hidden": "true" }, a.ico),
+    el("span", { class: "at-txt" }, el("b", {}, a.titulo), el("small", {}, a.desc)),
+    bloqueado ? el("span", { class: "at-marca pro" }, "PRO") : a.nuevo ? el("span", { class: "at-marca nuevo" }, "NUEVO") : null);
+}
 function pintarAtajos() {
   const c = $("atajos"); c.textContent = "";
-  for (const a of ATAJOS) {
-    const bloqueado = a.pro && !esPro();
-    c.append(el("button", { type: "button", class: "atajo" + (bloqueado ? " bloqueado" : ""), onclick: () => bloqueado ? abrirPro(`«${a.nombre || a.titulo || "Esta función"}» es parte de la versión Pro.`) : abrirAtajo(a.id) },
-      el("b", {}, `${a.ico} ${a.titulo}`), el("small", {}, a.desc), bloqueado ? el("span", { class: "bloq" }, "PRO") : null));
+  if (!GRUPOS.some(([g]) => g === grupoAtajos)) grupoAtajos = "todas";
+  const elegir = (g) => { grupoAtajos = g; try { localStorage.setItem("simb_grupo", g); } catch { /* sin almacenamiento */ } pintarAtajos(); };
+  c.append(el("div", { class: "at-filtros", role: "tablist", "aria-label": "Tipos de herramientas" },
+    [["todas", "✨", "Todas"], ...GRUPOS].map(([g, ico, nom]) => el("button", { type: "button", role: "tab",
+      "aria-selected": String(grupoAtajos === g), onclick: () => elegir(g) }, el("span", { "aria-hidden": "true" }, ico), nom))));
+  for (const [g, , nom] of GRUPOS) {
+    if (grupoAtajos !== "todas" && grupoAtajos !== g) continue;
+    c.append(el("section", { class: "at-grupo", "aria-label": nom },
+      grupoAtajos === "todas" ? el("h4", { class: "at-tit" }, nom) : null,
+      el("div", { class: "at-grid" }, ATAJOS.filter((a) => a.g === g).map(tarjetaAtajo))));
   }
 }
 
@@ -1509,22 +1547,46 @@ async function abrirAtajo(id, conAdjunta = false) {
     ], `Te quedan ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min de voz natural y ${(quedan("tts_gemini_seg", "tts_gemini_seg") / 60).toFixed(0)} min de voz expresiva.`, "Generar audio",
       (f) => f.get("texto")?.trim() && enviar({ accion: f.get("motor") === "gemini" ? "voz_gemini" : "voz_chirp", params: { texto: f.get("texto").trim(), voz: f.get("voz"), estilo: f.get("estilo") || "" } }));
   } else if (id === "youtube") {
-    const area = el("textarea", { name: "urls", required: true, placeholder: "Pega uno o varios enlaces (botón «Compartir» → «Copiar enlace»)\nhttps://youtu.be/…\nhttps://www.instagram.com/p/…  ·  https://www.tiktok.com/@…/video/…\nhttps://www.facebook.com/…  ·  https://x.com/…/status/…" });
+    const area = el("textarea", { name: "urls", required: true, placeholder: "Pega uno o varios enlaces (de la app, del navegador, Shorts, Music…)\nhttps://youtu.be/…\nhttps://www.youtube.com/watch?v=…" });
     const vista = el("small", { class: "nota" });
-    area.oninput = () => {
-      const yt = enlacesYT(area.value).length, rs = enlacesRedes(area.value).length, n = yt + rs;
-      vista.textContent = n ? `✓ ${n} enlace${n > 1 ? "s" : ""} válido${n > 1 ? "s" : ""}` + (rs ? ` (${rs} de redes sociales)` : "") : "";
-    };
-    abrirDialogo("Descargar videos y fotos", [
+    area.oninput = () => { const n = enlacesYT(area.value).length; vista.textContent = n ? `✓ ${n} enlace${n > 1 ? "s" : ""} válido${n > 1 ? "s" : ""}` : ""; };
+    abrirDialogo("Descargar de YouTube", [
       el("label", {}, "Enlaces (hasta 10)", area), vista,
-      campoOpciones("formato", [["mp4", "🎬 Video MP4 (y fotos o carruseles tal cual)"], ["mp3", "🎵 Solo audio MP3 (va a «Mi música»)"]], "mp4"),
+      campoOpciones("formato", [["mp3", "🎵 Solo audio MP3 (va a «Música»)"], ["mp4", "🎬 Video MP4"]], "mp3"),
       el("div", { class: "campo-titulo" }, "Calidad"),
       campoOpciones("calidad", [["baja", "Baja (más rápida y liviana)"], ["media", "Media"], ["alta", "Alta"]], "baja"),
-    ], "YouTube, Instagram (reels, fotos y carruseles), TikTok, Facebook, X, Threads, Pinterest, Reddit, Vimeo y más. Solo publicaciones públicas. Máximo 48 MB por archivo y 10 archivos por publicación. Descarga solo contenido que tengas derecho a usar.", "Descargar",
+    ], `Funciona con cualquier enlace de YouTube: se limpia solo (quita ?si=, listas, tiempos…). Máximo 48 MB por archivo. Cada enlace cuenta 1 descarga: te quedan ${quedan("descargas", "descargas")} esta semana. Descarga solo contenido que tengas derecho a usar.`, "Descargar",
       (f) => {
-        const urls = enlacesDescarga(f.get("urls") || "").slice(0, 10);
-        if (!urls.length) return alert("No encontré enlaces de YouTube ni de redes sociales.");
+        const urls = enlacesYT(f.get("urls") || "").slice(0, 10);
+        if (!urls.length) return alert("No encontré enlaces de YouTube. Para Instagram, TikTok o Facebook usa «📲 Descargar de redes».");
         enviar({ accion: "youtube_" + f.get("formato"), params: { url: urls.join("\n"), urls, calidad: f.get("calidad") } });
+      });
+  } else if (id === "redes") {
+    const area = el("textarea", { name: "urls", required: true, placeholder: "Pega uno o varios enlaces: en la app toca «Compartir» → «Copiar enlace».\nhttps://www.instagram.com/p/…   https://www.instagram.com/reel/…\nhttps://www.tiktok.com/@usuario/video/…   https://vm.tiktok.com/…\nhttps://www.facebook.com/…   https://x.com/usuario/status/…" });
+    const chips = el("div", { class: "red-chips", "aria-live": "polite" });
+    const marcar = () => {
+      const urls = enlacesRedes(area.value), yt = enlacesYT(area.value);
+      chips.textContent = "";
+      for (const u of urls.slice(0, 10)) {
+        const red = redDe(u);
+        chips.append(el("span", { class: "red-chip ok" }, el("b", {}, red.ico), red.nombre));
+      }
+      if (yt.length) chips.append(el("span", { class: "red-chip aviso" }, `${yt.length} de YouTube: usa «⬇️ Descargar de YouTube»`));
+      if (urls.length > 10) chips.append(el("span", { class: "red-chip aviso" }, "Máximo 10 enlaces"));
+    };
+    area.oninput = marcar;
+    abrirDialogo("Descargar de redes", [
+      el("div", { class: "redes-logos", "aria-label": "Redes compatibles" }, REDES_UI.slice(0, 8).map((r) => el("span", { title: r.nombre }, r.ico, " ", r.nombre))),
+      el("label", {}, "Enlaces (hasta 10)", area), chips,
+      el("div", { class: "campo-titulo" }, "¿Qué quieres?"),
+      campoOpciones("formato", [["mp4", "🎬 Video y fotos tal cual (carruseles completos)"], ["mp3", "🎵 Solo el audio MP3"]], "mp4"),
+      el("div", { class: "campo-titulo" }, "Calidad del video"),
+      campoOpciones("calidad", [["baja", "Baja (liviana)"], ["media", "Media"], ["alta", "Alta (hasta 1080p)"]], "media"),
+    ], `Solo publicaciones públicas · hasta 10 archivos por publicación · máximo 48 MB por archivo. Cada enlace cuenta 1 descarga: te quedan ${quedan("descargas", "descargas")} esta semana. Descarga solo contenido que tengas derecho a usar.`, "Descargar",
+      (f) => {
+        const urls = enlacesRedes(f.get("urls") || "").slice(0, 10);
+        if (!urls.length) return alert("No encontré enlaces de Instagram, TikTok, Facebook, X, Pinterest u otras redes compatibles.");
+        enviar({ accion: "redes_" + f.get("formato"), params: { url: urls.join("\n"), urls, calidad: f.get("calidad") } });
       });
   } else if (id === "foto" || id === "producto") {
     const { campo, obtener } = campoArchivo("image/*", "Foto", "image/");
@@ -1862,17 +1924,17 @@ async function abrirRecordatorios() {
       } }, "✕"));
     return fila;
   }));
-  abrirDialogo("Recordatorio por Telegram", [
-    el("label", {}, "¿Qué te recuerdo?", el("textarea", { name: "texto", required: true, maxlength: 1000, placeholder: "Ej.: tomar el medicamento · pagar el arriendo · estudiar anatomía 30 min" })),
+  abrirDialogo("Aviso por Telegram", [
+    el("label", {}, "¿Qué te aviso?", el("textarea", { name: "texto", required: true, maxlength: 1000, placeholder: "Ej.: tomar el medicamento · pagar el arriendo · estudiar anatomía 30 min" })),
     el("div", { class: "fila-2" }, el("label", {}, "Fecha", fecha), el("label", {}, "Hora (Colombia)", hora)),
     rapidos,
     pendientes.length ? el("div", { class: "campo-titulo" }, `Pendientes (${pendientes.length})`) : null,
     pendientes.length ? lista : null,
-  ], "Te llegará un mensaje de @SimbiAlertasBot a esa hora. También puedes pedírselo a Simbi en el chat: «recuérdame mañana a las 7 llamar a mamá».", "Programar",
+  ], "Te llegará un mensaje de @SimbiAlertasBot a esa hora. También puedes pedírselo a Simbi en el chat: «avísame mañana a las 7 que llame a mamá».", "Programar",
     async (f) => {
       try {
         const r = await apiNube("/recordatorios", { method: "POST", body: JSON.stringify({ texto: f.get("texto").trim(), cuando: `${f.get("fecha")} ${f.get("hora")}` }) });
-        alert("⏰ Listo: te aviso por Telegram el " + r.cuando + ".\n\nPuedes verlo o cambiarlo en ⏰ Recordatorios."); cargarRecsN();
+        alert("⏰ Listo: te aviso por Telegram el " + r.cuando + ".\n\nPuedes verlo o cambiarlo en ⏰ Avisos."); cargarRecsN();
       } catch (e) { alert("No se pudo programar: " + e.message); }
     });
 }
@@ -1909,11 +1971,11 @@ async function abrirMisRecordatorios() {
   const d = await cargarRecsN();
   c.textContent = "";
   if (!d) { c.append(el("div", { class: "vacio" }, "No se pudieron cargar. Intenta de nuevo.")); return; }
-  const nuevo = el("button", { type: "button", class: "btn btn-brasa btn-chico", onclick: () => { dlg.close(); abrirRecordatorios(); } }, "＋ Nuevo recordatorio");
+  const nuevo = el("button", { type: "button", class: "btn btn-brasa btn-chico", onclick: () => { dlg.close(); abrirRecordatorios(); } }, "＋ Nuevo aviso");
   Object.assign(tg, { conectado: d.telegram });
   if (!d.telegram) {
     c.append(el("div", { class: "tg-caja" },
-      el("div", { class: "tg-cab" }, el("span", { class: "tg-ico" }, "✈️"), el("div", {}, el("b", {}, "Conecta Telegram para recibir tus recordatorios"),
+      el("div", { class: "tg-cab" }, el("span", { class: "tg-ico" }, "✈️"), el("div", {}, el("b", {}, "Conecta Telegram para recibir tus avisos"),
         el("small", {}, "Solo una vez. Te llegarán por el bot @SimbiAlertasBot."))),
       el("ol", { class: "tg-pasos" },
         el("li", {}, "Toca ", el("b", {}, "Unirme al bot"), ": se abre Telegram."),
@@ -1926,15 +1988,15 @@ async function abrirMisRecordatorios() {
     await cargarTelegram();
     c.append(el("div", { class: "tg-caja ok" },
       el("div", { class: "tg-cab" }, el("span", { class: "tg-ico" }, "✅"), el("div", {}, el("b", {}, "Telegram conectado" + (tg.usuario ? " · " + tg.usuario : "")),
-        el("small", {}, "Aquí te llegan tus recordatorios, el aviso cuando Simbi termina algo largo y los datos de tus webs."))),
+        el("small", {}, "Aquí te llegan tus avisos, el mensaje cuando Simbi termina algo largo y los datos de tus webs."))),
       el("div", { class: "tg-acc" },
         el("a", { class: "btn btn-borde btn-chico", href: "https://t.me/SimbiAlertasBot", target: "_blank", rel: "noopener" }, "Abrir el bot"),
         el("button", { type: "button", class: "enlace", onclick: async () => { if (await desconectarTelegram()) abrirMisRecordatorios(); } }, "Desconectar"))));
   }
   const pend = (d.lista || []).filter((r) => !r.enviado).sort((a, b) => new Date(a.cuando) - new Date(b.cuando));
   const env = (d.lista || []).filter((r) => r.enviado);
-  c.append(el("div", { class: "recs-cab" }, el("b", {}, pend.length ? `Pendientes (${pend.length})` : "No tienes recordatorios pendientes"), esPro() ? nuevo : null));
-  if (!esPro() && !pend.length) c.append(el("small", { class: "nota" }, "Programar recordatorios por Telegram es parte de la versión Pro."));
+  c.append(el("div", { class: "recs-cab" }, el("b", {}, pend.length ? `Pendientes (${pend.length})` : "No tienes avisos pendientes"), esPro() ? nuevo : null));
+  if (!esPro() && !pend.length) c.append(el("small", { class: "nota" }, "Programar avisos por Telegram es parte de la versión Pro."));
   const lista = el("div", { class: "recs-lista" });
   for (const r of pend) lista.append(filaRec(r));
   c.append(lista);
@@ -1949,7 +2011,7 @@ function filaRec(r) {
     fila.append(el("div", { class: "rec-txt" }, el("span", {}, r.texto), el("small", {}, "🕑 " + fechaRec(r.cuando))),
       el("div", { class: "rec-acc" },
         el("button", { type: "button", class: "btn btn-borde btn-chico", onclick: editar }, "✏️ Cambiar"),
-        el("button", { type: "button", class: "btn-x", title: "Cancelar recordatorio", onclick: async () => {
+        el("button", { type: "button", class: "btn-x", title: "Cancelar aviso", onclick: async () => {
           if (!confirm(`¿Cancelar «${r.texto.slice(0, 60)}»?`)) return;
           try { await apiNube("/recordatorios/" + r.id, { method: "DELETE" }); fila.remove(); cargarRecsN(); } catch (e) { alert(e.message); }
         } }, "✕")));
@@ -1980,7 +2042,7 @@ $("btn-recs").onclick = () => abrirMisRecordatorios();
 
 function etiquetaAccion(accion, p) {
   return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz Chirp: ", voz_gemini: "🔊 Voz Gemini: ",
-    youtube_mp4: "⬇️ Descargar: ", youtube_mp3: "🎵 Audio MP3: ", transcribir: "📝 Transcribir: ", video_codigo: "🎞️ Video con código: " })[accion] +
+    youtube_mp4: "⬇️ YouTube MP4: ", youtube_mp3: "🎵 YouTube MP3: ", redes_mp4: "📲 Descargar de redes: ", redes_mp3: "🎵 Audio de redes: ", transcribir: "📝 Transcribir: ", video_codigo: "🎞️ Video con código: " })[accion] +
     (p.texto || p.url || p.archivo || "");
 }
 

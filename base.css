@@ -22,6 +22,7 @@
   --sobre-cian: #0B0F14;
   --cian-claro: #8BF5F0;
   --codigo: #070A0E;
+  --violeta: #B39DFF;
   color-scheme: dark;
 }
 /* ☀️ Modo claro (el oscuro es el predeterminado) */
@@ -44,6 +45,7 @@
   --sombra: 0 12px 34px rgba(16, 28, 37, .12);
   --sobre-cian: #FFFFFF;
   --codigo: #F3F6F8;
+  --violeta: #6A47D9;
   color-scheme: light;
 }
 
