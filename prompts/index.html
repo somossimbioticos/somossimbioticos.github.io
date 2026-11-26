@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guía de prompts: método RCT y 10 prompts listos · Somos Simbióticos</title>
+  <meta name="description" content="Aprende a escribir buenos prompts con el método RCT (Rol, Contexto y Tarea) y copia 10 prompts muy usados, listos para Simbi o cualquier IA.">
+  <link rel="canonical" href="https://somossimbioticos.github.io/prompts/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://somossimbioticos.github.io/prompts/">
+  <meta property="og:title" content="Prompts que sí funcionan · Método RCT">
+  <meta property="og:description" content="La fórmula Rol, Contexto y Tarea, un ejemplo completo y 10 prompts listos para copiar.">
+  <meta property="og:image" content="https://somossimbioticos.github.io/img/estorninos.webp">
+  <meta name="theme-color" content="#0B0F14">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../base.css">
+  <style>
+    .c-rol { --c: #3EE6E0; --s: rgba(62,230,224,.10); }
+    .c-contexto { --c: #FFC23F; --s: rgba(255,194,63,.10); }
+    .c-tarea { --c: #FF4D2E; --s: rgba(255,77,46,.12); }
+    .c-formato { --c: #B39DFF; --s: rgba(179,157,255,.12); }
+    .c-tono { --c: #4ADE80; --s: rgba(74,222,128,.10); }
+    .c-restricciones { --c: #FF7AB6; --s: rgba(255,122,182,.11); }
+    .c-ejemplo { --c: #E8EEF0; --s: rgba(232,238,240,.07); }
+    .c-preguntas { --c: #8FA3AD; --s: rgba(143,163,173,.10); }
+    html { scroll-behavior: smooth; scroll-padding-top: 78px; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    .envoltura { width: min(1120px, 100% - 32px); margin-inline: auto; }
+    header.nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(11, 15, 20, .82); border-bottom: 1px solid var(--linea); }
+    .nav .envoltura { display: flex; align-items: center; gap: 18px; height: 64px; }
+    .marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--papel); }
+    .marca img { width: 34px; height: 34px; }
+    .marca span { font-family: var(--f-titulo); font-weight: 900; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; }
+    .nav nav { margin-left: auto; display: flex; gap: 22px; align-items: center; }
+    .nav nav a:not(.btn) { color: var(--mut); text-decoration: none; font-weight: 600; font-size: 15px; }
+    .nav nav a:not(.btn):hover { color: var(--papel); }
+    @media (max-width: 760px) { .nav nav a:not(.btn) { display: none; } .nav .btn { padding: 9px 16px; font-size: 14px; } .marca span { font-size: 19px; } }
+
+    .hero { position: relative; overflow: hidden; padding: 64px 0 40px; }
+    .hero::before { content: ""; position: absolute; inset: -30% -10% auto auto; width: 70%; aspect-ratio: 1; background: radial-gradient(closest-side, rgba(62, 230, 224, .14), transparent); pointer-events: none; }
+    .hero .envoltura { position: relative; display: grid; grid-template-columns: 1.15fr .85fr; gap: 48px; align-items: center; }
+    .hero h1 { font-size: clamp(50px, 8vw, 104px); margin-top: 14px; }
+    .hero h1 .l2 { display: block; color: var(--cian); }
+    .lead { font-size: clamp(17px, 2vw, 19.5px); color: var(--texto-2); max-width: 600px; margin: 24px 0 28px; }
+    .lead b { color: var(--papel); }
+    .acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+    .rct-mini { display: grid; gap: 12px; }
+    .rct-mini > div { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 18px; background: var(--panel); border: 1px solid var(--linea); border-left: 4px solid var(--c); }
+    .rct-mini .letra { font-family: var(--f-titulo); font-weight: 900; font-size: 64px; line-height: .8; color: var(--c); text-align: center; }
+    .rct-mini b { display: block; font-family: var(--f-titulo); font-weight: 900; font-size: 28px; text-transform: uppercase; line-height: 1; }
+    .rct-mini span:not(.letra) { color: var(--mut); font-size: 15px; }
+    @media (max-width: 860px) { .hero .envoltura { grid-template-columns: 1fr; gap: 30px; } .hero { padding-top: 36px; } }
+
+    section { padding: 56px 0; }
+    .sec-cab { max-width: 780px; margin-bottom: 28px; }
+    .sec-cab h2 { font-size: clamp(36px, 5.4vw, 60px); margin: 10px 0 12px; }
+    .sec-cab p { color: var(--texto-2); font-size: 17.5px; margin: 0; }
+
+    .formula { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .extras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .parte { background: var(--panel); border: 1px solid var(--linea); border-top: 4px solid var(--c); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+    .parte .letra { font-family: var(--f-titulo); font-weight: 900; font-size: 76px; line-height: .8; color: var(--c); }
+    .parte h3 { font-family: var(--f-titulo); font-weight: 900; text-transform: uppercase; font-size: 34px; line-height: 1; margin: 4px 0 0; }
+    .parte .preg { margin: 0; color: var(--c); font-weight: 700; }
+    .parte p { margin: 0; color: var(--texto-2); }
+    .extras .parte { padding: 20px; }
+    .extras .parte h3 { font-size: 28px; }
+    .ej { margin-top: auto; background: var(--codigo); border-radius: 12px; border-left: 3px solid var(--c); padding: 12px 14px; font-size: 15px; color: var(--papel); }
+    .ej small { display: block; font-family: var(--f-mono); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--mut); margin-bottom: 4px; }
+    .truco { margin-top: 16px; display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; padding: 20px 24px; border-radius: 20px; border: 1.5px dashed var(--ambar); background: rgba(255, 194, 63, .07); }
+    .truco .ico { font-size: 34px; line-height: 1; }
+    .truco p { margin: 0; color: var(--texto-2); }
+    .truco b { color: var(--ambar); }
+    .truco q { quotes: "«" "»"; font-weight: 600; color: var(--papel); }
+    @media (max-width: 1000px) { .extras { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 760px) { .formula, .extras { grid-template-columns: 1fr; } .truco { grid-template-columns: 1fr; gap: 8px; } }
+
+    .malo { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; padding: 22px 24px; border-radius: 20px; background: rgba(255, 107, 91, .07); border: 1px solid rgba(255, 107, 91, .35); margin-bottom: 18px; }
+    .malo .ico { font-size: 30px; line-height: 1; }
+    .malo .cita { font-size: 20px; font-weight: 700; margin: 2px 0 6px; }
+    .malo p { margin: 0; color: var(--texto-2); }
+    .malo .mono { color: var(--error); }
+    .dos-col { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, .65fr); gap: 18px; align-items: start; }
+    .caja { background: var(--panel); border: 1px solid var(--linea); border-radius: 20px; overflow: hidden; }
+    .caja-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 18px; border-bottom: 1px solid var(--linea); background: var(--panel-2); }
+    .caja-bar .mono { color: var(--papel); }
+    .copiar { flex: none; padding: 9px 16px; font-size: 14.5px; }
+    .copiar.ok { background: var(--exito); }
+    .bloques { display: grid; gap: 10px; padding: 16px; }
+    .bl { border-left: 4px solid var(--c); background: var(--s); border-radius: 4px 12px 12px 4px; padding: 10px 14px 12px; }
+    .bl .tag { font-family: var(--f-mono); font-weight: 700; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--c); }
+    .bl p { margin: 4px 0 0; white-space: pre-line; color: var(--papel); }
+    .lateral { background: var(--panel); border: 1px solid var(--linea); border-radius: 20px; padding: 22px; }
+    .lateral h3 { margin: 0 0 14px; font-family: var(--f-titulo); font-weight: 900; text-transform: uppercase; font-size: 30px; line-height: 1; }
+    .lateral p { color: var(--texto-2); margin: 0 0 12px; font-size: 15.5px; }
+    .porque { position: sticky; top: 84px; }
+    .porque ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .porque li { display: grid; grid-template-columns: 10px 1fr; gap: 10px; align-items: baseline; color: var(--texto-2); font-size: 15.5px; }
+    .porque li::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+    .porque li b { color: var(--c); }
+    .seguir ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .seguir li { background: var(--codigo); border-radius: 10px; padding: 9px 12px; font-weight: 600; font-size: 15px; }
+    .seguir li::before { content: "💬 "; }
+    @media (max-width: 900px) { .dos-col { grid-template-columns: 1fr; } .porque { position: static; } }
+
+    pre.prompt { margin: 0; padding: 16px 18px 18px; white-space: pre-wrap; overflow-wrap: anywhere; font: 15px/1.65 var(--f-texto); color: var(--papel); }
+    .et { color: var(--c); font-weight: 700; }
+    mark.hueco { background: rgba(255, 194, 63, .16); color: var(--ambar); border-radius: 5px; padding: 0 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+    .indice { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; padding: 0; list-style: none; }
+    .indice a { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--panel); border: 1px solid var(--linea); color: var(--papel); text-decoration: none; font-weight: 600; font-size: 14.5px; }
+    .indice a:hover { border-color: var(--cian); color: var(--cian); }
+    .indice a span { font-family: var(--f-mono); color: var(--brasa); font-weight: 700; }
+    .lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .pcard { display: flex; flex-direction: column; gap: 14px; background: var(--panel); border: 1px solid var(--linea); border-radius: 22px; padding: 20px; }
+    .pcab { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; }
+    .pnum { font-family: var(--f-titulo); font-weight: 900; font-size: 54px; line-height: .8; color: var(--brasa); text-align: center; }
+    .pcab h3 { margin: 0; font-size: 19px; line-height: 1.25; }
+    .pcab p { margin: 3px 0 0; color: var(--mut); font-size: 14.5px; }
+    .pcard .caja { flex: 1; background: var(--codigo); }
+    .pcard .caja-bar { background: transparent; }
+    .pcard.bonus { grid-column: 1 / -1; border-color: rgba(62, 230, 224, .5); background: linear-gradient(120deg, var(--cian-suave), var(--panel) 60%); }
+    .pcard.bonus .pnum { font-size: 34px; }
+    .descarga { margin-top: 16px; }
+    @media (max-width: 900px) { .lista { grid-template-columns: 1fr; } }
+    @media (max-width: 420px) { .pcard { padding: 16px; } pre.prompt { padding: 14px; font-size: 14.5px; } .caja-bar { padding-left: 14px; } }
+
+    .consejos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 14px; }
+    .consejo { background: var(--panel); border: 1px solid var(--linea); border-radius: 18px; padding: 20px; }
+    .consejo .ico { font-size: 28px; line-height: 1; }
+    .consejo h3 { margin: 10px 0 6px; font-size: 17px; }
+    .consejo p { margin: 0; color: var(--texto-2); font-size: 15px; }
+
+    .cta { border-radius: 28px; padding: clamp(28px, 5vw, 52px); border: 1px solid var(--linea); background:
+      radial-gradient(600px 300px at 90% 0%, rgba(62, 230, 224, .18), transparent),
+      radial-gradient(500px 300px at 0% 100%, rgba(255, 77, 46, .16), transparent), var(--panel); }
+    .cta h2 { font-size: clamp(40px, 6vw, 70px); margin: 10px 0 12px; }
+    .cta p { color: var(--texto-2); font-size: 18px; max-width: 640px; margin: 0 0 24px; }
+
+    footer { border-top: 1px solid var(--linea); padding: 36px 0 48px; color: var(--mut); font-size: 14px; }
+    footer .envoltura { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+
+    .aviso { position: fixed; left: 50%; bottom: 18px; z-index: 30; width: max-content; max-width: calc(100% - 32px); transform: translate(-50%, calc(100% + 60px)); transition: transform .25s ease; background: var(--panel-2); color: var(--papel); border: 1px solid var(--cian); border-radius: 14px; padding: 12px 18px; font-weight: 600; font-size: 15px; }
+    .aviso.si { transform: translate(-50%, 0); box-shadow: var(--sombra); }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="envoltura">
+      <a class="marca" href="../"><img src="../logo.svg" alt=""><span>Somos Simbióticos</span></a>
+      <nav>
+        <a href="../">Inicio</a>
+        <a href="#rct">Método RCT</a>
+        <a href="#prompts">10 prompts</a>
+        <a class="btn btn-brasa" href="../app/">Probar Simbi</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="envoltura">
+        <div>
+          <div class="mono">Guía gratuita · Inteligencia artificial para todos</div>
+          <h1 class="titulo">Prompts que <span class="l2">sí funcionan</span></h1>
+          <p class="lead">Un prompt es la instrucción que le das a la IA. La IA no lee tu mente: solo sabe lo que le escribes. Mientras más claro seas, mejor será la respuesta. Con el método <b>RCT</b> (Rol, Contexto y Tarea) le explicas exactamente qué necesitas. Aquí tienes la fórmula, un ejemplo completo y 10 prompts listos para copiar.</p>
+          <div class="acciones">
+            <a class="btn btn-brasa" href="#prompts">Ver los 10 prompts ↓</a>
+            <a class="btn btn-borde" href="metodo-rct.txt" download="Metodo_RCT_ejemplo_de_buen_prompt.txt">Descargar la guía (.txt)</a>
+          </div>
+        </div>
+        <div class="rct-mini" aria-hidden="true">
+          <div class="c-rol"><span class="letra">R</span><div><b>Rol</b><span>¿Quién quieres que sea la IA?</span></div></div>
+<div class="c-contexto"><span class="letra">C</span><div><b>Contexto</b><span>¿Cuál es tu situación?</span></div></div>
+<div class="c-tarea"><span class="letra">T</span><div><b>Tarea</b><span>¿Qué debe hacer exactamente?</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="rct">
+      <div class="envoltura">
+        <div class="sec-cab">
+          <div class="mono">Paso 1 · La fórmula</div>
+          <h2 class="titulo">El método <span class="cian">RCT</span></h2>
+          <p>Tres partes que necesita todo buen prompt. Si solo recuerdas una cosa de esta guía, que sea esta.</p>
+        </div>
+        <div class="formula">
+          <article class="parte c-rol"><span class="letra">R</span><h3>Rol</h3><p class="preg">¿Quién quieres que sea la IA?</p><p>Dile qué experto debe ser. Así usa el vocabulario, el nivel y el punto de vista correctos.</p><div class="ej"><small>Ejemplo</small>Actúa como un contador con 15 años de experiencia en pequeñas empresas de Colombia.</div></article>
+<article class="parte c-contexto"><span class="letra">C</span><h3>Contexto</h3><p class="preg">¿Cuál es tu situación?</p><p>Cuéntale quién eres, para quién es el resultado, para qué lo necesitas y los datos importantes. Sin contexto, la respuesta es genérica.</p><div class="ej"><small>Ejemplo</small>Tengo una tienda de ropa en Cali con 2 empleados y este mes las ventas bajaron.</div></article>
+<article class="parte c-tarea"><span class="letra">T</span><h3>Tarea</h3><p class="preg">¿Qué debe hacer exactamente?</p><p>Usa un verbo claro (escribe, resume, compara, crea, explica, corrige) y di cuánto quieres.</p><div class="ej"><small>Ejemplo</small>Dame 5 ideas de promociones para diciembre que no cuesten más de $200.000.</div></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="ingredientes">
+      <div class="envoltura">
+        <div class="sec-cab">
+          <div class="mono">Paso 2 · Los extras</div>
+          <h2 class="titulo">Cuatro ingredientes que lo hacen <span class="brasa">excelente</span></h2>
+          <p>No siempre hacen falta todos, pero cada uno mejora la respuesta.</p>
+        </div>
+        <div class="extras">
+          <article class="parte c-formato"><h3>Formato</h3><p class="preg">¿Cómo quieres la respuesta?</p><p>Lista, tabla, pasos, correo o texto corrido, y de qué extensión.</p><div class="ej"><small>Ejemplo</small>En una tabla de 3 columnas, máximo 150 palabras.</div></article>
+<article class="parte c-tono"><h3>Tono</h3><p class="preg">¿Cómo debe sonar?</p><p>Formal, cercano, motivador o divertido, y pensado para quien lo va a leer.</p><div class="ej"><small>Ejemplo</small>Sencillo, como para alguien que nunca ha usado un computador.</div></article>
+<article class="parte c-restricciones"><h3>Restricciones</h3><p class="preg">¿Qué NO debe hacer?</p><p>Los límites evitan errores y relleno.</p><div class="ej"><small>Ejemplo</small>No inventes datos. Sin tecnicismos. Máximo una página.</div></article>
+<article class="parte c-ejemplo"><h3>Ejemplo</h3><p class="preg">¿Cómo se ve lo que te gusta?</p><p>Muéstrale un modelo: la IA copia un estilo mucho mejor que si se lo describes.</p><div class="ej"><small>Ejemplo</small>Escríbelo con este estilo: “…”</div></article>
+        </div>
+        <div class="truco">
+          <span class="ico" aria-hidden="true">💡</span>
+          <p><b>Truco de oro:</b> termina tu prompt con esta frase: <q>Antes de responder, hazme las preguntas que necesites. Si no sabes algo, dímelo en vez de inventarlo.</q></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="ejemplo">
+      <div class="envoltura">
+        <div class="sec-cab">
+          <div class="mono">Paso 3 · Míralo en acción</div>
+          <h2 class="titulo">El mismo pedido, <span class="brasa">mal</span> y <span class="cian">bien</span></h2>
+          <p>Una panadería quiere dar a conocer su producto nuevo. Mira la diferencia.</p>
+        </div>
+        <div class="malo">
+          <span class="ico" aria-hidden="true">❌</span>
+          <div>
+            <div class="mono">Prompt flojo</div>
+            <p class="cita">«Hazme publicaciones para mi panadería.»</p>
+            <p>La IA no sabe qué vendes, a quién, en qué ciudad, cuántas publicaciones quieres ni en qué red social. Te dará algo genérico que serviría para cualquier panadería del mundo.</p>
+          </div>
+        </div>
+        <div class="dos-col">
+          <div class="caja">
+            <div class="caja-bar"><span class="mono">✅ Prompt con el método RCT</span><button class="btn btn-cian copiar" type="button" data-copiar="ejemplo" aria-label="Copiar el prompt de ejemplo completo">📋 Copiar</button></div>
+            <div class="bloques">
+              <div class="bl c-rol"><span class="tag">ROL</span><p>Actúa como un experto en marketing digital para pequeños negocios de barrio en Colombia, con 10 años de experiencia creando contenido para Instagram y WhatsApp.</p></div>
+<div class="bl c-contexto"><span class="tag">CONTEXTO</span><p>Tengo una panadería familiar llamada «Pan de la Abuela» en el barrio Belén, en Medellín. Mis clientes son familias y trabajadores de la zona, de 25 a 60 años, que compran pan en la mañana. Este mes lanzamos un pan de yuca sin gluten y casi nadie lo conoce. No tengo presupuesto para publicidad: solo publico en Instagram y en mi lista de difusión de WhatsApp (unos 300 contactos).</p></div>
+<div class="bl c-tarea"><span class="tag">TAREA</span><p>Escribe 3 publicaciones para dar a conocer el pan de yuca sin gluten:
+1. Un post de Instagram para el lanzamiento.
+2. Un mensaje para la lista de difusión de WhatsApp.
+3. Una historia de Instagram con una promoción 2x1 válida solo este sábado.</p></div>
+<div class="bl c-formato"><span class="tag">FORMATO</span><p>Para cada publicación: un título llamativo, el texto (máximo 80 palabras) y una llamada a la acción. En Instagram agrega 5 hashtags. Separa cada publicación con un subtítulo.</p></div>
+<div class="bl c-tono"><span class="tag">TONO</span><p>Cercano, cálido y alegre, como habla la gente de Medellín, sin exagerar con los modismos. Máximo 2 emojis por publicación.</p></div>
+<div class="bl c-restricciones"><span class="tag">RESTRICCIONES</span><p>- No inventes precios, premios ni datos que no te di.
+- No prometas beneficios para la salud: solo di que es sin gluten.
+- Evita palabras en inglés.</p></div>
+<div class="bl c-ejemplo"><span class="tag">EJEMPLO</span><p>Este es el estilo que me gusta:
+«¡Llegó el pan que estabas esperando! Calientico, recién salido del horno y con el sabor de siempre. Te esperamos desde las 6 a. m. 🥖»</p></div>
+<div class="bl c-preguntas"><span class="tag">ANTES DE EMPEZAR</span><p>Si te falta información importante, hazme máximo 3 preguntas antes de escribir.</p></div>
+            </div>
+          </div>
+          <aside class="lateral porque">
+            <h3>¿Por qué funciona?</h3>
+            <ul>
+              <li class="c-rol"><span><b>Rol:</b> usa técnicas reales de marketing para negocios pequeños.</span></li>
+<li class="c-contexto"><span><b>Contexto:</b> conoce el barrio, el público, el producto y el presupuesto: nada genérico.</span></li>
+<li class="c-tarea"><span><b>Tarea:</b> sabe exactamente qué entregar y cuántas piezas.</span></li>
+<li class="c-formato"><span><b>Formato:</b> te da textos listos para copiar y publicar.</span></li>
+<li class="c-tono"><span><b>Tono:</b> suena como tu negocio y no como un robot.</span></li>
+<li class="c-restricciones"><span><b>Restricciones:</b> evita errores graves, como precios falsos o promesas de salud.</span></li>
+<li class="c-ejemplo"><span><b>Ejemplo:</b> le muestra el estilo que te gusta.</span></li>
+<li class="c-preguntas"><span><b>Antes de empezar:</b> en vez de adivinar lo que no sabe, te pregunta.</span></li>
+            </ul>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="plantilla">
+      <div class="envoltura">
+        <div class="sec-cab">
+          <div class="mono">Paso 4 · Tu turno</div>
+          <h2 class="titulo">Plantilla para <span class="cian">copiar y llenar</span></h2>
+          <p>Cópiala, cambia lo que está entre <mark class="hueco">[corchetes]</mark> y tendrás tu propio prompt RCT.</p>
+        </div>
+        <div class="dos-col">
+          <div class="caja">
+            <div class="caja-bar"><span class="mono">Plantilla RCT</span><button class="btn btn-cian copiar" type="button" data-copiar="plantilla" aria-label="Copiar la plantilla">📋 Copiar</button></div>
+            <pre class="prompt"><b class="et c-rol">ROL:</b> Actúa como <mark class="hueco">[experto]</mark> con experiencia en <mark class="hueco">[área]</mark>.
+<b class="et c-contexto">CONTEXTO:</b> Soy <mark class="hueco">[quién eres]</mark>. <mark class="hueco">[Tu situación]</mark>. Esto es para <mark class="hueco">[quién lo va a leer o usar]</mark>. Mi objetivo es <mark class="hueco">[para qué lo necesitas]</mark>.
+<b class="et c-tarea">TAREA:</b> <mark class="hueco">[Verbo: escribe / resume / crea / explica / compara / corrige]</mark> <mark class="hueco">[qué exactamente]</mark> <mark class="hueco">[cuántos]</mark>.
+<b class="et c-formato">FORMATO:</b> <mark class="hueco">[Lista / tabla / pasos / correo / texto corrido]</mark> de máximo <mark class="hueco">[extensión]</mark>.
+<b class="et c-tono">TONO:</b> <mark class="hueco">[Formal / cercano / motivador / sencillo]</mark>.
+<b class="et c-restricciones">RESTRICCIONES:</b> No <mark class="hueco">[lo que debe evitar]</mark>. Si no sabes algo, dímelo en vez de inventarlo.
+<b class="et c-ejemplo">EJEMPLO (opcional):</b> <mark class="hueco">[Un modelo del resultado que te gusta]</mark>.
+Antes de responder, hazme las preguntas que necesites.</pre>
+          </div>
+          <aside class="lateral seguir">
+            <h3>Después de la primera respuesta</h3>
+            <p>La primera respuesta casi nunca es la final. Sigue la conversación:</p>
+            <ul>
+              <li>Hazlo más corto.</li>
+<li>Dame 3 versiones diferentes.</li>
+<li>Ahora en un tono más formal.</li>
+<li>¿Qué le falta a esta respuesta? Mejórala.</li>
+<li>Explícame el punto 2 con un ejemplo.</li>
+            </ul>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="prompts">
+      <div class="envoltura">
+        <div class="sec-cab">
+          <div class="mono">Listos para usar</div>
+          <h2 class="titulo">10 prompts <span class="cian">muy usados</span></h2>
+          <p>Todos siguen el método RCT. Cópialos, cambia lo que está entre <mark class="hueco">[corchetes]</mark> por tu información y pégalos en Simbi o en cualquier IA.</p>
+          <a class="btn btn-borde descarga" href="10-prompts.txt" download="10_prompts_muy_usados.txt">Descargar los 10 prompts (.txt)</a>
+        </div>
+        <ul class="indice" aria-label="Ir a un prompt">
+          <li><a href="#p1"><span>1</span>Resumir</a></li>
+<li><a href="#p2"><span>2</span>Correo</a></li>
+<li><a href="#p3"><span>3</span>Corregir</a></li>
+<li><a href="#p4"><span>4</span>Explicar fácil</a></li>
+<li><a href="#p5"><span>5</span>Aprender</a></li>
+<li><a href="#p6"><span>6</span>Hoja de vida</a></li>
+<li><a href="#p7"><span>7</span>Entrevista</a></li>
+<li><a href="#p8"><span>8</span>Redes sociales</a></li>
+<li><a href="#p9"><span>9</span>Organizar</a></li>
+<li><a href="#p10"><span>10</span>Excel</a></li>
+<li><a href="#bonus"><span>🎁</span>Bonus</a></li>
+        </ul>
+        <div class="lista">
+          <article class="pcard" id="p1"><header class="pcab"><span class="pnum">1</span><div><h3>Resumir un documento largo</h3><p>Sirve para entender rápido informes, artículos, contratos, leyes o actas.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 1</span><button class="btn btn-cian copiar" type="button" data-copiar="p1" aria-label="Copiar el prompt 1: Resumir un documento largo">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un analista experto en resumir documentos para personas ocupadas.
+<b class="et c-contexto">Contexto:</b> Necesito entender este documento para <mark class="hueco">[tomar una decisión / explicárselo a mi equipo / estudiar]</mark>. Lo voy a leer en el celular.
+<b class="et c-tarea">Tarea:</b> Resume el texto que pego abajo.
+<b class="et c-formato">Formato:</b>
+1. La idea principal en 2 frases.
+2. Los 5 puntos más importantes, en viñetas.
+3. Fechas, cifras y nombres clave (si los hay).
+4. Qué debo hacer o tener en cuenta.
+<b class="et c-tono">Tono:</b> Claro y sencillo, sin tecnicismos.
+<b class="et c-restricciones">Restricciones:</b> No agregues nada que no esté en el texto. Si algo no está claro, dímelo.
+
+Texto:
+"""
+<mark class="hueco">[Pega aquí el texto]</mark>
+"""</pre></div></article>
+<article class="pcard" id="p2"><header class="pcab"><span class="pnum">2</span><div><h3>Escribir un correo o mensaje importante</h3><p>Sirve para pedir algo, responder un reclamo, hacer seguimiento, cobrar o renunciar.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 2</span><button class="btn btn-cian copiar" type="button" data-copiar="p2" aria-label="Copiar el prompt 2: Escribir un correo o mensaje importante">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un experto en comunicación profesional.
+<b class="et c-contexto">Contexto:</b> Necesito escribirle a <mark class="hueco">[persona o cargo: mi jefe / un cliente / la empresa de servicios]</mark>. Lo que pasó es: <mark class="hueco">[explica la situación]</mark>. Lo que quiero lograr es <mark class="hueco">[objetivo: que me aprueben las vacaciones / que me devuelvan el dinero]</mark>.
+<b class="et c-tarea">Tarea:</b> Redacta el correo.
+<b class="et c-formato">Formato:</b> Asunto, saludo, máximo 3 párrafos cortos y despedida. Al final, dame una versión corta para enviar por WhatsApp.
+<b class="et c-tono">Tono:</b> <mark class="hueco">[Formal / cordial / firme pero respetuoso]</mark>.
+<b class="et c-restricciones">Restricciones:</b> No inventes fechas, cifras ni nombres. Si falta un dato, escribe (COMPLETAR) en su lugar.</pre></div></article>
+<article class="pcard" id="p3"><header class="pcab"><span class="pnum">3</span><div><h3>Corregir y mejorar un texto</h3><p>Sirve para revisar ortografía, redacción y claridad antes de enviar o publicar.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 3</span><button class="btn btn-cian copiar" type="button" data-copiar="p3" aria-label="Copiar el prompt 3: Corregir y mejorar un texto">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un corrector de estilo profesional en español.
+<b class="et c-contexto">Contexto:</b> Este texto es para <mark class="hueco">[publicar en redes / enviárselo a un cliente / un trabajo de la universidad]</mark> y lo van a leer <mark class="hueco">[quiénes]</mark>.
+<b class="et c-tarea">Tarea:</b> Corrige la ortografía, la gramática y la puntuación, y mejora la claridad sin cambiar mis ideas.
+<b class="et c-formato">Formato:</b>
+1. El texto corregido, listo para copiar.
+2. Una lista corta de los cambios principales y por qué los hiciste.
+<b class="et c-tono">Tono:</b> Respeta mi forma de escribir; solo haz el texto más claro.
+<b class="et c-restricciones">Restricciones:</b> No agregues ideas nuevas ni alargues el texto.
+
+Texto:
+"""
+<mark class="hueco">[Pega aquí tu texto]</mark>
+"""</pre></div></article>
+<article class="pcard" id="p4"><header class="pcab"><span class="pnum">4</span><div><h3>Explicarme un tema difícil con palabras sencillas</h3><p>Sirve para aprender cualquier tema (economía, salud, tecnología, leyes) sin enredos.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 4</span><button class="btn btn-cian copiar" type="button" data-copiar="p4" aria-label="Copiar el prompt 4: Explicarme un tema difícil con palabras sencillas">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un profesor paciente que explica temas difíciles con ejemplos de la vida diaria.
+<b class="et c-contexto">Contexto:</b> Quiero entender <mark class="hueco">[tema: qué es la inflación / cómo funciona la inteligencia artificial]</mark>. Sé <mark class="hueco">[nada / un poco]</mark> del tema.
+<b class="et c-tarea">Tarea:</b> Explícame el tema paso a paso.
+<b class="et c-formato">Formato:</b>
+1. Una explicación de máximo 150 palabras, como para alguien de 12 años.
+2. Una comparación con algo cotidiano.
+3. Un ejemplo real de Colombia o Latinoamérica.
+4. 3 preguntas cortas para comprobar si entendí, con las respuestas al final.
+<b class="et c-tono">Tono:</b> Cercano y motivador.
+<b class="et c-restricciones">Restricciones:</b> Sin palabras técnicas; si usas una, explícala.</pre></div></article>
+<article class="pcard" id="p5"><header class="pcab"><span class="pnum">5</span><div><h3>Plan para aprender algo nuevo</h3><p>Sirve para organizar el estudio de una habilidad, como Excel, inglés, programación o ventas.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 5</span><button class="btn btn-cian copiar" type="button" data-copiar="p5" aria-label="Copiar el prompt 5: Plan para aprender algo nuevo">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un tutor experto en <mark class="hueco">[habilidad: Excel / inglés / marketing digital]</mark>.
+<b class="et c-contexto">Contexto:</b> Mi nivel es <mark class="hueco">[principiante / intermedio]</mark>. Tengo <mark class="hueco">[30 minutos]</mark> al día, <mark class="hueco">[5]</mark> días a la semana. Quiero aprender esto para <mark class="hueco">[objetivo: conseguir un mejor trabajo]</mark>.
+<b class="et c-tarea">Tarea:</b> Crea un plan de estudio de <mark class="hueco">[4]</mark> semanas.
+<b class="et c-formato">Formato:</b> Una tabla con las columnas Semana | Qué aprender | Práctica concreta | Recurso gratuito. Al final, 3 consejos para no abandonar.
+<b class="et c-tono">Tono:</b> Práctico y motivador.
+<b class="et c-restricciones">Restricciones:</b> Solo recursos gratuitos y conocidos. No inventes enlaces: si no estás seguro de uno, dime qué buscar.</pre></div></article>
+<article class="pcard" id="p6"><header class="pcab"><span class="pnum">6</span><div><h3>Adaptar mi hoja de vida a una vacante</h3><p>Sirve para aumentar las posibilidades de que te llamen a entrevista.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 6</span><button class="btn btn-cian copiar" type="button" data-copiar="p6" aria-label="Copiar el prompt 6: Adaptar mi hoja de vida a una vacante">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un reclutador con 10 años de experiencia en selección de personal.
+<b class="et c-contexto">Contexto:</b> Voy a aplicar a esta vacante:
+"""
+<mark class="hueco">[Pega aquí la descripción de la vacante]</mark>
+"""
+Esta es mi hoja de vida:
+"""
+<mark class="hueco">[Pega aquí tu hoja de vida]</mark>
+"""
+<b class="et c-tarea">Tarea:</b> Dime cómo adaptar mi hoja de vida a esa vacante.
+<b class="et c-formato">Formato:</b>
+1. Un perfil profesional nuevo de 4 líneas.
+2. Mis 5 experiencias o logros más importantes, reescritos con verbos de acción y resultados.
+3. Palabras clave de la vacante que me faltan.
+4. Lo que debería quitar o acortar.
+<b class="et c-tono">Tono:</b> Profesional y directo.
+<b class="et c-restricciones">Restricciones:</b> No inventes experiencia, títulos ni cifras. Si a un logro le falta un dato, escribe (COMPLETAR).</pre></div></article>
+<article class="pcard" id="p7"><header class="pcab"><span class="pnum">7</span><div><h3>Practicar una entrevista de trabajo</h3><p>Sirve para llegar preparado y con menos nervios.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 7</span><button class="btn btn-cian copiar" type="button" data-copiar="p7" aria-label="Copiar el prompt 7: Practicar una entrevista de trabajo">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como el entrevistador de <mark class="hueco">[tipo de empresa]</mark> para el cargo de <mark class="hueco">[cargo]</mark>.
+<b class="et c-contexto">Contexto:</b> Tengo <mark class="hueco">[X años]</mark> de experiencia en <mark class="hueco">[área]</mark>. Me dan nervios <mark class="hueco">[las preguntas sobre salario / hablar de mis debilidades]</mark>.
+<b class="et c-tarea">Tarea:</b> Hazme una entrevista simulada de 6 preguntas.
+<b class="et c-formato">Formato:</b> Hazme UNA pregunta a la vez y espera mi respuesta. Después de cada respuesta dime qué estuvo bien, qué mejorar y un ejemplo de respuesta mejor con el método STAR (situación, tarea, acción, resultado). Al final, califícame de 1 a 10 y dame 3 consejos.
+<b class="et c-tono">Tono:</b> Profesional pero amable.
+<b class="et c-restricciones">Restricciones:</b> Preguntas realistas para ese cargo, nada de preguntas absurdas.</pre></div></article>
+<article class="pcard" id="p8"><header class="pcab"><span class="pnum">8</span><div><h3>Publicaciones para las redes de mi negocio</h3><p>Sirve para tener ideas y textos listos para Instagram, Facebook, TikTok o WhatsApp.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 8</span><button class="btn btn-cian copiar" type="button" data-copiar="p8" aria-label="Copiar el prompt 8: Publicaciones para las redes de mi negocio">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un community manager experto en pequeños negocios de Latinoamérica.
+<b class="et c-contexto">Contexto:</b> Tengo un negocio de <mark class="hueco">[qué vendes]</mark> en <mark class="hueco">[ciudad]</mark>. Mis clientes son <mark class="hueco">[quiénes]</mark>. Lo que me diferencia es <mark class="hueco">[domicilios rápidos / precios justos / producto artesanal]</mark>. Publico en <mark class="hueco">[Instagram / Facebook / TikTok / WhatsApp]</mark>.
+<b class="et c-tarea">Tarea:</b> Crea un calendario de publicaciones para 2 semanas, 3 por semana.
+<b class="et c-formato">Formato:</b> Una tabla con Día | Tipo (foto, video corto o historia) | Idea de la imagen o del video | Texto (máximo 60 palabras) | Llamada a la acción.
+<b class="et c-tono">Tono:</b> <mark class="hueco">[Cercano y alegre / elegante / divertido]</mark>.
+<b class="et c-restricciones">Restricciones:</b> No inventes precios ni promociones. Solo ideas que se puedan grabar con un celular y sin presupuesto.</pre></div></article>
+<article class="pcard" id="p9"><header class="pcab"><span class="pnum">9</span><div><h3>Organizar mi semana y priorizar</h3><p>Sirve para salir del caos de pendientes y decidir qué hacer primero.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 9</span><button class="btn btn-cian copiar" type="button" data-copiar="p9" aria-label="Copiar el prompt 9: Organizar mi semana y priorizar">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un coach de productividad experto en organizar el tiempo.
+<b class="et c-contexto">Contexto:</b> Esta semana tengo estos pendientes: <mark class="hueco">[lista de tareas, con fecha de entrega si la tienen]</mark>. Trabajo o estudio de <mark class="hueco">[hora]</mark> a <mark class="hueco">[hora]</mark> y tengo estos compromisos fijos: <mark class="hueco">[recoger a mis hijos a las 5 p. m., gimnasio…]</mark>.
+<b class="et c-tarea">Tarea:</b> Organiza mi semana y ayúdame a priorizar.
+<b class="et c-formato">Formato:</b>
+1. Mis tareas en la matriz de Eisenhower: urgente e importante / importante, no urgente / urgente, no importante / ni urgente ni importante.
+2. Un horario de lunes a viernes, en tabla.
+3. Qué puedo delegar, simplificar o eliminar.
+<b class="et c-tono">Tono:</b> Práctico y realista.
+<b class="et c-restricciones">Restricciones:</b> Deja tiempo para descansar y para imprevistos; no llenes el 100 % del día.</pre></div></article>
+<article class="pcard" id="p10"><header class="pcab"><span class="pnum">10</span><div><h3>Ayuda con Excel o Google Sheets</h3><p>Sirve para fórmulas, tablas y cálculos sin ser experto.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 10</span><button class="btn btn-cian copiar" type="button" data-copiar="p10" aria-label="Copiar el prompt 10: Ayuda con Excel o Google Sheets">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un experto en Excel y Google Sheets que enseña a principiantes.
+<b class="et c-contexto">Contexto:</b> Tengo una hoja con estas columnas: <mark class="hueco">[A = Fecha, B = Producto, C = Cantidad, D = Precio]</mark>. Los datos van de la fila 2 a la <mark class="hueco">[100]</mark>. Uso <mark class="hueco">[Excel / Google Sheets]</mark> en español.
+<b class="et c-tarea">Tarea:</b> Necesito <mark class="hueco">[lo que quieres lograr: el total vendido por producto y resaltar las ventas mayores a $500.000]</mark>.
+<b class="et c-formato">Formato:</b>
+1. La fórmula exacta, lista para copiar.
+2. En qué celda va.
+3. Qué hace cada parte, paso a paso.
+4. Un error común y cómo evitarlo.
+<b class="et c-tono">Tono:</b> Sencillo, como para alguien que apenas empieza.
+<b class="et c-restricciones">Restricciones:</b> Usa los nombres de funciones en español (SUMAR.SI, BUSCARV…) y el separador que use mi programa (en Colombia suele ser punto y coma ;).</pre></div></article>
+<article class="pcard bonus" id="bonus"><header class="pcab"><span class="pnum">🎁</span><div><h3>El prompt que crea prompts</h3><p>Sirve para escribir el prompt perfecto cuando no sabes cómo pedir algo. La IA te hace preguntas y lo arma por ti.</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Bonus</span><button class="btn btn-cian copiar" type="button" data-copiar="bonus" aria-label="Copiar el bonus: El prompt que crea prompts">📋 Copiar</button></div><pre class="prompt"><b class="et c-rol">Rol:</b> Actúa como un experto en escribir prompts con el método RCT (Rol, Contexto, Tarea, Formato, Tono y Restricciones).
+<b class="et c-contexto">Contexto:</b> Quiero que una IA me ayude con esto: <mark class="hueco">[describe con tus palabras lo que necesitas]</mark>.
+<b class="et c-tarea">Tarea:</b> Hazme hasta 5 preguntas, de una en una, para entender bien lo que necesito. Con mis respuestas, escribe el prompt completo.
+<b class="et c-formato">Formato:</b> El prompt final, listo para copiar, con cada parte marcada (Rol, Contexto, Tarea, Formato, Tono y Restricciones).
+<b class="et c-restricciones">Restricciones:</b> Preguntas cortas y fáciles de responder.</pre></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="consejos">
+      <div class="envoltura">
+        <div class="sec-cab">
+          <div class="mono">Para que te salga bien</div>
+          <h2 class="titulo">Cinco <span class="brasa">consejos</span></h2>
+        </div>
+        <div class="consejos">
+          <article class="consejo"><span class="ico" aria-hidden="true">✏️</span><h3>Llena los huecos</h3><p>Cambia lo que está entre [corchetes] por tu información. Mientras más detalles des, mejor.</p></article>
+<article class="consejo"><span class="ico" aria-hidden="true">📎</span><h3>Separa los textos largos</h3><p>Pega los textos entre comillas triples (""") para que la IA sepa dónde empiezan y dónde terminan. En Simbi Pro también puedes adjuntar el PDF o el Word.</p></article>
+<article class="consejo"><span class="ico" aria-hidden="true">🔁</span><h3>Sigue la conversación</h3><p>Si la respuesta no te convence, pide «más corto», «más formal», «dame otra opción» o «¿qué le falta?».</p></article>
+<article class="consejo"><span class="ico" aria-hidden="true">🔍</span><h3>Revisa lo importante</h3><p>Confirma las cifras, fechas, leyes y temas de salud. La IA puede equivocarse con mucha seguridad.</p></article>
+<article class="consejo"><span class="ico" aria-hidden="true">🔒</span><h3>Cuida tus datos</h3><p>No compartas contraseñas, números de tarjeta, tu cédula ni datos privados de otras personas.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="envoltura">
+        <div class="cta">
+          <div class="mono cian">Simbi · la IA de Somos Simbióticos</div>
+          <h2 class="titulo">Pruébalos <span class="cian">ahora</span></h2>
+          <p>Copia cualquier prompt, entra a Simbi y pégalo en el chat. También funcionan en cualquier otra IA.</p>
+          <div class="acciones">
+            <a class="btn btn-cian" href="../app/">Entrar a Simbi →</a>
+            <a class="btn btn-borde" href="../">Conoce Somos Simbióticos</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="envoltura">
+      <a class="marca" href="../"><img src="../logo.svg" alt=""><span>Somos Simbióticos</span></a>
+      <div>@somossimbioticos · #EvolucionismoCientífico #Colombia #Ecuador</div>
+      <div><a href="../">Inicio</a> · <a href="../app/">Simbi IA</a></div>
+    </div>
+  </footer>
+
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+  <script type="application/json" id="textos">{"ejemplo": "ROL\nActúa como un experto en marketing digital para pequeños negocios de barrio en Colombia, con 10 años de experiencia creando contenido para Instagram y WhatsApp.\n\nCONTEXTO\nTengo una panadería familiar llamada «Pan de la Abuela» en el barrio Belén, en Medellín. Mis clientes son familias y trabajadores de la zona, de 25 a 60 años, que compran pan en la mañana. Este mes lanzamos un pan de yuca sin gluten y casi nadie lo conoce. No tengo presupuesto para publicidad: solo publico en Instagram y en mi lista de difusión de WhatsApp (unos 300 contactos).\n\nTAREA\nEscribe 3 publicaciones para dar a conocer el pan de yuca sin gluten:\n1. Un post de Instagram para el lanzamiento.\n2. Un mensaje para la lista de difusión de WhatsApp.\n3. Una historia de Instagram con una promoción 2x1 válida solo este sábado.\n\nFORMATO\nPara cada publicación: un título llamativo, el texto (máximo 80 palabras) y una llamada a la acción. En Instagram agrega 5 hashtags. Separa cada publicación con un subtítulo.\n\nTONO\nCercano, cálido y alegre, como habla la gente de Medellín, sin exagerar con los modismos. Máximo 2 emojis por publicación.\n\nRESTRICCIONES\n- No inventes precios, premios ni datos que no te di.\n- No prometas beneficios para la salud: solo di que es sin gluten.\n- Evita palabras en inglés.\n\nEJEMPLO\nEste es el estilo que me gusta:\n«¡Llegó el pan que estabas esperando! Calientico, recién salido del horno y con el sabor de siempre. Te esperamos desde las 6 a. m. 🥖»\n\nANTES DE EMPEZAR\nSi te falta información importante, hazme máximo 3 preguntas antes de escribir.", "plantilla": "ROL: Actúa como [experto] con experiencia en [área].\nCONTEXTO: Soy [quién eres]. [Tu situación]. Esto es para [quién lo va a leer o usar]. Mi objetivo es [para qué lo necesitas].\nTAREA: [Verbo: escribe / resume / crea / explica / compara / corrige] [qué exactamente] [cuántos].\nFORMATO: [Lista / tabla / pasos / correo / texto corrido] de máximo [extensión].\nTONO: [Formal / cercano / motivador / sencillo].\nRESTRICCIONES: No [lo que debe evitar]. Si no sabes algo, dímelo en vez de inventarlo.\nEJEMPLO (opcional): [Un modelo del resultado que te gusta].\nAntes de responder, hazme las preguntas que necesites.", "p1": "Rol: Actúa como un analista experto en resumir documentos para personas ocupadas.\nContexto: Necesito entender este documento para [tomar una decisión / explicárselo a mi equipo / estudiar]. Lo voy a leer en el celular.\nTarea: Resume el texto que pego abajo.\nFormato:\n1. La idea principal en 2 frases.\n2. Los 5 puntos más importantes, en viñetas.\n3. Fechas, cifras y nombres clave (si los hay).\n4. Qué debo hacer o tener en cuenta.\nTono: Claro y sencillo, sin tecnicismos.\nRestricciones: No agregues nada que no esté en el texto. Si algo no está claro, dímelo.\n\nTexto:\n\"\"\"\n[Pega aquí el texto]\n\"\"\"", "p2": "Rol: Actúa como un experto en comunicación profesional.\nContexto: Necesito escribirle a [persona o cargo: mi jefe / un cliente / la empresa de servicios]. Lo que pasó es: [explica la situación]. Lo que quiero lograr es [objetivo: que me aprueben las vacaciones / que me devuelvan el dinero].\nTarea: Redacta el correo.\nFormato: Asunto, saludo, máximo 3 párrafos cortos y despedida. Al final, dame una versión corta para enviar por WhatsApp.\nTono: [Formal / cordial / firme pero respetuoso].\nRestricciones: No inventes fechas, cifras ni nombres. Si falta un dato, escribe (COMPLETAR) en su lugar.", "p3": "Rol: Actúa como un corrector de estilo profesional en español.\nContexto: Este texto es para [publicar en redes / enviárselo a un cliente / un trabajo de la universidad] y lo van a leer [quiénes].\nTarea: Corrige la ortografía, la gramática y la puntuación, y mejora la claridad sin cambiar mis ideas.\nFormato:\n1. El texto corregido, listo para copiar.\n2. Una lista corta de los cambios principales y por qué los hiciste.\nTono: Respeta mi forma de escribir; solo haz el texto más claro.\nRestricciones: No agregues ideas nuevas ni alargues el texto.\n\nTexto:\n\"\"\"\n[Pega aquí tu texto]\n\"\"\"", "p4": "Rol: Actúa como un profesor paciente que explica temas difíciles con ejemplos de la vida diaria.\nContexto: Quiero entender [tema: qué es la inflación / cómo funciona la inteligencia artificial]. Sé [nada / un poco] del tema.\nTarea: Explícame el tema paso a paso.\nFormato:\n1. Una explicación de máximo 150 palabras, como para alguien de 12 años.\n2. Una comparación con algo cotidiano.\n3. Un ejemplo real de Colombia o Latinoamérica.\n4. 3 preguntas cortas para comprobar si entendí, con las respuestas al final.\nTono: Cercano y motivador.\nRestricciones: Sin palabras técnicas; si usas una, explícala.", "p5": "Rol: Actúa como un tutor experto en [habilidad: Excel / inglés / marketing digital].\nContexto: Mi nivel es [principiante / intermedio]. Tengo [30 minutos] al día, [5] días a la semana. Quiero aprender esto para [objetivo: conseguir un mejor trabajo].\nTarea: Crea un plan de estudio de [4] semanas.\nFormato: Una tabla con las columnas Semana | Qué aprender | Práctica concreta | Recurso gratuito. Al final, 3 consejos para no abandonar.\nTono: Práctico y motivador.\nRestricciones: Solo recursos gratuitos y conocidos. No inventes enlaces: si no estás seguro de uno, dime qué buscar.", "p6": "Rol: Actúa como un reclutador con 10 años de experiencia en selección de personal.\nContexto: Voy a aplicar a esta vacante:\n\"\"\"\n[Pega aquí la descripción de la vacante]\n\"\"\"\nEsta es mi hoja de vida:\n\"\"\"\n[Pega aquí tu hoja de vida]\n\"\"\"\nTarea: Dime cómo adaptar mi hoja de vida a esa vacante.\nFormato:\n1. Un perfil profesional nuevo de 4 líneas.\n2. Mis 5 experiencias o logros más importantes, reescritos con verbos de acción y resultados.\n3. Palabras clave de la vacante que me faltan.\n4. Lo que debería quitar o acortar.\nTono: Profesional y directo.\nRestricciones: No inventes experiencia, títulos ni cifras. Si a un logro le falta un dato, escribe (COMPLETAR).", "p7": "Rol: Actúa como el entrevistador de [tipo de empresa] para el cargo de [cargo].\nContexto: Tengo [X años] de experiencia en [área]. Me dan nervios [las preguntas sobre salario / hablar de mis debilidades].\nTarea: Hazme una entrevista simulada de 6 preguntas.\nFormato: Hazme UNA pregunta a la vez y espera mi respuesta. Después de cada respuesta dime qué estuvo bien, qué mejorar y un ejemplo de respuesta mejor con el método STAR (situación, tarea, acción, resultado). Al final, califícame de 1 a 10 y dame 3 consejos.\nTono: Profesional pero amable.\nRestricciones: Preguntas realistas para ese cargo, nada de preguntas absurdas.", "p8": "Rol: Actúa como un community manager experto en pequeños negocios de Latinoamérica.\nContexto: Tengo un negocio de [qué vendes] en [ciudad]. Mis clientes son [quiénes]. Lo que me diferencia es [domicilios rápidos / precios justos / producto artesanal]. Publico en [Instagram / Facebook / TikTok / WhatsApp].\nTarea: Crea un calendario de publicaciones para 2 semanas, 3 por semana.\nFormato: Una tabla con Día | Tipo (foto, video corto o historia) | Idea de la imagen o del video | Texto (máximo 60 palabras) | Llamada a la acción.\nTono: [Cercano y alegre / elegante / divertido].\nRestricciones: No inventes precios ni promociones. Solo ideas que se puedan grabar con un celular y sin presupuesto.", "p9": "Rol: Actúa como un coach de productividad experto en organizar el tiempo.\nContexto: Esta semana tengo estos pendientes: [lista de tareas, con fecha de entrega si la tienen]. Trabajo o estudio de [hora] a [hora] y tengo estos compromisos fijos: [recoger a mis hijos a las 5 p. m., gimnasio…].\nTarea: Organiza mi semana y ayúdame a priorizar.\nFormato:\n1. Mis tareas en la matriz de Eisenhower: urgente e importante / importante, no urgente / urgente, no importante / ni urgente ni importante.\n2. Un horario de lunes a viernes, en tabla.\n3. Qué puedo delegar, simplificar o eliminar.\nTono: Práctico y realista.\nRestricciones: Deja tiempo para descansar y para imprevistos; no llenes el 100 % del día.", "p10": "Rol: Actúa como un experto en Excel y Google Sheets que enseña a principiantes.\nContexto: Tengo una hoja con estas columnas: [A = Fecha, B = Producto, C = Cantidad, D = Precio]. Los datos van de la fila 2 a la [100]. Uso [Excel / Google Sheets] en español.\nTarea: Necesito [lo que quieres lograr: el total vendido por producto y resaltar las ventas mayores a $500.000].\nFormato:\n1. La fórmula exacta, lista para copiar.\n2. En qué celda va.\n3. Qué hace cada parte, paso a paso.\n4. Un error común y cómo evitarlo.\nTono: Sencillo, como para alguien que apenas empieza.\nRestricciones: Usa los nombres de funciones en español (SUMAR.SI, BUSCARV…) y el separador que use mi programa (en Colombia suele ser punto y coma ;).", "bonus": "Rol: Actúa como un experto en escribir prompts con el método RCT (Rol, Contexto, Tarea, Formato, Tono y Restricciones).\nContexto: Quiero que una IA me ayude con esto: [describe con tus palabras lo que necesitas].\nTarea: Hazme hasta 5 preguntas, de una en una, para entender bien lo que necesito. Con mis respuestas, escribe el prompt completo.\nFormato: El prompt final, listo para copiar, con cada parte marcada (Rol, Contexto, Tarea, Formato, Tono y Restricciones).\nRestricciones: Preguntas cortas y fáciles de responder."}</script>
+  <script>
+    const TEXTOS = JSON.parse(document.getElementById("textos").textContent);
+    const aviso = document.getElementById("aviso");
+    let tAviso;
+    function avisar(msg) {
+      aviso.textContent = msg; aviso.classList.add("si");
+      clearTimeout(tAviso); tAviso = setTimeout(() => aviso.classList.remove("si"), 3400);
+    }
+    async function copiar(texto) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(texto); return true; }
+      } catch (e) { /* se intenta el método antiguo */ }
+      const ta = document.createElement("textarea");
+      ta.value = texto; ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
+      document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, texto.length);
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      ta.remove();
+      return ok;
+    }
+    document.addEventListener("click", async (ev) => {
+      const b = ev.target.closest("[data-copiar]");
+      if (!b) return;
+      const texto = TEXTOS[b.dataset.copiar];
+      if (!texto) return;
+      if (await copiar(texto)) {
+        if (!b.dataset.etiqueta) b.dataset.etiqueta = b.textContent;
+        b.textContent = "✅ Copiado"; b.classList.add("ok");
+        setTimeout(() => { b.textContent = b.dataset.etiqueta; b.classList.remove("ok"); }, 2200);
+        avisar(texto.includes("[") ? "Copiado. Pégalo en Simbi y cambia lo que está entre [corchetes]."
+                                   : "Copiado. Pégalo en Simbi o en tu IA de confianza.");
+      } else {
+        avisar("No se pudo copiar solo. Mantén presionado el texto para seleccionarlo.");
+      }
+    });
+  </script>
+</body>
+</html>

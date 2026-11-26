@@ -1,0 +1,128 @@
+SOMOS SIMBIÓTICOS · SIMBI IA
+CÓMO ESCRIBIR UN BUEN PROMPT: EL MÉTODO RCT
+Rol · Contexto · Tarea (+ Formato, Tono, Restricciones y Ejemplo)
+
+Un prompt es la instrucción que le das a la IA. La IA no lee tu mente: solo sabe lo que le escribes. Mientras más claro seas, mejor será la respuesta.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. LA FÓRMULA RCT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+R · ROL: ¿Quién quieres que sea la IA?
+Dile qué experto debe ser. Así usa el vocabulario, el nivel y el punto de vista correctos.
+Ejemplo: «Actúa como un contador con 15 años de experiencia en pequeñas empresas de Colombia.»
+
+C · CONTEXTO: ¿Cuál es tu situación?
+Cuéntale quién eres, para quién es el resultado, para qué lo necesitas y los datos importantes. Sin contexto, la respuesta es genérica.
+Ejemplo: «Tengo una tienda de ropa en Cali con 2 empleados y este mes las ventas bajaron.»
+
+T · TAREA: ¿Qué debe hacer exactamente?
+Usa un verbo claro (escribe, resume, compara, crea, explica, corrige) y di cuánto quieres.
+Ejemplo: «Dame 5 ideas de promociones para diciembre que no cuesten más de $200.000.»
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. CUATRO INGREDIENTES QUE LO HACEN EXCELENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FORMATO: ¿Cómo quieres la respuesta?
+Lista, tabla, pasos, correo o texto corrido, y de qué extensión.
+Ejemplo: «En una tabla de 3 columnas, máximo 150 palabras.»
+
+TONO: ¿Cómo debe sonar?
+Formal, cercano, motivador o divertido, y pensado para quien lo va a leer.
+Ejemplo: «Sencillo, como para alguien que nunca ha usado un computador.»
+
+RESTRICCIONES: ¿Qué NO debe hacer?
+Los límites evitan errores y relleno.
+Ejemplo: «No inventes datos. Sin tecnicismos. Máximo una página.»
+
+EJEMPLO: ¿Cómo se ve lo que te gusta?
+Muéstrale un modelo: la IA copia un estilo mucho mejor que si se lo describes.
+Ejemplo: «Escríbelo con este estilo: “…”»
+
+TRUCO DE ORO: termina tu prompt con esta frase:
+«Antes de responder, hazme las preguntas que necesites. Si no sabes algo, dímelo en vez de inventarlo.»
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. EL MISMO PEDIDO, MAL Y BIEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ PROMPT FLOJO
+«Hazme publicaciones para mi panadería.»
+Por qué falla: la IA no sabe qué vendes, a quién, en qué ciudad, cuántas publicaciones quieres ni en qué red social. Te dará algo genérico que serviría para cualquier panadería del mundo.
+
+✅ PROMPT CON EL MÉTODO RCT (cópialo completo, desde ROL hasta el final)
+
+ROL
+Actúa como un experto en marketing digital para pequeños negocios de barrio en Colombia, con 10 años de experiencia creando contenido para Instagram y WhatsApp.
+
+CONTEXTO
+Tengo una panadería familiar llamada «Pan de la Abuela» en el barrio Belén, en Medellín. Mis clientes son familias y trabajadores de la zona, de 25 a 60 años, que compran pan en la mañana. Este mes lanzamos un pan de yuca sin gluten y casi nadie lo conoce. No tengo presupuesto para publicidad: solo publico en Instagram y en mi lista de difusión de WhatsApp (unos 300 contactos).
+
+TAREA
+Escribe 3 publicaciones para dar a conocer el pan de yuca sin gluten:
+1. Un post de Instagram para el lanzamiento.
+2. Un mensaje para la lista de difusión de WhatsApp.
+3. Una historia de Instagram con una promoción 2x1 válida solo este sábado.
+
+FORMATO
+Para cada publicación: un título llamativo, el texto (máximo 80 palabras) y una llamada a la acción. En Instagram agrega 5 hashtags. Separa cada publicación con un subtítulo.
+
+TONO
+Cercano, cálido y alegre, como habla la gente de Medellín, sin exagerar con los modismos. Máximo 2 emojis por publicación.
+
+RESTRICCIONES
+- No inventes precios, premios ni datos que no te di.
+- No prometas beneficios para la salud: solo di que es sin gluten.
+- Evita palabras en inglés.
+
+EJEMPLO
+Este es el estilo que me gusta:
+«¡Llegó el pan que estabas esperando! Calientico, recién salido del horno y con el sabor de siempre. Te esperamos desde las 6 a. m. 🥖»
+
+ANTES DE EMPEZAR
+Si te falta información importante, hazme máximo 3 preguntas antes de escribir.
+
+¿POR QUÉ FUNCIONA?
+• Rol: usa técnicas reales de marketing para negocios pequeños.
+• Contexto: conoce el barrio, el público, el producto y el presupuesto: nada genérico.
+• Tarea: sabe exactamente qué entregar y cuántas piezas.
+• Formato: te da textos listos para copiar y publicar.
+• Tono: suena como tu negocio y no como un robot.
+• Restricciones: evita errores graves, como precios falsos o promesas de salud.
+• Ejemplo: le muestra el estilo que te gusta.
+• Antes de empezar: en vez de adivinar lo que no sabe, te pregunta.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. PLANTILLA PARA COPIAR Y LLENAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Cambia lo que está entre [corchetes]:
+
+ROL: Actúa como [experto] con experiencia en [área].
+CONTEXTO: Soy [quién eres]. [Tu situación]. Esto es para [quién lo va a leer o usar]. Mi objetivo es [para qué lo necesitas].
+TAREA: [Verbo: escribe / resume / crea / explica / compara / corrige] [qué exactamente] [cuántos].
+FORMATO: [Lista / tabla / pasos / correo / texto corrido] de máximo [extensión].
+TONO: [Formal / cercano / motivador / sencillo].
+RESTRICCIONES: No [lo que debe evitar]. Si no sabes algo, dímelo en vez de inventarlo.
+EJEMPLO (opcional): [Un modelo del resultado que te gusta].
+Antes de responder, hazme las preguntas que necesites.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. DESPUÉS DE LA PRIMERA RESPUESTA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+La primera respuesta casi nunca es la final. Sigue la conversación con frases como:
+• «Hazlo más corto.»
+• «Dame 3 versiones diferentes.»
+• «Ahora en un tono más formal.»
+• «¿Qué le falta a esta respuesta? Mejórala.»
+• «Explícame el punto 2 con un ejemplo.»
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. CUIDADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• No compartas contraseñas, números de tarjeta, tu cédula ni datos privados de otras personas.
+• Revisa siempre cifras, fechas, leyes y temas de salud: la IA puede equivocarse con mucha seguridad. Tú tienes la última palabra.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Guía completa, con botón de copiar: https://somossimbioticos.github.io/prompts/
+Pruébalo en Simbi: https://somossimbioticos.github.io/app/

@@ -1,0 +1,213 @@
+SOMOS SIMBIÓTICOS · SIMBI IA
+10 PROMPTS MUY USADOS, LISTOS PARA COPIAR (+1 de regalo)
+
+Todos siguen el método RCT: Rol, Contexto y Tarea, más Formato, Tono y Restricciones.
+Cómo usarlos: copia el prompt, cambia lo que está entre [corchetes] por tu información y pégalo en Simbi o en cualquier IA de chat.
+Versión web, con botón de copiar: https://somossimbioticos.github.io/prompts/
+
+ÍNDICE
+1. Resumir un documento largo
+2. Escribir un correo o mensaje importante
+3. Corregir y mejorar un texto
+4. Explicarme un tema difícil con palabras sencillas
+5. Plan para aprender algo nuevo
+6. Adaptar mi hoja de vida a una vacante
+7. Practicar una entrevista de trabajo
+8. Publicaciones para las redes de mi negocio
+9. Organizar mi semana y priorizar
+10. Ayuda con Excel o Google Sheets
+🎁 Bonus: El prompt que crea prompts
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. RESUMIR UN DOCUMENTO LARGO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: entender rápido informes, artículos, contratos, leyes o actas.
+
+Rol: Actúa como un analista experto en resumir documentos para personas ocupadas.
+Contexto: Necesito entender este documento para [tomar una decisión / explicárselo a mi equipo / estudiar]. Lo voy a leer en el celular.
+Tarea: Resume el texto que pego abajo.
+Formato:
+1. La idea principal en 2 frases.
+2. Los 5 puntos más importantes, en viñetas.
+3. Fechas, cifras y nombres clave (si los hay).
+4. Qué debo hacer o tener en cuenta.
+Tono: Claro y sencillo, sin tecnicismos.
+Restricciones: No agregues nada que no esté en el texto. Si algo no está claro, dímelo.
+
+Texto:
+"""
+[Pega aquí el texto]
+"""
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. ESCRIBIR UN CORREO O MENSAJE IMPORTANTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: pedir algo, responder un reclamo, hacer seguimiento, cobrar o renunciar.
+
+Rol: Actúa como un experto en comunicación profesional.
+Contexto: Necesito escribirle a [persona o cargo: mi jefe / un cliente / la empresa de servicios]. Lo que pasó es: [explica la situación]. Lo que quiero lograr es [objetivo: que me aprueben las vacaciones / que me devuelvan el dinero].
+Tarea: Redacta el correo.
+Formato: Asunto, saludo, máximo 3 párrafos cortos y despedida. Al final, dame una versión corta para enviar por WhatsApp.
+Tono: [Formal / cordial / firme pero respetuoso].
+Restricciones: No inventes fechas, cifras ni nombres. Si falta un dato, escribe (COMPLETAR) en su lugar.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. CORREGIR Y MEJORAR UN TEXTO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: revisar ortografía, redacción y claridad antes de enviar o publicar.
+
+Rol: Actúa como un corrector de estilo profesional en español.
+Contexto: Este texto es para [publicar en redes / enviárselo a un cliente / un trabajo de la universidad] y lo van a leer [quiénes].
+Tarea: Corrige la ortografía, la gramática y la puntuación, y mejora la claridad sin cambiar mis ideas.
+Formato:
+1. El texto corregido, listo para copiar.
+2. Una lista corta de los cambios principales y por qué los hiciste.
+Tono: Respeta mi forma de escribir; solo haz el texto más claro.
+Restricciones: No agregues ideas nuevas ni alargues el texto.
+
+Texto:
+"""
+[Pega aquí tu texto]
+"""
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. EXPLICARME UN TEMA DIFÍCIL CON PALABRAS SENCILLAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: aprender cualquier tema (economía, salud, tecnología, leyes) sin enredos.
+
+Rol: Actúa como un profesor paciente que explica temas difíciles con ejemplos de la vida diaria.
+Contexto: Quiero entender [tema: qué es la inflación / cómo funciona la inteligencia artificial]. Sé [nada / un poco] del tema.
+Tarea: Explícame el tema paso a paso.
+Formato:
+1. Una explicación de máximo 150 palabras, como para alguien de 12 años.
+2. Una comparación con algo cotidiano.
+3. Un ejemplo real de Colombia o Latinoamérica.
+4. 3 preguntas cortas para comprobar si entendí, con las respuestas al final.
+Tono: Cercano y motivador.
+Restricciones: Sin palabras técnicas; si usas una, explícala.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. PLAN PARA APRENDER ALGO NUEVO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: organizar el estudio de una habilidad, como Excel, inglés, programación o ventas.
+
+Rol: Actúa como un tutor experto en [habilidad: Excel / inglés / marketing digital].
+Contexto: Mi nivel es [principiante / intermedio]. Tengo [30 minutos] al día, [5] días a la semana. Quiero aprender esto para [objetivo: conseguir un mejor trabajo].
+Tarea: Crea un plan de estudio de [4] semanas.
+Formato: Una tabla con las columnas Semana | Qué aprender | Práctica concreta | Recurso gratuito. Al final, 3 consejos para no abandonar.
+Tono: Práctico y motivador.
+Restricciones: Solo recursos gratuitos y conocidos. No inventes enlaces: si no estás seguro de uno, dime qué buscar.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. ADAPTAR MI HOJA DE VIDA A UNA VACANTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: aumentar las posibilidades de que te llamen a entrevista.
+
+Rol: Actúa como un reclutador con 10 años de experiencia en selección de personal.
+Contexto: Voy a aplicar a esta vacante:
+"""
+[Pega aquí la descripción de la vacante]
+"""
+Esta es mi hoja de vida:
+"""
+[Pega aquí tu hoja de vida]
+"""
+Tarea: Dime cómo adaptar mi hoja de vida a esa vacante.
+Formato:
+1. Un perfil profesional nuevo de 4 líneas.
+2. Mis 5 experiencias o logros más importantes, reescritos con verbos de acción y resultados.
+3. Palabras clave de la vacante que me faltan.
+4. Lo que debería quitar o acortar.
+Tono: Profesional y directo.
+Restricciones: No inventes experiencia, títulos ni cifras. Si a un logro le falta un dato, escribe (COMPLETAR).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. PRACTICAR UNA ENTREVISTA DE TRABAJO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: llegar preparado y con menos nervios.
+
+Rol: Actúa como el entrevistador de [tipo de empresa] para el cargo de [cargo].
+Contexto: Tengo [X años] de experiencia en [área]. Me dan nervios [las preguntas sobre salario / hablar de mis debilidades].
+Tarea: Hazme una entrevista simulada de 6 preguntas.
+Formato: Hazme UNA pregunta a la vez y espera mi respuesta. Después de cada respuesta dime qué estuvo bien, qué mejorar y un ejemplo de respuesta mejor con el método STAR (situación, tarea, acción, resultado). Al final, califícame de 1 a 10 y dame 3 consejos.
+Tono: Profesional pero amable.
+Restricciones: Preguntas realistas para ese cargo, nada de preguntas absurdas.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+8. PUBLICACIONES PARA LAS REDES DE MI NEGOCIO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: tener ideas y textos listos para Instagram, Facebook, TikTok o WhatsApp.
+
+Rol: Actúa como un community manager experto en pequeños negocios de Latinoamérica.
+Contexto: Tengo un negocio de [qué vendes] en [ciudad]. Mis clientes son [quiénes]. Lo que me diferencia es [domicilios rápidos / precios justos / producto artesanal]. Publico en [Instagram / Facebook / TikTok / WhatsApp].
+Tarea: Crea un calendario de publicaciones para 2 semanas, 3 por semana.
+Formato: Una tabla con Día | Tipo (foto, video corto o historia) | Idea de la imagen o del video | Texto (máximo 60 palabras) | Llamada a la acción.
+Tono: [Cercano y alegre / elegante / divertido].
+Restricciones: No inventes precios ni promociones. Solo ideas que se puedan grabar con un celular y sin presupuesto.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+9. ORGANIZAR MI SEMANA Y PRIORIZAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: salir del caos de pendientes y decidir qué hacer primero.
+
+Rol: Actúa como un coach de productividad experto en organizar el tiempo.
+Contexto: Esta semana tengo estos pendientes: [lista de tareas, con fecha de entrega si la tienen]. Trabajo o estudio de [hora] a [hora] y tengo estos compromisos fijos: [recoger a mis hijos a las 5 p. m., gimnasio…].
+Tarea: Organiza mi semana y ayúdame a priorizar.
+Formato:
+1. Mis tareas en la matriz de Eisenhower: urgente e importante / importante, no urgente / urgente, no importante / ni urgente ni importante.
+2. Un horario de lunes a viernes, en tabla.
+3. Qué puedo delegar, simplificar o eliminar.
+Tono: Práctico y realista.
+Restricciones: Deja tiempo para descansar y para imprevistos; no llenes el 100 % del día.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+10. AYUDA CON EXCEL O GOOGLE SHEETS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: fórmulas, tablas y cálculos sin ser experto.
+
+Rol: Actúa como un experto en Excel y Google Sheets que enseña a principiantes.
+Contexto: Tengo una hoja con estas columnas: [A = Fecha, B = Producto, C = Cantidad, D = Precio]. Los datos van de la fila 2 a la [100]. Uso [Excel / Google Sheets] en español.
+Tarea: Necesito [lo que quieres lograr: el total vendido por producto y resaltar las ventas mayores a $500.000].
+Formato:
+1. La fórmula exacta, lista para copiar.
+2. En qué celda va.
+3. Qué hace cada parte, paso a paso.
+4. Un error común y cómo evitarlo.
+Tono: Sencillo, como para alguien que apenas empieza.
+Restricciones: Usa los nombres de funciones en español (SUMAR.SI, BUSCARV…) y el separador que use mi programa (en Colombia suele ser punto y coma ;).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎁 BONUS: EL PROMPT QUE CREA PROMPTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sirve para: escribir el prompt perfecto cuando no sabes cómo pedir algo. La IA te hace preguntas y lo arma por ti.
+
+Rol: Actúa como un experto en escribir prompts con el método RCT (Rol, Contexto, Tarea, Formato, Tono y Restricciones).
+Contexto: Quiero que una IA me ayude con esto: [describe con tus palabras lo que necesitas].
+Tarea: Hazme hasta 5 preguntas, de una en una, para entender bien lo que necesito. Con mis respuestas, escribe el prompt completo.
+Formato: El prompt final, listo para copiar, con cada parte marcada (Rol, Contexto, Tarea, Formato, Tono y Restricciones).
+Restricciones: Preguntas cortas y fáciles de responder.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONSEJOS PARA USARLOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✏️ Llena los huecos: cambia lo que está entre [corchetes] por tu información. Mientras más detalles des, mejor.
+📎 Separa los textos largos: pega los textos entre comillas triples (""") para que la IA sepa dónde empiezan y dónde terminan. En Simbi Pro también puedes adjuntar el PDF o el Word.
+🔁 Sigue la conversación: si la respuesta no te convence, pide «más corto», «más formal», «dame otra opción» o «¿qué le falta?».
+🔍 Revisa lo importante: confirma las cifras, fechas, leyes y temas de salud. La IA puede equivocarse con mucha seguridad.
+🔒 Cuida tus datos: no compartas contraseñas, números de tarjeta, tu cédula ni datos privados de otras personas.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+¿Quieres escribir tus propios prompts? Aprende el método RCT: https://somossimbioticos.github.io/prompts/
+Pruébalos en Simbi: https://somossimbioticos.github.io/app/
