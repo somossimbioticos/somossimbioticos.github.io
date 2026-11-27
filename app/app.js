@@ -1,6 +1,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm";
 import { marked } from "https://cdn.jsdelivr.net/npm/marked@12.0.2/+esm";
-import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3.1.6/+esm";
+import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3.4.17/+esm";
 import { CONFIG } from "../config.js";
 
 const sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
@@ -103,8 +103,8 @@ DOMPurify.addHook("afterSanitizeAttributes", (n) => { if (n.tagName === "A") { n
 let katex = null, cargandoKatex = null;
 function cargarKatex() {
   if (katex || cargandoKatex) return cargandoKatex;
-  document.head.append(el("link", { rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" }));
-  cargandoKatex = import("https://cdn.jsdelivr.net/npm/katex@0.16.11/+esm").then((m) => { katex = m.default; });
+  document.head.append(el("link", { rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.css" }));
+  cargandoKatex = import("https://cdn.jsdelivr.net/npm/katex@0.19.1/+esm").then((m) => { katex = m.default; });
   return cargandoKatex;
 }
 function renderMd(nodo, texto) {
@@ -115,17 +115,30 @@ function renderMd(nodo, texto) {
     .replace(/\\\[([\s\S]+?)\\\]/g, (_, x) => guardarF(x, true))
     .replace(/\\\(([\s\S]+?)\\\)/g, (_, x) => guardarF(x, false))
     .replace(/\$(?!\s)([^$\n]*?[\\^_=+{][^$\n]*?)(?<!\s)\$/g, (_, x) => guardarF(x, false));
-  let html = DOMPurify.sanitize(marked.parse(t));
+  const plantilla = document.createElement("template");
+  plantilla.innerHTML = DOMPurify.sanitize(marked.parse(t));
   if (formulas.length) {
     if (!katex) cargarKatex()?.then(() => renderMd(nodo, texto));
-    html = html.replace(/@@F(\d+)@@/g, (_, i) => {
-      const f = formulas[+i];
-      if (!katex) return DOMPurify.sanitize(`<code>${f.tex.replace(/</g, "&lt;")}</code>`);
-      try { return katex.renderToString(f.tex, { displayMode: f.bloque, throwOnError: false, output: "html" }); }
-      catch { return `<code>${f.tex.replace(/</g, "&lt;")}</code>`; }
-    });
+    // Seguridad (XSS): las fórmulas se ponen SOLO en nodos de texto, nunca dentro de atributos (p. ej. el href
+    // de un enlace), y el HTML de KaTeX vuelve a pasar por DOMPurify.
+    const recorrido = document.createTreeWalker(plantilla.content, NodeFilter.SHOW_TEXT);
+    const conFormula = [];
+    while (recorrido.nextNode()) if (/@@F\d+@@/.test(recorrido.currentNode.nodeValue)) conFormula.push(recorrido.currentNode);
+    for (const nodoTexto of conFormula) {
+      const frag = document.createDocumentFragment();
+      nodoTexto.nodeValue.split(/@@F(\d+)@@/).forEach((parte, i) => {
+        if (i % 2 === 0) { if (parte) frag.append(parte); return; }
+        const f = formulas[+parte];
+        if (!f) return;
+        let h = null;
+        if (katex) try { h = katex.renderToString(f.tex, { displayMode: f.bloque, throwOnError: false, output: "html" }); } catch { h = null; }
+        if (h) { const caja = document.createElement("span"); caja.innerHTML = DOMPurify.sanitize(h); frag.append(...caja.childNodes); }
+        else { const c = document.createElement("code"); c.textContent = f.tex; frag.append(c); }
+      });
+      nodoTexto.replaceWith(frag);
+    }
   }
-  nodo.innerHTML = html;
+  nodo.replaceChildren(plantilla.content);
   nodo.querySelectorAll("pre").forEach((pre) => {
     const b = el("button", { class: "copiar", type: "button" }, "Copiar");
     b.onclick = () => { navigator.clipboard?.writeText(pre.querySelector("code")?.innerText || pre.innerText); b.textContent = "¡Copiado!"; setTimeout(() => (b.textContent = "Copiar"), 1400); };

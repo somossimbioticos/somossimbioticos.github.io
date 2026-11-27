@@ -6,7 +6,11 @@
   <title>Administración · Simbi</title>
   <meta name="robots" content="noindex">
   <meta name="theme-color" content="#0B0F14">
-  <script>try{if(localStorage.getItem("simb_tema")==="claro")document.documentElement.dataset.theme="light"}catch(e){}</script>
+  <!-- Seguridad: solo se cargan scripts de este sitio y de cdn.jsdelivr.net; datos solo a Supabase, la API de Simbi y Google Cloud Storage.
+       Si se cambia el script de abajo hay que recalcular su sha256 (ver LEEME del repo backend). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'sha256-qgxp99flp0GLmCwnM5rfsxbXwrxFEazTeDG0w6scCNw='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://ubaxnpleinqeenvkrutk.supabase.co wss://ubaxnpleinqeenvkrutk.supabase.co https://simb-api-wut4a22mhq-uc.a.run.app https://simb-api-298837552111.us-central1.run.app https://storage.googleapis.com https://cdn.jsdelivr.net http://127.0.0.1:8090 http://localhost:8090; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <script>if(self!==top)document.documentElement.style.display="none";try{if(localStorage.getItem("simb_tema")==="claro")document.documentElement.dataset.theme="light"}catch(e){}</script>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
