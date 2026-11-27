@@ -125,7 +125,7 @@ function interruptor(u, campo, opciones) {
 
 const CAMPOS = [
   ["chat_tokens", "Tokens de chat"], ["imagenes", "Imágenes"], ["videos", "Videos"], ["video_seg_max", "Segundos por video (máx.)"],
-  ["tts_gemini_seg", "Voz Gemini (segundos)"], ["tts_chirp_seg", "Voz Chirp (segundos)"], ["stt_seg", "Transcripción (segundos)"], ["musica", "Música (canciones de 30 s)"],
+  ["tts_gemini_seg", "Voz expresiva (segundos)"], ["tts_chirp_seg", "Voz natural (segundos)"], ["stt_seg", "Transcripción (segundos)"], ["musica", "Música (canciones de 30 s)"],
   ["prueba_horas", "Horas de prueba (0 = sin vencimiento)"], ["nube_gb", "Mi nube (GB por usuario)"],
 ];
 const GB = 1073741824;

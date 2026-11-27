@@ -16,7 +16,7 @@ const NIVELES = [
 ];
 const barrasNivel = (n) => el("span", { class: "barras", "aria-hidden": "true" }, [1, 2, 3, 4].map((i) => el("i", { class: i <= n ? "on" : null })));
 const NOMBRE_NIVEL = Object.fromEntries(NIVELES.map((n) => [n.id, n.nombre]));
-// Voces de Google (mismo nombre en Chirp HD y Gemini). Al usuario se le muestra género y tipo de voz.
+// Voces (mismo nombre en voz natural y expresiva). Al usuario se le muestra género y tipo de voz.
 const VOCES = [
   { id: "Kore", genero: "Femenina", tipo: "firme y segura" },
   { id: "Aoede", genero: "Femenina", tipo: "ligera y relajada" },
@@ -288,8 +288,8 @@ function pintarCupos() {
     ["Tokens de chat", U.chat_tokens, L.chat_tokens, fmt],
     ["Imágenes", U.imagenes, L.imagenes, fmt],
     ["Videos (3 s)", U.videos, L.videos, fmt],
-    ["Voz Chirp", U.tts_chirp_seg / 60, L.tts_chirp_seg / 60, (x) => `${x.toFixed(0)} min`],
-    ["Voz Gemini", U.tts_gemini_seg / 60, L.tts_gemini_seg / 60, (x) => `${x.toFixed(0)} min`],
+    ["Voz natural", U.tts_chirp_seg / 60, L.tts_chirp_seg / 60, (x) => `${x.toFixed(0)} min`],
+    ["Voz expresiva", U.tts_gemini_seg / 60, L.tts_gemini_seg / 60, (x) => `${x.toFixed(0)} min`],
     ["Transcripción", U.stt_seg / 60, (L.stt_seg || 0) / 60, (x) => `${x.toFixed(0)} min`],
     ["Música", U.musica || 0, L.musica || 0, fmt],
   ];
@@ -1352,9 +1352,9 @@ function pintarAdjuntos() {
 /* ───────── Atajos (no gastan tokens de chat) ───────── */
 const ATAJOS = [
   { id: "youtube", ico: "⬇️", titulo: "Descargar de YouTube", desc: "Música MP3 o video MP4 · cualquier enlace", pro: true },
-  { id: "voz", ico: "🔊", titulo: "Texto a voz", desc: "Chirp HD o voz expresiva Gemini", pro: true },
+  { id: "voz", ico: "🔊", titulo: "Texto a voz", desc: "Voz natural o voz expresiva", pro: true },
   { id: "transcribir", ico: "📝", titulo: "Transcribir audio o video", desc: "Sube el archivo y obtén el texto", pro: true },
-  { id: "video_codigo", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz Chirp o Gemini", pro: true },
+  { id: "video_codigo", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz natural o expresiva", pro: true },
   { id: "presentacion", ico: "📽️", titulo: "Presentación PowerPoint", desc: "Diapositivas editables con revisión de diseño", pro: true },
   { id: "estudiar", ico: "📚", titulo: "Estudiar", desc: "Tarjetas tipo Anki que se guardan, quiz o guía", pro: false },
   { id: "web", ico: "🌐", titulo: "Crear página web", desc: "Con enlace propio y base de datos para formularios", pro: true },
@@ -1494,10 +1494,10 @@ async function abrirAtajo(id, conAdjunta = false) {
         .map((v) => el("option", { value: v.id, selected: v.id === "Puck" ? true : null }, `${g} · ${v.tipo}`)))));
     abrirDialogo("Texto a voz", [
       el("label", {}, "Texto", el("textarea", { name: "texto", required: true, placeholder: "Escribe o pega el texto que quieres escuchar" })),
-      campoOpciones("motor", [["chirp", "Chirp HD (natural)"], ["gemini", "Gemini (expresiva, para videos)"]], "chirp"),
+      campoOpciones("motor", [["chirp", "Voz natural"], ["gemini", "Voz expresiva (para videos)"]], "chirp"),
       el("label", {}, "Voz", sel),
-      el("label", {}, "Estilo (solo Gemini)", el("input", { type: "text", name: "estilo", placeholder: "Ej.: con entusiasmo y ritmo rápido" })),
-    ], `Te quedan ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min de Chirp y ${(quedan("tts_gemini_seg", "tts_gemini_seg") / 60).toFixed(0)} min de Gemini.`, "Generar audio",
+      el("label", {}, "Estilo (solo voz expresiva)", el("input", { type: "text", name: "estilo", placeholder: "Ej.: con entusiasmo y ritmo rápido" })),
+    ], `Te quedan ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min de voz natural y ${(quedan("tts_gemini_seg", "tts_gemini_seg") / 60).toFixed(0)} min de voz expresiva.`, "Generar audio",
       (f) => f.get("texto")?.trim() && enviar({ accion: f.get("motor") === "gemini" ? "voz_gemini" : "voz_chirp", params: { texto: f.get("texto").trim(), voz: f.get("voz"), estilo: f.get("estilo") || "" } }));
   } else if (id === "youtube") {
     const area = el("textarea", { name: "urls", required: true, placeholder: "Pega uno o varios enlaces (de la app, del navegador, Shorts, Music…)\nhttps://youtu.be/…\nhttps://www.youtube.com/watch?v=…" });
@@ -1595,7 +1595,7 @@ async function abrirAtajo(id, conAdjunta = false) {
         el("label", {}, "Voz del doblaje", sel)),
       el("div", { class: "fila-2" }, campoIdioma("origen", true, "Idioma original"),
         el("label", { class: "opcion-sola" }, el("input", { type: "checkbox", name: "fondo", checked: true }), "Dejar el sonido original bajito")),
-    ], `Usa minutos de transcripción y de voz Chirp (te quedan ${(quedan("stt_seg", "stt_seg") / 60).toFixed(0)} y ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min). Recibes el archivo doblado y la traducción en texto.`, "Doblar",
+    ], `Usa minutos de transcripción y de voz natural (te quedan ${(quedan("stt_seg", "stt_seg") / 60).toFixed(0)} y ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min). Recibes el archivo doblado y la traducción en texto.`, "Doblar",
       async (f) => {
         if (!(await obtener())) return;
         enviar({ accion: "doblar", params: { idioma_destino: f.get("destino"), voz: f.get("voz"), idioma_origen: f.get("origen"), conservar_fondo: !!f.get("fondo") } });
@@ -1811,11 +1811,11 @@ async function abrirAtajo(id, conAdjunta = false) {
       campoOpciones("formato", [["9:16", "Vertical 9:16"], ["16:9", "Horizontal 16:9"]], "9:16"),
       el("div", { class: "fila-2" }, el("label", {}, "Duración aproximada (segundos)", el("input", { type: "number", name: "duracion", min: 5, max: 90, value: 20 })), campoNivel()),
       el("div", { class: "campo-titulo" }, "Narración (voz)"),
-      campoOpciones("motor", [["ninguna", "Sin voz"], ["chirp", "Chirp HD (natural)"], ["gemini", "Gemini (expresiva)"]], "chirp"),
+      campoOpciones("motor", [["ninguna", "Sin voz"], ["chirp", "Voz natural"], ["gemini", "Voz expresiva"]], "chirp"),
       el("label", {}, "Voz", sel),
       el("label", {}, "Texto de la narración (opcional: si lo dejas vacío, Simbi lo escribe)", el("textarea", { name: "guion", placeholder: "Escribe exactamente lo que dirá la voz" })),
-      el("label", {}, "Estilo de la voz (solo Gemini)", el("input", { type: "text", name: "estilo", placeholder: "Ej.: entusiasta, como profesor joven" })),
-    ], `La voz se descuenta de tus minutos (te quedan ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min Chirp y ${(quedan("tts_gemini_seg", "tts_gemini_seg") / 60).toFixed(0)} min Gemini). ` +
+      el("label", {}, "Estilo de la voz (solo voz expresiva)", el("input", { type: "text", name: "estilo", placeholder: "Ej.: entusiasta, como profesor joven" })),
+    ], `La voz se descuenta de tus minutos (te quedan ${(quedan("tts_chirp_seg", "tts_chirp_seg") / 60).toFixed(0)} min de voz natural y ${(quedan("tts_gemini_seg", "tts_gemini_seg") / 60).toFixed(0)} min de voz expresiva). ` +
       "Para música de fondo, adjunta un MP3 (＋) antes de crear. Recomendado: nivel Difícil o Muy complejo.", "Crear video",
       (f) => f.get("texto")?.trim() && enviar({ accion: "video_codigo", params: { texto: f.get("texto").trim(), formato: f.get("formato"),
         duracion: Math.min(90, Math.max(5, +f.get("duracion") || 20)), motor: f.get("motor"), voz: f.get("voz"),
@@ -1967,7 +1967,7 @@ function filaRec(r) {
 $("btn-recs").onclick = () => abrirMisRecordatorios();
 
 function etiquetaAccion(accion, p) {
-  return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz Chirp: ", voz_gemini: "🔊 Voz Gemini: ",
+  return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz natural: ", voz_gemini: "🔊 Voz expresiva: ",
     youtube_mp4: "⬇️ YouTube MP4: ", youtube_mp3: "🎵 YouTube MP3: ", transcribir: "📝 Transcribir: ", video_codigo: "🎞️ Video con código: " })[accion] +
     (p.texto || p.url || p.archivo || "");
 }
