@@ -153,7 +153,8 @@ function cambiarModo(crear) {
   modoCrear = crear;
   $("tab-crear").classList.toggle("activa", crear); $("tab-entrar").classList.toggle("activa", !crear);
   $("tab-crear").setAttribute("aria-selected", crear); $("tab-entrar").setAttribute("aria-selected", !crear);
-  $("campo-nombre").hidden = !crear;
+  // Cuentas nuevas solo con Google (el servidor rechaza registros con correo y contraseña)
+  $("form-acceso").hidden = crear; $("sep-correo").hidden = crear; $("nota-crear").hidden = !crear;
   $("btn-acceso").textContent = crear ? "Crear cuenta" : "Ingresar";
   $("clave").autocomplete = crear ? "new-password" : "current-password";
   avisoAcceso("");
