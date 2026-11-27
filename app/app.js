@@ -1385,8 +1385,8 @@ const ATAJOS = [
   { id: "imagen", g: "crear", ico: "🎨", titulo: "Crear una imagen", desc: "Describe lo que imaginas", pro: true },
   { id: "video", g: "crear", ico: "🎬", titulo: "Video con IA", desc: "Clip de 3 a 8 segundos (Veo)", pro: true },
   { id: "musica", g: "crear", ico: "🎵", titulo: "Crear música", desc: "Pista instrumental original de ~30 s", pro: true },
-  { id: "voz", g: "crear", ico: "🔊", titulo: "Texto a voz", desc: "Chirp HD o voz expresiva Gemini", pro: true },
-  { id: "video_codigo", g: "crear", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz Chirp o Gemini", pro: true },
+  { id: "voz", g: "crear", ico: "🔊", titulo: "Texto a voz", desc: "Voz natural o voz expresiva", pro: true },
+  { id: "video_codigo", g: "crear", ico: "🎞️", titulo: "Video con código", desc: "Animación con Python + voz natural o expresiva", pro: true },
   { id: "foto", g: "editar", ico: "🖼️", titulo: "Mejorar foto", desc: "Quitar fondo, mejorar, restaurar, colorear o retrato pro", pro: true },
   { id: "producto", g: "editar", ico: "🛍️", titulo: "Foto de producto pro", desc: "De foto de celular a foto de catálogo", pro: true },
   { id: "subtitulos", g: "editar", ico: "✂️", titulo: "Subtítulos para videos", desc: "Estilo TikTok o clásico, quemados en el video", pro: true },
@@ -2041,7 +2041,7 @@ function filaRec(r) {
 $("btn-recs").onclick = () => abrirMisRecordatorios();
 
 function etiquetaAccion(accion, p) {
-  return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz Chirp: ", voz_gemini: "🔊 Voz Gemini: ",
+  return ({ imagen: "🎨 Imagen: ", video: "🎬 Video IA: ", voz_chirp: "🔊 Voz natural: ", voz_gemini: "🔊 Voz expresiva: ",
     youtube_mp4: "⬇️ YouTube MP4: ", youtube_mp3: "🎵 YouTube MP3: ", redes_mp4: "📲 Descargar de redes: ", redes_mp3: "🎵 Audio de redes: ", transcribir: "📝 Transcribir: ", video_codigo: "🎞️ Video con código: " })[accion] +
     (p.texto || p.url || p.archivo || "");
 }
