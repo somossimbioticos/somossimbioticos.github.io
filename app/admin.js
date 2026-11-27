@@ -50,7 +50,7 @@ async function pintar() {
 
   raiz.replaceChildren(
     kpis,
-    modelos ? el("p", { class: "mono" }, "Modelos usados esta semana (tokens) — " + modelos) : null,
+    modelos ? el("p", { class: "mono" }, "Modelos usados esta semana (tokens) — " + modelos) : "",
     el("h2", {}, `Quieren Pro (${(intz || []).filter((x) => !x.atendido).length} por atender)`),
     seccionInteresados(intz || []),
     el("h2", { id: "avisos" }, `Avisos por Telegram (${avisos?.conectados ?? 0} conectados)`),
@@ -64,6 +64,7 @@ async function pintar() {
       cuerpo)),
     el("h2", {}, "Límites semanales por plan"),
     el("div", { class: "planes" }, (planes || []).map(formPlan)),
+    seccionAccesos(),
   );
 }
 
@@ -83,7 +84,7 @@ function pintarFilas(tbody, q, plan) {
       el("td", { class: "num" }, fmt(u.imagenes)),
       el("td", { class: "num" }, fmt(u.videos)),
       el("td", { class: "num" }, fmt(u.tts_seg / 60)),
-      el("td", { class: "num" }, fmt(u.conversaciones)),
+      el("td", {}, Number(u.conversaciones) ? el("button", { type: "button", class: "btn-mini", title: "Ver sus chats (solo lectura)", onclick: () => verChats(u) }, "👁️ " + fmt(u.conversaciones)) : el("span", { class: "num" }, "0")),
       el("td", { class: "num" }, u.ultimo_ingreso ? new Date(u.ultimo_ingreso).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" }) : "—")));
   }
 }
@@ -234,4 +235,67 @@ function seccionAvisos(datos) {
     texto, el("div", { class: "herr", style: "margin-top:10px;align-items:center" }, cuando, boton, ok),
     filas.length ? el("div", { class: "tabla" }, el("table", {},
       el("thead", {}, el("tr", {}, ["Cuándo", "Mensaje", "Estado", ""].map((t) => el("th", {}, t)))), el("tbody", {}, filas))) : null);
+}
+
+
+/* ───── 👁️ Ver los chats de un usuario (solo lectura; cada apertura queda registrada) ───── */
+const fechaCorta = (f) => new Date(f).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" });
+const NIVEL = { facil: "Fácil", medio: "Medio", dificil: "Difícil", complejo: "Muy complejo" };
+let dlg = null;
+async function verChats(u) {
+  if (!dlg) { dlg = el("dialog", { class: "chats", "aria-label": "Chats del usuario" }); document.body.append(dlg);
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); }); }
+  const lista = el("div", { class: "ch-lista" }, el("p", { class: "mono" }, "Cargando…"));
+  const vista = el("div", { class: "ch-vista" }, el("p", { class: "mono" }, "Elige una conversación."));
+  dlg.replaceChildren(
+    el("div", { class: "ch-cab" },
+      el("div", {}, el("b", {}, "💬 Chats de " + (u.nombre || u.correo)), el("small", {}, u.correo + " · solo lectura · cada chat que abras queda registrado")),
+      el("button", { type: "button", class: "btn-mini", onclick: () => dlg.close(), "aria-label": "Cerrar" }, "✕ Cerrar")),
+    el("div", { class: "ch-cuerpo" }, lista, vista));
+  dlg.showModal();
+  const { data, error } = await sb.rpc("admin_conversaciones", { p_uid: u.id });
+  if (error) { lista.replaceChildren(el("p", { class: "aviso" }, error.message)); return; }
+  if (!data?.length) { lista.replaceChildren(el("p", { class: "mono" }, "No tiene conversaciones.")); return; }
+  const botones = data.map((c) => el("button", { type: "button", class: "ch-conv", onclick: (e) => {
+      botones.forEach((b) => b.classList.remove("on")); e.currentTarget.classList.add("on"); abrirChat(c, vista);
+      dlg.querySelector(".ch-cuerpo").classList.add("abierto");
+    } },
+    el("b", {}, c.titulo || "Sin título"), el("small", {}, `${fechaCorta(c.actualizado)} · ${fmt(c.mensajes)} mensajes · ${NIVEL[c.nivel] || c.nivel}`)));
+  lista.replaceChildren(...botones);
+}
+async function abrirChat(c, vista) {
+  vista.replaceChildren(el("p", { class: "mono" }, "Cargando…"));
+  const { data, error } = await sb.rpc("admin_mensajes", { p_conv: c.id });
+  if (error) { vista.replaceChildren(el("p", { class: "aviso" }, error.message)); return; }
+  const volver = el("button", { type: "button", class: "btn-mini ch-volver", onclick: () => dlg.querySelector(".ch-cuerpo").classList.remove("abierto") }, "← Conversaciones");
+  const msjs = (data || []).map((m) => {
+    const adj = (m.adjuntos || []).map((a) => el("span", { class: "ch-adj" }, (/^image\//.test(a.mime) ? "🖼️ " : /^audio\//.test(a.mime) ? "🎵 " : /^video\//.test(a.mime) ? "🎬 " : "📎 ") + (a.nombre || a.ruta || "archivo")));
+    const herr = (m.eventos || []).map((e) => e && (e.etiqueta || e.nombre || e.herramienta || e.tipo)).filter(Boolean);
+    const pie = [fechaCorta(m.creado), m.rol === "asistente" && m.modelo ? m.modelo + (m.detalle ? " · " + m.detalle : "") : null,
+      m.tokens ? fmt(m.tokens) + " tokens" : null, herr.length ? [...new Set(herr)].join(", ") : null].filter(Boolean).join(" · ");
+    return el("div", { class: "ch-msj " + (m.rol === "usuario" ? "yo" : "ia") },
+      el("div", { class: "ch-quien" }, m.rol === "usuario" ? "👤 Usuario" : "🤖 Simbi"),
+      m.contenido ? el("div", { class: "ch-texto" }, m.contenido) : null,
+      adj.length ? el("div", { class: "ch-adjs" }, adj) : null,
+      el("small", {}, pie));
+  });
+  vista.replaceChildren(volver, el("h3", {}, c.titulo || "Sin título"), ...(msjs.length ? msjs : [el("p", { class: "mono" }, "Sin mensajes.")]));
+  vista.scrollTop = 0;
+}
+
+/* ───── Registro de accesos a chats ───── */
+function seccionAccesos() {
+  const cont = el("div", {}, el("p", { class: "mono" }, "Cargando…"));
+  const det = el("details", { class: "accesos" }, el("summary", {}, "🔒 Registro: quién vio qué chat"), cont);
+  det.addEventListener("toggle", async () => {
+    if (!det.open) return;
+    const { data, error } = await sb.rpc("admin_accesos_recientes");
+    if (error) return cont.replaceChildren(el("p", { class: "aviso" }, error.message));
+    if (!data?.length) return cont.replaceChildren(el("p", { class: "mono" }, "Nadie ha abierto chats todavía."));
+    cont.replaceChildren(el("div", { class: "tabla" }, el("table", {},
+      el("thead", {}, el("tr", {}, ["Cuándo", "Administrador", "Usuario", "Chat"].map((t) => el("th", {}, t)))),
+      el("tbody", {}, data.map((a) => el("tr", {}, el("td", { class: "num" }, fechaCorta(a.creado)), el("td", {}, a.admin || "—"),
+        el("td", {}, a.usuario || "—"), el("td", {}, a.titulo || "(borrado)")))))));
+  });
+  return det;
 }
