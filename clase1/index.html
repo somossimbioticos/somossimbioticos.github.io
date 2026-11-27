@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clase 1 · La IA a tu favor: enlaces, ejemplos y presentación · Somos Simbióticos</title>
+  <meta name="description" content="Todo lo de la clase gratuita «La IA a tu favor»: las herramientas con sus enlaces, prompts y código para copiar, el cuaderno de Colab, precios, riesgos y la presentación en PDF.">
+  <link rel="canonical" href="https://somossimbioticos.github.io/clase1/">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://somossimbioticos.github.io/clase1/">
+  <meta property="og:title" content="Clase 1 · La IA a tu favor">
+  <meta property="og:description" content="Los enlaces, los ejemplos para copiar y la presentación de la clase de Somos Simbióticos.">
+  <meta property="og:image" content="https://somossimbioticos.github.io/clase1/img/portada.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0B0F14">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="../base.css">
+  <style>
+    html { scroll-behavior: smooth; scroll-padding-top: 78px; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    .envoltura { width: min(1120px, 100% - 32px); margin-inline: auto; }
+    .saltar { position: absolute; left: 12px; top: -64px; z-index: 50; background: var(--cian); color: var(--sobre-cian); padding: 10px 14px; border-radius: 10px; font-weight: 700; text-decoration: none; }
+    .saltar:focus { top: 10px; }
+    .c-cian { --c: var(--cian); } .c-ambar { --c: var(--ambar); } .c-brasa { --c: var(--brasa); }
+    .c-violeta { --c: var(--violeta); } .c-verde { --c: var(--exito); } .c-rosa { --c: #FF7AB6; }
+
+    /* ── Barra superior (igual que la guía de prompts) ── */
+    header.nav { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(11, 15, 20, .82); border-bottom: 1px solid var(--linea); }
+    .nav .envoltura { display: flex; align-items: center; gap: 18px; height: 64px; }
+    .marca { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--papel); }
+    .marca img { width: 34px; height: 34px; }
+    .marca span { font-family: var(--f-titulo); font-weight: 900; font-size: 22px; letter-spacing: .02em; text-transform: uppercase; }
+    .nav nav { margin-left: auto; display: flex; gap: 22px; align-items: center; }
+    .nav nav a:not(.btn) { color: var(--mut); text-decoration: none; font-weight: 600; font-size: 15px; }
+    .nav nav a:not(.btn):hover { color: var(--papel); }
+    @media (max-width: 860px) { .nav nav a:not(.btn) { display: none; } .nav .btn { padding: 9px 16px; font-size: 14px; } .marca span { font-size: 19px; } }
+
+    /* ── Portada ── */
+    .hero { position: relative; overflow: hidden; padding: 60px 0 52px; }
+    .hero::before { content: ""; position: absolute; inset: -30% -10% auto auto; width: 70%; aspect-ratio: 1; background: radial-gradient(closest-side, rgba(62, 230, 224, .14), transparent); pointer-events: none; }
+    .hero::after { content: ""; position: absolute; inset: auto auto -45% -18%; width: 55%; aspect-ratio: 1; background: radial-gradient(closest-side, rgba(255, 77, 46, .10), transparent); pointer-events: none; }
+    .hero .envoltura { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 48px; align-items: center; }
+    .hero h1 { font-size: clamp(58px, 9vw, 116px); margin-top: 14px; }
+    .hero h1 .l2 { display: block; color: var(--cian); }
+    .lead { font-size: clamp(17px, 2vw, 19.5px); color: var(--texto-2); max-width: 600px; margin: 22px 0 22px; }
+    .lead b { color: var(--papel); }
+    .datos { list-style: none; margin: 0 0 26px; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+    .datos li { background: var(--panel); border: 1px solid var(--linea); border-radius: 14px; padding: 8px 14px; }
+    .datos small { display: block; font-family: var(--f-mono); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--mut); }
+    .datos b { font-size: 15.5px; }
+    .acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+    .materiales { background: var(--panel); border: 1px solid var(--linea); border-radius: 24px; padding: 20px; display: grid; gap: 10px; box-shadow: var(--sombra); }
+    .materiales > .mono { margin: 2px 4px 4px; }
+    .mat { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: var(--panel-2); border: 1px solid transparent; color: var(--papel); text-decoration: none; }
+    a.mat:hover { border-color: var(--cian); }
+    .mat-ico { font-size: 25px; text-align: center; line-height: 1; }
+    .mat b { display: block; font-size: 16px; line-height: 1.3; }
+    .mat small { display: block; color: var(--mut); font-size: 13.5px; line-height: 1.4; }
+    .mat small a { color: var(--cian); }
+    .mat-ir { color: var(--cian); font-weight: 700; }
+    .mat.mat-regalo { background: linear-gradient(120deg, rgba(62, 230, 224, .14), rgba(255, 77, 46, .10)); border-color: rgba(62, 230, 224, .4); }
+    .mat code, .regalo-cod code { font-family: var(--f-mono); color: var(--cian); font-weight: 700; letter-spacing: .06em; }
+    @media (max-width: 900px) { .hero .envoltura { grid-template-columns: minmax(0, 1fr); gap: 32px; } .hero { padding-top: 34px; } }
+
+    /* ── Secciones ── */
+    section { padding: 60px 0; }
+    section.banda { background: linear-gradient(180deg, rgba(17, 26, 35, .75), rgba(17, 26, 35, .2)); border-block: 1px solid var(--linea); }
+    .sec-cab { max-width: 800px; margin-bottom: 28px; }
+    .sec-cab h2 { font-size: clamp(36px, 5.4vw, 60px); margin: 10px 0 12px; }
+    .sec-cab p { color: var(--texto-2); font-size: 17.5px; margin: 0; }
+    .sub-tit { font-family: var(--f-titulo); font-weight: 900; text-transform: uppercase; font-size: clamp(28px, 3.6vw, 40px); line-height: 1; margin: 48px 0 10px; }
+    .sub-tit + p { color: var(--texto-2); margin: 0 0 18px; max-width: 760px; }
+    .sub-tit .etq { vertical-align: middle; }
+    .etq { display: inline-block; font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--ambar); color: var(--ambar); line-height: 1.3; }
+    .grande { font-size: clamp(19px, 2.3vw, 23px); line-height: 1.45; margin: 0 0 18px; }
+    .grande b { color: var(--papel); }
+    .nota { margin: 16px 0 0; font-size: 14px; color: var(--mut); }
+    .nota code { font-family: var(--f-mono); color: var(--papel); }
+    .nota b { color: var(--texto-2); }
+    .bloque { margin-top: 52px; }
+
+    /* ── Agenda ── */
+    .agenda { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .agenda a { display: grid; grid-template-columns: 70px 34px minmax(0, 1fr) 18px; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 16px; background: var(--panel); border: 1px solid var(--linea); color: var(--papel); text-decoration: none; font-weight: 600; line-height: 1.35; }
+    .agenda a:hover { border-color: var(--cian); }
+    .ag-min { font-family: var(--f-mono); font-weight: 700; color: var(--cian); font-size: 14px; }
+    .ag-ico { font-size: 23px; text-align: center; }
+    .ag-ir { color: var(--mut); }
+    @media (max-width: 760px) { .agenda { grid-template-columns: minmax(0, 1fr); } .agenda a { grid-template-columns: 62px 30px minmax(0, 1fr); } .ag-ir { display: none; } }
+
+    /* ── Tarjetas y enlaces ── */
+    .tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 14px; }
+    .tarjeta { background: var(--panel); border: 1px solid var(--linea); border-top: 3px solid var(--c, var(--linea)); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .tarjeta :is(h3, h4) { margin: 0; font-size: 18px; line-height: 1.25; }
+    .tarjeta p { margin: 0; color: var(--texto-2); font-size: 15.5px; }
+    .tarjeta p b { color: var(--papel); }
+    .t-cab { display: flex; align-items: center; gap: 12px; }
+    .t-cab img { width: 42px; height: 42px; flex: none; }
+    .t-ico { font-size: 27px; line-height: 1; flex: none; }
+    .tarjeta.alerta-t { border-color: rgba(255, 194, 63, .5); border-top-color: var(--ambar); background: rgba(255, 194, 63, .06); }
+    .enlaces-fila { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 6px; }
+    .enl { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 7px 12px; border-radius: 999px; background: var(--cian-suave); color: var(--cian); border: 1px solid rgba(62, 230, 224, .25); font-weight: 600; font-size: 14px; line-height: 1.3; text-decoration: none; overflow-wrap: anywhere; }
+    .enl:hover { background: rgba(62, 230, 224, .22); }
+    .enl.interno { background: rgba(255, 77, 46, .10); border-color: rgba(255, 77, 46, .35); color: #FF8A73; }
+    .alerta { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: start; margin-top: 16px; padding: 16px 20px; border-radius: 18px; border: 1.5px solid rgba(255, 194, 63, .5); background: rgba(255, 194, 63, .07); }
+    .alerta .ico { font-size: 26px; line-height: 1.2; }
+    .alerta p { margin: 0; color: var(--texto-2); }
+    .alerta b { color: var(--ambar); }
+    .clave { margin: 18px 0 0; padding: 16px 20px; border-radius: 16px; background: var(--panel); border: 1px solid var(--linea); font-weight: 600; font-size: 17px; }
+
+    /* ── Quiénes somos ── */
+    .quienes { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 16px; }
+    .quienes h3 { font-size: 22px; }
+    .q-lista { list-style: none; margin: 6px 0 8px; padding: 0; display: grid; gap: 10px; }
+    .q-lista li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; }
+    .q-lista li > span { font-size: 21px; line-height: 1.4; }
+    .q-lista p { margin: 0; color: var(--texto-2); font-size: 16px; }
+    .q-politica { background: rgba(255, 77, 46, .09); border: 1.5px solid rgba(255, 77, 46, .45); border-radius: 14px; padding: 10px 12px; }
+    .q-lista .q-politica p { color: var(--papel); }
+    @media (max-width: 860px) { .quienes { grid-template-columns: minmax(0, 1fr); } }
+
+    /* ── ¿Qué es la IA? ── */
+    .dos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px; align-items: start; }
+    .flujo { display: grid; gap: 10px; }
+    .paso { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 12px; align-items: center; padding: 14px 16px; border-radius: 16px; background: var(--panel); border: 1px solid var(--linea); border-left: 4px solid var(--c); }
+    .paso > span { font-size: 25px; text-align: center; }
+    .paso .paso-tit { display: block; }
+    .paso small { color: var(--texto-2); font-size: 14.5px; }
+    .flecha { color: var(--mut); font-family: var(--f-mono); font-size: 13px; padding-left: 22px; }
+    .conceptos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .conceptos .tarjeta { padding: 16px; }
+    .conceptos .tarjeta h3 { font-size: 17px; }
+    .conceptos .tarjeta p { font-size: 14.5px; }
+    @media (max-width: 860px) { .dos { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 380px) { .conceptos { grid-template-columns: minmax(0, 1fr); } }
+
+    /* ── Datos: cifras, carrera y gráfico ── */
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .stat { background: var(--panel); border: 1px solid var(--linea); border-radius: 20px; padding: 20px; }
+    .stat b { display: block; font-family: var(--f-titulo); font-weight: 900; font-size: clamp(36px, 3.6vw, 46px); line-height: 1; color: var(--cian); white-space: nowrap; }
+    .stat p { margin: 10px 0 6px; color: var(--papel); font-weight: 600; font-size: 15.5px; line-height: 1.45; }
+    .stat small { color: var(--mut); font-size: 13px; }
+    @media (max-width: 960px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 440px) { .stats { grid-template-columns: minmax(0, 1fr); } }
+    .carrera { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 28px; align-items: center; }
+    .carrera figure { margin: 0; }
+    .carrera img { width: 100%; height: auto; border-radius: 18px; border: 1px solid var(--linea); }
+    .carrera figcaption { font-size: 13.5px; color: var(--mut); margin-top: 8px; }
+    .carrera figcaption a { color: var(--cian); }
+    .puntos { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .puntos li { padding: 12px 16px; border-radius: 14px; background: var(--panel); border: 1px solid var(--linea); color: var(--texto-2); }
+    .puntos b { color: var(--papel); }
+    .puntos .cian { color: var(--cian); }
+    @media (max-width: 860px) { .carrera { grid-template-columns: minmax(0, 1fr); } }
+    .grafico { margin: 0; background: var(--panel); border: 1px solid var(--linea); border-radius: 22px; padding: 22px 22px 16px; }
+    .grafico h4 { margin: 0; font-size: 20px; }
+    .grafico .mono { margin-top: 6px; }
+    .leyenda { list-style: none; margin: 14px 0 10px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14.5px; color: var(--texto-2); }
+    .leyenda li { display: inline-flex; align-items: center; gap: 8px; }
+    .sw { width: 14px; height: 14px; border-radius: 4px; background: var(--c); flex: none; }
+    .barras { width: 100%; border-collapse: collapse; }
+    .barras tr { outline: none; }
+    .barras tr:focus-visible { outline: 2px solid var(--cian); outline-offset: -2px; }
+    .barras th, .barras td { padding: 7px 0; vertical-align: middle; }
+    .barras tbody tr { border-radius: 10px; }
+    .barras tbody tr:hover, .barras tbody tr:focus { background: rgba(255, 255, 255, .035); }
+    .g-mod { text-align: left; font-weight: 700; font-size: 15.5px; width: 30%; padding-right: 14px !important; padding-left: 8px !important; line-height: 1.25; }
+    .g-mod small { display: block; font-weight: 500; font-size: 12.5px; color: var(--mut); }
+    .g-bar { position: relative; }
+    .barra { display: block; width: var(--w); height: 16px; border-radius: 0 4px 4px 0; background: var(--c); transition: opacity .15s; }
+    .barras tbody:hover .barra { opacity: .38; }
+    .barras tbody tr:hover .barra, .barras tbody tr:focus .barra { opacity: 1; }
+    .g-val { width: 48px; text-align: right; font-family: var(--f-mono); font-weight: 700; font-size: 16px; padding: 7px 8px 7px 10px !important; }
+    .g-tip { position: absolute; left: var(--w); bottom: calc(50% + 12px); transform: translate(-100%, 4px); background: var(--panel-2); border: 1px solid var(--linea); color: var(--papel); font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 10px; white-space: nowrap; box-shadow: var(--sombra); opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; z-index: 2; }
+    .barras tbody tr:hover .g-tip, .barras tbody tr:focus .g-tip { opacity: 1; transform: translate(-100%, 0); }
+    .g-nota { margin: 10px 8px 0; font-size: 13.5px; color: var(--mut); }
+    @media (max-width: 560px) { .grafico { padding: 18px 12px 14px; } .g-mod { width: 42%; font-size: 14px; } .barra { height: 12px; } .g-val { font-size: 15px; width: 40px; } }
+    .aa { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 22px; align-items: start; }
+    .aa .tarjetas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .aa .tarjeta { padding: 14px 16px; }
+    .aa .tarjeta h3 { font-size: 16px; }
+    .aa .tarjeta p { font-size: 14.5px; }
+    @media (max-width: 860px) { .aa { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 420px) { .aa .tarjetas { grid-template-columns: minmax(0, 1fr); } }
+
+    /* ── Precios ── */
+    .precios { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+    .pc { background: var(--panel); border: 1px solid var(--linea); border-radius: 20px; padding: 20px 18px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .pc-ico { font-size: 27px; line-height: 1; }
+    .pc h3 { margin: 8px 0 0; font-size: 19px; line-height: 1.2; }
+    .pc small { font-family: var(--f-mono); font-size: 12px; color: var(--mut); }
+    .pc-usd { font-family: var(--f-titulo); font-weight: 900; font-size: 50px; line-height: 1; margin-top: 12px; }
+    .pc-cop { font-weight: 700; color: var(--texto-2); }
+    .pc p { margin: auto 0 0; padding-top: 10px; color: var(--mut); font-size: 14px; line-height: 1.45; }
+    .pc.simbi { border: 2px solid var(--cian); background: linear-gradient(160deg, rgba(62, 230, 224, .16), rgba(255, 77, 46, .10)); }
+    .pc.simbi .pc-usd { color: var(--cian); }
+    .pc.simbi p { color: var(--papel); }
+    @media (max-width: 1000px) { .precios { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .precios { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .pc { padding: 16px 14px; } .pc-usd { font-size: 42px; } .pc.simbi { grid-column: 1 / -1; } }
+
+    /* ── Herramientas ── */
+    .indice { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .indice a { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--panel); border: 1px solid var(--linea); color: var(--papel); text-decoration: none; font-weight: 600; font-size: 14.5px; }
+    .indice a:hover { border-color: var(--cian); color: var(--cian); }
+    .indice a span { font-family: var(--f-mono); color: var(--brasa); font-weight: 700; }
+    .grupo { margin-top: 38px; }
+    .grupo-tit { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; font-family: var(--f-titulo); font-weight: 900; text-transform: uppercase; font-size: clamp(26px, 3.4vw, 36px); line-height: 1; margin: 0 0 14px; }
+    .grupo-tit .ico { font-size: .8em; }
+
+    /* ── Código y comandos ── */
+    .caja { background: var(--panel); border: 1px solid var(--linea); border-radius: 20px; overflow: hidden; min-width: 0; }
+    .caja-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px 10px 18px; border-bottom: 1px solid var(--linea); background: var(--panel-2); }
+    .caja-bar .mono { color: var(--papel); }
+    .copiar { flex: none; padding: 9px 16px; font-size: 14.5px; }
+    .copiar.ok { background: var(--exito); }
+    pre.codigo { margin: 0; padding: 16px 18px 18px; overflow-x: auto; background: var(--codigo); font: 500 14px/1.65 var(--f-mono); color: #D6E4EA; white-space: pre; tab-size: 4; }
+    .caja.idea pre.codigo { color: var(--texto-2); }
+    .cmd { display: flex; align-items: center; gap: 8px; background: var(--codigo); border: 1px solid var(--linea); border-radius: 12px; padding: 6px 6px 6px 12px; }
+    .cmd code { flex: 1; min-width: 0; font: 500 13.5px/1.5 var(--f-mono); color: var(--cian-claro); overflow-wrap: anywhere; }
+    .copiar-mini { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border: 0; border-radius: 10px; background: var(--panel-2); cursor: pointer; font-size: 16px; line-height: 1; transition: background .2s; }
+    .copiar-mini:hover { background: rgba(62, 230, 224, .2); }
+    .copiar-mini.ok { background: rgba(74, 222, 128, .25); }
+
+    /* ── Pasos numerados ── */
+    .pasos-num { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
+    .pn { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: start; }
+    .pn > span { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--brasa); color: #fff; font-family: var(--f-titulo); font-weight: 900; font-size: 22px; }
+    .pn .pn-tit { display: block; font-size: 17px; }
+    .pn p { margin: 2px 0 8px; color: var(--texto-2); }
+    .lista-num { counter-reset: n; list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .lista-num li { counter-increment: n; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; align-items: start; color: var(--texto-2); }
+    .lista-num li::before { content: counter(n); width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--cian-suave); color: var(--cian); font: 700 15px/1 var(--f-mono); }
+    .lista-num b { color: var(--papel); }
+    .lista-num .cmd { margin-top: 8px; }
+    .colab { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; margin-top: 18px; }
+    .lateral { background: var(--panel); border: 1px solid var(--linea); border-radius: 20px; padding: 22px; min-width: 0; }
+    .lateral h3 { margin: 0 0 14px; font-family: var(--f-titulo); font-weight: 900; text-transform: uppercase; font-size: 28px; line-height: 1; }
+    @media (max-width: 860px) { .colab { grid-template-columns: minmax(0, 1fr); } }
+
+    /* ── APIs ── */
+    .api-puntos { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 10px; }
+    .api-puntos li { padding: 12px 16px; border-radius: 14px; background: var(--panel); border: 1px solid var(--linea); color: var(--texto-2); }
+    .api-puntos b { color: var(--papel); }
+
+    /* ── Prompts ── */
+    .rctfe { display: grid; gap: 10px; }
+    .rctfe .fila { display: grid; grid-template-columns: 50px 190px minmax(0, 1fr); align-items: center; gap: 14px; padding: 12px 18px; background: var(--panel); border: 1px solid var(--linea); border-left: 4px solid var(--c); border-radius: 16px; }
+    .rctfe .letra { font-family: var(--f-titulo); font-weight: 900; font-size: 46px; line-height: .8; color: var(--c); text-align: center; }
+    .rctfe b { font-family: var(--f-titulo); font-weight: 900; text-transform: uppercase; font-size: 23px; line-height: 1; letter-spacing: .02em; }
+    .rctfe q { quotes: "«" "»"; color: var(--texto-2); }
+    @media (max-width: 700px) { .rctfe .fila { grid-template-columns: 40px minmax(0, 1fr); gap: 4px 12px; } .rctfe .letra { grid-row: span 2; font-size: 40px; } }
+    .compara { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin: 14px 0 16px; }
+    .compara > div { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; padding: 14px 18px; border-radius: 16px; }
+    .compara .ico { font-size: 24px; line-height: 1.2; }
+    .compara p { margin: 0; color: var(--texto-2); }
+    .compara b { color: var(--papel); }
+    .compara .mal { background: rgba(255, 107, 91, .07); border: 1px solid rgba(255, 107, 91, .35); }
+    .compara .bien { background: rgba(74, 222, 128, .07); border: 1px solid rgba(74, 222, 128, .35); }
+    @media (max-width: 700px) { .compara { grid-template-columns: minmax(0, 1fr); } }
+    pre.prompt { margin: 0; padding: 16px 18px 18px; white-space: pre-wrap; overflow-wrap: anywhere; font: 15.5px/1.7 var(--f-texto); color: var(--papel); }
+    .prompt .parte { color: var(--c); }
+    mark.hueco { background: rgba(255, 194, 63, .16); color: var(--ambar); border-radius: 5px; padding: 0 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+    .trucos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; }
+    .truco { background: var(--panel); border: 1px solid var(--linea); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .truco .t-cab :is(h3, h4) { margin: 0; font-size: 17px; line-height: 1.25; }
+    .truco .frase { margin: 0; color: var(--texto-2); }
+    .truco .cmd { margin-top: auto; }
+    .truco .cmd code { font-family: var(--f-texto); font-size: 14.5px; color: var(--papel); }
+    .lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .pcard { display: flex; flex-direction: column; gap: 14px; background: var(--panel); border: 1px solid var(--linea); border-radius: 22px; padding: 20px; min-width: 0; }
+    .pcab { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: center; }
+    .pnum { font-family: var(--f-titulo); font-weight: 900; font-size: 54px; line-height: .8; color: var(--brasa); text-align: center; }
+    .pcab :is(h3, h4) { margin: 0; font-size: 19px; line-height: 1.25; }
+    .pcab p { margin: 3px 0 0; color: var(--mut); font-size: 14.5px; }
+    .pcard .caja { flex: 1; background: var(--codigo); }
+    .pcard .caja-bar { background: transparent; }
+    .mas { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; margin-top: 18px; padding: 18px 22px; border-radius: 20px; border: 1.5px dashed var(--cian); background: var(--cian-suave); }
+    .mas .ico { font-size: 30px; }
+    .mas p { margin: 0; color: var(--texto-2); }
+    .mas b { color: var(--papel); }
+    @media (max-width: 900px) { .lista { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 640px) { .mas { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
+    @media (max-width: 420px) { .pcard { padding: 16px; } pre.prompt { padding: 14px; font-size: 15px; } .caja-bar { padding-left: 14px; } }
+
+    /* ── Tokens ── */
+    .tokens { display: grid; grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 18px; align-items: start; }
+    .token-stat { background: var(--panel); border: 1px solid var(--linea); border-radius: 22px; padding: 24px; }
+    .token-stat .num { display: block; font-family: var(--f-titulo); font-weight: 900; font-size: clamp(64px, 9vw, 96px); line-height: .9; color: var(--cian); }
+    .token-stat .uno { margin: 8px 0 12px; font-size: 19px; font-weight: 700; }
+    .token-stat p { margin: 0; color: var(--texto-2); }
+    .token-stat .clave { font-size: 15.5px; margin-top: 16px; background: var(--panel-2); }
+    .tips { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .tips li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--linea); color: var(--texto-2); }
+    .tips li > span { font-size: 20px; line-height: 1.35; }
+    .tips b { color: var(--papel); }
+    .tips .cmd { margin-top: 8px; }
+    .tips .cmd code { font-family: var(--f-texto); font-size: 14.5px; color: var(--papel); }
+    @media (max-width: 860px) { .tokens { grid-template-columns: minmax(0, 1fr); } }
+
+    /* ── Casos, agentes, web ── */
+    .prueba { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: auto; padding-top: 8px; font-size: 13.5px; color: var(--mut); }
+    .prueba .enl { padding: 5px 10px; font-size: 13.5px; }
+    .web-datos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+    @media (max-width: 860px) { .web-datos { grid-template-columns: minmax(0, 1fr); } }
+
+    /* ── Simbi ── */
+    .simbi-demo { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+    .capturas { margin: 0; display: grid; gap: 10px; }
+    .capturas img { width: 100%; height: auto; border-radius: 16px; border: 1px solid var(--linea); }
+    .capturas-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .capturas figcaption { font-size: 13.5px; color: var(--mut); }
+    .simbi-lista { list-style: none; padding: 0; margin: 0 0 20px; display: grid; gap: 8px; font-size: 16.5px; }
+    .simbi-lista li { padding: 10px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--linea); }
+    .regalo { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); gap: 26px; align-items: center; border-radius: 26px; padding: clamp(22px, 4vw, 38px); border: 1px solid rgba(62, 230, 224, .45);
+      background: radial-gradient(500px 260px at 100% 0%, rgba(62, 230, 224, .16), transparent), radial-gradient(420px 260px at 0% 100%, rgba(255, 77, 46, .14), transparent), var(--panel); }
+    .regalo h3 { font-size: clamp(34px, 5vw, 52px); margin: 8px 0 10px; }
+    .regalo p { margin: 0 0 12px; color: var(--texto-2); }
+    .regalo ol { margin: 0 0 14px; padding-left: 22px; display: grid; gap: 4px; font-weight: 600; }
+    .regalo ol a { color: var(--cian); }
+    .regalo-cod { text-align: center; border: 2px dashed var(--cian); border-radius: 22px; padding: 20px 16px; display: grid; gap: 12px; justify-items: center; background: rgba(11, 15, 20, .45); }
+    .regalo-cod b { font-family: var(--f-titulo); font-weight: 900; font-size: clamp(46px, 6vw, 64px); letter-spacing: .04em; color: var(--cian); line-height: 1; }
+    @media (max-width: 860px) { .simbi-demo, .regalo { grid-template-columns: minmax(0, 1fr); } }
+
+    /* ── Tarea ── */
+    .cta { border-radius: 28px; padding: clamp(24px, 5vw, 50px); border: 1px solid var(--linea); background:
+      radial-gradient(600px 300px at 90% 0%, rgba(62, 230, 224, .18), transparent),
+      radial-gradient(500px 300px at 0% 100%, rgba(255, 77, 46, .16), transparent), var(--panel); }
+    .cta h2 { font-size: clamp(38px, 6vw, 66px); margin: 10px 0 12px; }
+    .cta > p { color: var(--texto-2); font-size: 18px; max-width: 680px; margin: 0 0 22px; }
+    .cta .caja { margin-bottom: 22px; background: var(--codigo); }
+    .cta .gracias { margin: 22px 0 0; font-family: var(--f-titulo); font-weight: 900; text-transform: uppercase; font-size: clamp(26px, 3.4vw, 36px); line-height: 1; color: var(--papel); }
+
+    /* ── Directorio de enlaces ── */
+    .directorio { columns: 3 280px; column-gap: 16px; }
+    .dir-grupo { break-inside: avoid; display: inline-block; width: 100%; background: var(--panel); border: 1px solid var(--linea); border-radius: 18px; padding: 14px 18px; margin: 0 0 16px; }
+    .dir-grupo h3 { margin: 0 0 6px; font: 700 12px/1.4 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mut); }
+    .dir-grupo ul { list-style: none; margin: 0; padding: 0; }
+    .dir-grupo a { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 8px; margin: 0 -8px; border-radius: 10px; text-decoration: none; color: var(--papel); font-weight: 600; font-size: 15px; }
+    .dir-grupo a:hover { background: var(--panel-2); }
+    .dir-grupo a span { color: var(--cian); font-weight: 500; font-size: 13.5px; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+
+    footer { border-top: 1px solid var(--linea); padding: 36px 0 48px; color: var(--mut); font-size: 14px; }
+    footer .envoltura { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+    .aviso { position: fixed; left: 50%; bottom: 18px; z-index: 30; width: max-content; max-width: calc(100% - 32px); transform: translate(-50%, calc(100% + 60px)); transition: transform .25s ease; background: var(--panel-2); color: var(--papel); border: 1px solid var(--cian); border-radius: 14px; padding: 12px 18px; font-weight: 600; font-size: 15px; }
+    .aviso:empty { display: none; }
+    .aviso.si { transform: translate(-50%, 0); box-shadow: var(--sombra); }
+  </style>
+</head>
+<body>
+  <a class="saltar" href="#agenda">Saltar al contenido</a>
+  <header class="nav">
+    <div class="envoltura">
+      <a class="marca" href="../"><img src="../logo.svg" alt=""><span>Somos Simbióticos</span></a>
+      <nav>
+        <a href="#agenda">Agenda</a>
+        <a href="#herramientas">Herramientas</a>
+        <a href="#prompts">Ejemplos</a>
+        <a href="#enlaces">Enlaces</a>
+        <a class="btn btn-brasa" href="../app/">Probar Simbi</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+<section class="hero">
+  <div class="envoltura">
+    <div>
+      <div class="mono">Clase 1 · Gratis · Google Meet</div>
+      <h1 class="titulo">La IA <span class="l2">a tu <span class="brasa">favor</span></span></h1>
+      <p class="lead">Guía práctica 2026: herramientas, prompts y casos de uso para que la inteligencia artificial trabaje para ti. Aquí está <b>todo lo de la clase</b>: los enlaces, los ejemplos para copiar y la presentación.</p>
+      <ul class="datos" aria-label="Datos de la clase">
+        <li><small>Fecha</small><b>Jueves 26 de noviembre de 2026</b></li>
+        <li><small>Hora</small><b>8:00 p. m. (Colombia)</b></li>
+        <li><small>Duración</small><b>1 hora</b></li>
+      </ul>
+      <div class="acciones">
+        <a class="btn btn-brasa" href="presentacion-la-ia-a-tu-favor.pdf" download="Clase IA a tu favor - presentacion.pdf">Descargar la presentación</a>
+        <a class="btn btn-borde" href="#prompts">Ver los ejemplos ↓</a>
+      </div>
+    </div>
+    <aside class="materiales" aria-label="Materiales de la clase">
+      <div class="mono">Materiales de la clase</div>
+      <a class="mat" href="presentacion-la-ia-a-tu-favor.pdf" download="Clase IA a tu favor - presentacion.pdf"><span class="mat-ico" aria-hidden="true">📄</span><span><b>Presentación (PDF)</b><small>28 diapositivas con todos los enlaces · 3 MB</small></span><span class="mat-ir" aria-hidden="true">⬇</span></a><a class="mat" href="https://colab.research.google.com/github/somossimbioticos/somossimbioticos.github.io/blob/main/recursos/ia_gratis_colab.ipynb" target="_blank" rel="noopener"><span class="mat-ico" aria-hidden="true">🧪</span><span><b>Cuaderno de Colab</b><small>Clona tu voz, usa ElevenLabs y crea imágenes gratis</small></span><span class="mat-ir" aria-hidden="true">↗</span></a><a class="mat" href="../prompts/"><span class="mat-ico" aria-hidden="true">✍️</span><span><b>Guía de prompts</b><small>Método RCT, un ejemplo completo y 10 prompts más</small></span><span class="mat-ir" aria-hidden="true">→</span></a><a class="mat" href="https://chat.whatsapp.com/JM1uSyx6D1YHoal0NypoDW" target="_blank" rel="noopener"><span class="mat-ico" aria-hidden="true">💬</span><span><b>Grupo de WhatsApp</b><small>Comparte tu tarea y tus preguntas</small></span><span class="mat-ir" aria-hidden="true">↗</span></a><div class="mat mat-regalo"><span class="mat-ico" aria-hidden="true">🎁</span><span><b>Tu día gratis de Simbi</b><small>Código <code>SOMOS2026</code> · <a href="#regalo">cómo usarlo</a></small></span><button class="copiar-mini" type="button" data-copiar="codigo" data-msg="Código copiado. Entra a Simbi, crea tu cuenta y pégalo." aria-label="Copiar el código SOMOS2026" title="Copiar">📋</button></div>
+    </aside>
+  </div>
+</section>
+<section id="agenda"><div class="envoltura"><div class="sec-cab"><div class="mono">60 minutos · 8 partes</div><h2 class="titulo">Agenda de la <span class="cian">clase</span></h2><p>Toca una parte para ir directo a sus enlaces y ejemplos.</p></div>
+<ol class="agenda"><li><a href="#quienes"><span class="ag-min">0–5′</span><span class="ag-ico" aria-hidden="true">👋</span><span>Bienvenida, quiénes somos y tu regalo</span><span class="ag-ir" aria-hidden="true">↓</span></a></li><li><a href="#ia"><span class="ag-min">5–10′</span><span class="ag-ico" aria-hidden="true">🤖</span><span>¿Qué es la IA? y qué tan rápido avanza</span><span class="ag-ir" aria-hidden="true">↓</span></a></li><li><a href="#precios"><span class="ag-min">10–14′</span><span class="ag-ico" aria-hidden="true">💲</span><span>¿Cuánto cuesta? Claude, ChatGPT, Gemini, Grok y Simbi</span><span class="ag-ir" aria-hidden="true">↓</span></a></li><li><a href="#herramientas"><span class="ag-min">14–24′</span><span class="ag-ico" aria-hidden="true">🧰</span><span>Herramientas: chat, imagen, video, voz (clonar gratis en Colab)</span><span class="ag-ir" aria-hidden="true">↓</span></a></li><li><a href="#apis"><span class="ag-min">24–32′</span><span class="ag-ico" aria-hidden="true">🔌</span><span>APIs: qué son, Groq gratis y Ollama en tu PC</span><span class="ag-ir" aria-hidden="true">↓</span></a></li><li><a href="#prompts"><span class="ag-min">32–42′</span><span class="ag-ico" aria-hidden="true">✍️</span><span>Prompts que funcionan y cómo ahorrar tokens</span><span class="ag-ir" aria-hidden="true">↓</span></a></li><li><a href="#casos"><span class="ag-min">42–50′</span><span class="ag-ico" aria-hidden="true">💼</span><span>Casos de uso, agentes y webs con base de datos</span><span class="ag-ir" aria-hidden="true">↓</span></a></li><li><a href="#riesgos"><span class="ag-min">50–60′</span><span class="ag-ico" aria-hidden="true">🎁</span><span>Riesgos, conoce Simbi en vivo y tu día gratis</span><span class="ag-ir" aria-hidden="true">↓</span></a></li></ol>
+</div></section>
+<section id="quienes" class="banda"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 1 · Bienvenida</div><h2 class="titulo">¿Quiénes <span class="cian">somos</span>?</h2></div>
+<div class="quienes">
+  <article class="tarjeta c-cian">
+    <div class="t-cab"><img src="../logo.svg" alt="" width="42" height="42"><h3>Somos Simbióticos</h3></div>
+    <ul class="q-lista">
+      <li><span aria-hidden="true">🎓</span><p>Enseñamos a usar la tecnología y la inteligencia artificial <b class="cian">a tu favor</b>, con talleres prácticos.</p></li>
+      <li><span aria-hidden="true">🤖</span><p>Creamos herramientas propias como <b class="cian">Simbi</b>, nuestro asistente de IA.</p></li>
+      <li class="q-politica"><span aria-hidden="true">🏛️</span><p>Promovemos el uso de la <b class="cian">IA</b> y el <b class="brasa">blockchain</b> en la política, para gobernar con evidencia y transparencia.</p></li>
+    </ul>
+    <div class="enlaces-fila"><a class="enl" href="https://www.instagram.com/somossimbioticos/" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> @<wbr>somossimbioticos</a><a class="enl" href="../"><span aria-hidden="true">→</span> somossimbioticos<wbr>.github<wbr>.io</a></div>
+  </article>
+  <article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🚀</span><h3>Avancemos</h3></div><p>Aliados de esta clase. Síguelos en Instagram para conocer sus proyectos, actividades y próximos encuentros.</p><div class="enlaces-fila"><a class="enl" href="https://www.instagram.com/avancemos.col/" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> @<wbr>avancemos<wbr>.col</a></div></article>
+</div>
+<p class="clave">🤝 Juntos queremos que más personas usen la IA para estudiar, trabajar y emprender mejor.</p>
+</div></section>
+<section id="ia"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 2 · Lo básico</div><h2 class="titulo">¿Qué es la <span class="cian">inteligencia artificial</span>?</h2></div>
+<div class="dos"><div><p class="grande">Programas que <b class="cian">aprenden de millones de ejemplos</b> para entender y crear texto, imágenes, voz y video.</p><div class="flujo"><div class="paso c-cian"><span aria-hidden="true">📥</span><div><b class="paso-tit">1. Lee tu mensaje</b><small>Lo parte en pedacitos llamados tokens.</small></div></div><div class="paso c-ambar"><span aria-hidden="true">🎯</span><div><b class="paso-tit">2. Predice la siguiente palabra</b><small>La más probable, una por una, muy rápido.</small></div></div><div class="paso c-brasa"><span aria-hidden="true">📚</span><div><b class="paso-tit">3. Aprendió leyendo muchísimo</b><small>Libros, webs y código: por eso «sabe» de casi todo… y a veces inventa.</small></div></div></div></div><div class="conceptos"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">💬</span><h3>Texto</h3></div><p>ChatGPT, Claude, Gemini</p></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎨</span><h3>Imagen</h3></div><p>Nano Banana, Midjourney</p></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🗣️</span><h3>Voz</h3></div><p>ElevenLabs, Qwen3-TTS, Chirp</p></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎬</span><h3>Video</h3></div><p>Veo, Sora, Kling</p></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🧠</span><h3>Modelo</h3></div><p>El «cerebro» entrenado (GPT, Gemini, Llama…).</p></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">✍️</span><h3>Prompt</h3></div><p>La instrucción que tú le das.</p></article></div></div>
+</div></section>
+<section id="avance" class="banda"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 2 · Datos de Artificial Analysis</div><h2 class="titulo">¿Qué tan rápido avanza la <span class="cian">IA</span>?</h2></div>
+<div class="stats"><div class="stat"><b>12 → 74</b><p>de cada 100 preguntas de nivel experto responde bien la mejor IA</p><small>Humanity's Last Exam · ene 2025 → nov 2026</small></div><div class="stat"><b>50% → 96%</b><p>de problemas reales de programación resueltos</p><small>SWE-bench Verified</small></div><div class="stat"><b>×6</b><p>más capaz en menos de 2 años</p></div><div class="stat"><b>1 / mes</b><p>sale un modelo nuevo de Anthropic, OpenAI o Google, y el primer lugar cambia varias veces al año</p></div></div>
+<div class="carrera bloque">
+  <figure>
+    <a href="img/carrera-ia.webp" target="_blank" rel="noopener"><img src="img/carrera-ia.webp" width="1080" height="1350" loading="lazy" alt="Calendario de enero de 2025 a noviembre de 2026 con cada modelo nuevo de Claude, ChatGPT y Gemini y su nota en Humanity's Last Exam: en 2025 las notas iban de 4 % a 40 %; en noviembre de 2026 Claude Fable 5.2 llega a 74 %."></a>
+    <figcaption>Toca la imagen para verla en grande · Datos: Artificial Analysis, nov 2026.</figcaption>
+  </figure>
+  <div>
+    <h3 class="sub-tit" style="margin-top:0">La carrera de la IA, mes a mes</h3>
+    <p>Claude vs ChatGPT vs Gemini. Cada casilla es un modelo nuevo con su nota en el examen más difícil del mundo.</p>
+    <ul class="puntos">
+      <li><b>2025:</b> los modelos sacaban entre <b>10 y 40</b>.</li>
+      <li><b>2026:</b> los mejores ya pasan de <b>55</b> y <b class="cian">Claude Fable 5.2</b> llega a <b class="cian">74</b>.</li>
+      <li>La carrera es pareja: <b>el liderato pasa de una empresa a otra</b>.</li>
+    </ul>
+  </div>
+</div>
+<div class="bloque"><figure class="grafico" aria-labelledby="g-tit">
+  <h4 id="g-tit">¿Quién lidera hoy?</h4>
+  <div class="mono">Índice de inteligencia · Artificial Analysis v5 · nov 2026</div>
+  <ul class="leyenda" aria-label="Colores por empresa"><li><span class="sw" style="--c:#3EE6E0"></span>Claude (Anthropic)</li><li><span class="sw" style="--c:#FFC23F"></span>ChatGPT (OpenAI)</li><li><span class="sw" style="--c:#FF4D2E"></span>Gemini (Google)</li></ul>
+  <table class="barras">
+    <caption class="sr">Índice de inteligencia de Artificial Analysis, versión 5, noviembre de 2026. Más puntos es mejor.</caption>
+    <tbody><tr tabindex="0" style="--c:#3EE6E0"><th scope="row" class="g-mod">Claude Fable 5.2<small>Anthropic</small></th><td class="g-bar" style="--w:92.9%"><span class="barra"></span><span class="g-tip" aria-hidden="true">Anthropic · 65 puntos</span></td><td class="g-val">65</td></tr><tr tabindex="0" style="--c:#FF4D2E"><th scope="row" class="g-mod">Gemini 4 Neon<small>Google</small></th><td class="g-bar" style="--w:88.6%"><span class="barra"></span><span class="g-tip" aria-hidden="true">Google · 62 puntos</span></td><td class="g-val">62</td></tr><tr tabindex="0" style="--c:#FFC23F"><th scope="row" class="g-mod">GPT-6.2 Astra<small>OpenAI</small></th><td class="g-bar" style="--w:88.6%"><span class="barra"></span><span class="g-tip" aria-hidden="true">OpenAI · 62 puntos</span></td><td class="g-val">62</td></tr><tr tabindex="0" style="--c:#FF4D2E"><th scope="row" class="g-mod">Gemini 4 Carbon<small>Google</small></th><td class="g-bar" style="--w:85.7%"><span class="barra"></span><span class="g-tip" aria-hidden="true">Google · 60 puntos</span></td><td class="g-val">60</td></tr><tr tabindex="0" style="--c:#3EE6E0"><th scope="row" class="g-mod">Claude Opus 5.5<small>Anthropic</small></th><td class="g-bar" style="--w:84.3%"><span class="barra"></span><span class="g-tip" aria-hidden="true">Anthropic · 59 puntos</span></td><td class="g-val">59</td></tr><tr tabindex="0" style="--c:#FFC23F"><th scope="row" class="g-mod">GPT-6.1 Sol<small>OpenAI</small></th><td class="g-bar" style="--w:78.6%"><span class="barra"></span><span class="g-tip" aria-hidden="true">OpenAI · 55 puntos</span></td><td class="g-val">55</td></tr><tr tabindex="0" style="--c:#3EE6E0"><th scope="row" class="g-mod">Claude Sonnet 5.5<small>Anthropic</small></th><td class="g-bar" style="--w:78.6%"><span class="barra"></span><span class="g-tip" aria-hidden="true">Anthropic · 55 puntos</span></td><td class="g-val">55</td></tr></tbody>
+  </table>
+  <p class="g-nota">Más puntos = razona mejor. Compara solo dentro de la misma versión del índice.</p>
+</figure></div>
+<div class="aa bloque">
+  <div>
+    <h3 class="sub-tit" style="margin-top:0">Artificial Analysis: ¿para qué sirve?</h3>
+    <p>Una web independiente que pone a prueba todos los modelos de IA con los mismos exámenes y los compara.</p>
+    <p class="clave">💡 No existe «la mejor IA»: existe la mejor para tu tarea y tu presupuesto.</p>
+    <div class="enlaces-fila" style="margin-top:14px"><a class="enl" href="https://artificialanalysis.ai" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> artificialanalysis<wbr>.ai</a></div>
+  </div>
+  <div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🧠</span><h3>Inteligencia</h3></div><p>Quién razona mejor (matemáticas, ciencia, código).</p></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">⚡</span><h3>Velocidad</h3></div><p>Cuántas palabras por segundo escribe.</p></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">💲</span><h3>Precio</h3></div><p>Cuánto cuesta por millón de tokens.</p></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">⚖️</span><h3>Inteligencia vs. precio</h3></div><p>Cuál rinde más por lo que cuesta.</p></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎨</span><h3>Imagen, video y voz</h3></div><p>Rankings votados por personas.</p></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">📊</span><h3>Comparar versiones</h3></div><p>Compara solo dentro de la misma versión del índice.</p></article></div>
+</div>
+</div></section>
+<section id="precios"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 3 · Planes mensuales</div><h2 class="titulo">¿Cuánto cuesta la <span class="cian">IA</span>?</h2></div>
+<div class="precios"><article class="pc"><span class="pc-ico" aria-hidden="true">🟠</span><h3>Claude Pro</h3><small>Anthropic</small><div class="pc-usd">US$20</div><div class="pc-cop">≈ $80.000/mes</div><p>US$17 si pagas el año</p></article><article class="pc"><span class="pc-ico" aria-hidden="true">🟢</span><h3>ChatGPT Plus</h3><small>OpenAI</small><div class="pc-usd">US$20</div><div class="pc-cop">≈ $80.000/mes</div><p>Chat, imágenes, voz y agentes</p></article><article class="pc"><span class="pc-ico" aria-hidden="true">🔵</span><h3>Google AI Pro</h3><small>Gemini</small><div class="pc-usd">US$19,99</div><div class="pc-cop">≈ $80.000/mes</div><p>Incluye 2 TB en Google Drive</p></article><article class="pc"><span class="pc-ico" aria-hidden="true">⚫</span><h3>SuperGrok</h3><small>xAI</small><div class="pc-usd">US$30</div><div class="pc-cop">≈ $120.000/mes</div><p>Grok con más límites</p></article><article class="pc simbi"><span class="pc-ico" aria-hidden="true">✨</span><h3>Simbi Pro</h3><small>Somos Simbióticos</small><div class="pc-usd">US$4</div><div class="pc-cop">$16.000/mes</div><p>Chat + imágenes, voz, música, subtítulos, doblaje, PDF/Excel/PPT, webs y nube</p></article></div><p class="nota">Precios de referencia en dólares (noviembre de 2026); pesos colombianos aproximados a $4.000 por dólar. Revisa siempre la web oficial: cambian seguido. Todos tienen un plan gratis con límites.</p>
+</div></section>
+<section id="herramientas" class="banda"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 4 · Para cada tarea, una herramienta</div><h2 class="titulo">Herramientas de <span class="cian">IA</span></h2><p>Toca un enlace para abrir la herramienta. Casi todas tienen plan gratis; revisa planes y precios, que cambian seguido.</p></div>
+<ul class="indice" aria-label="Tipos de herramientas"><li><a href="#h-conversar"><span aria-hidden="true">💬</span>Conversar, investigar y estudiar</a></li><li><a href="#h-imagen"><span aria-hidden="true">🎨</span>Imágenes y video</a></li><li><a href="#h-voz"><span aria-hidden="true">🗣️</span>Voz y música</a></li><li><a href="#h-programar"><span aria-hidden="true">💻</span>Crear apps y programar</a></li></ul><div class="grupo" id="h-conversar"><h3 class="grupo-tit"><span class="ico" aria-hidden="true">💬</span>Conversar, investigar y estudiar</h3><div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🟠</span><h4>Claude</h4></div><p>Excelente redactando, analizando documentos y programando. Proyectos y artefactos.</p><div class="enlaces-fila"><a class="enl" href="https://claude.ai" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> claude<wbr>.ai</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🟢</span><h4>ChatGPT</h4></div><p>El más conocido: chat, imágenes, voz y agentes.</p><div class="enlaces-fila"><a class="enl" href="https://chatgpt.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> chatgpt<wbr>.com</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🔵</span><h4>Gemini</h4></div><p>Integrado con Gmail, Drive, Docs y YouTube. Fuerte en video e imagen.</p><div class="enlaces-fila"><a class="enl" href="https://gemini.google.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> gemini<wbr>.google<wbr>.com</a></div></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🔎</span><h4>Perplexity</h4></div><p>Buscador con IA: responde citando fuentes.</p><div class="enlaces-fila"><a class="enl" href="https://perplexity.ai" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> perplexity<wbr>.ai</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">📚</span><h4>NotebookLM</h4></div><p>Sube tus PDF y estudia con ellos: resúmenes, preguntas y podcast de tus apuntes.</p><div class="enlaces-fila"><a class="enl" href="https://notebooklm.google.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> notebooklm<wbr>.google<wbr>.com</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🧪</span><h4>Google AI Studio</h4></div><p>Prueba gratis los modelos de Google: texto, voz, imagen y video.</p><div class="enlaces-fila"><a class="enl" href="https://aistudio.google.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> aistudio<wbr>.google<wbr>.com</a></div></article></div></div><div class="grupo" id="h-imagen"><h3 class="grupo-tit"><span class="ico" aria-hidden="true">🎨</span>Imágenes y video</h3><div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🍌</span><h4>Nano Banana (Gemini)</h4></div><p>Crea y <b>edita</b> fotos con instrucciones: cambiar fondo, ropa, estilo.</p><div class="enlaces-fila"><a class="enl" href="https://gemini.google.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> gemini<wbr>.google<wbr>.com</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎨</span><h4>Midjourney</h4></div><p>Imágenes artísticas de altísima calidad.</p><div class="enlaces-fila"><a class="enl" href="https://midjourney.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> midjourney<wbr>.com</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🔤</span><h4>Ideogram</h4></div><p>El mejor para imágenes con <b>texto</b> (afiches, logos).</p><div class="enlaces-fila"><a class="enl" href="https://ideogram.ai" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> ideogram<wbr>.ai</a></div></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🖌️</span><h4>Canva IA</h4></div><p>Diseños para redes y presentaciones con IA incluida.</p><div class="enlaces-fila"><a class="enl" href="https://canva.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> canva<wbr>.com</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎬</span><h4>Veo (Google) · Sora (OpenAI)</h4></div><p>Video realista con sonido a partir de texto: clips de 4 a 8 s.</p><div class="enlaces-fila"><a class="enl" href="https://gemini.google.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> gemini<wbr>.google<wbr>.com</a><a class="enl" href="https://sora.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> sora<wbr>.com</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎥</span><h4>Kling · Runway</h4></div><p>Animar fotos y crear escenas de video.</p><div class="enlaces-fila"><a class="enl" href="https://klingai.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> klingai<wbr>.com</a><a class="enl" href="https://runwayml.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> runwayml<wbr>.com</a></div></article></div></div><div class="grupo" id="h-voz"><h3 class="grupo-tit"><span class="ico" aria-hidden="true">🗣️</span>Voz y música</h3><div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🗣️</span><h4>ElevenLabs</h4></div><p>La más conocida para <b>clonar</b> voz y doblar videos a otros idiomas.</p><div class="enlaces-fila"><a class="enl" href="https://elevenlabs.io" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> elevenlabs<wbr>.io</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎙️</span><h4>Voces de Google</h4></div><p>Chirp HD (natural) y Gemini TTS (expresiva). Las que usa Simbi.</p><div class="enlaces-fila"><a class="enl" href="https://aistudio.google.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> aistudio<wbr>.google<wbr>.com</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">💻</span><h4>Código abierto</h4></div><p>Clonación de voz en tu propio PC (F5-TTS, XTTS): gratis, pero requiere buen equipo. Sin equipo potente, usa Colab.</p><div class="enlaces-fila"><a class="enl interno" href="#voz"><span aria-hidden="true">↓</span> Clonar gratis en Colab</a></div></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎵</span><h4>Suno</h4></div><p>Canciones completas con letra y voz desde un texto.</p><div class="enlaces-fila"><a class="enl" href="https://suno.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> suno<wbr>.com</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎼</span><h4>Udio · Lyria (Google)</h4></div><p>Música y pistas instrumentales.</p><div class="enlaces-fila"><a class="enl" href="https://udio.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> udio<wbr>.com</a><a class="enl" href="https://aistudio.google.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> aistudio<wbr>.google<wbr>.com</a></div></article><article class="tarjeta c-brasa alerta-t"><div class="t-cab"><span class="t-ico" aria-hidden="true">⚠️</span><h4>Regla de oro</h4></div><p>Clona <b>solo</b> tu voz o la de alguien que te dé permiso. Revisa los derechos antes de usar música o voces con fines comerciales.</p></article></div></div><div class="grupo" id="h-programar"><h3 class="grupo-tit"><span class="ico" aria-hidden="true">💻</span>Crear apps y programar<span class="etq">Nivel avanzado</span></h3><div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🤖</span><h4>Claude Code</h4></div><p>Agente que programa dentro de tu computador: escribe, prueba y corrige.</p><div class="enlaces-fila"><a class="enl" href="https://claude.com/claude-code" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> claude<wbr>.com/<wbr>claude-code</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🔓</span><h4>OpenCode</h4></div><p>Agente de programación de código abierto; funciona con Claude, Gemini, GPT o modelos locales.</p><div class="enlaces-fila"><a class="enl" href="https://opencode.ai" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> opencode<wbr>.ai</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">💎</span><h4>Gemini CLI</h4></div><p>El agente de Google para la terminal.</p><div class="enlaces-fila"><a class="enl" href="https://github.com/google-gemini/gemini-cli" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> github<wbr>.com/<wbr>google-gemini/<wbr>gemini-cli</a></div></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">✨</span><h4>Lovable · Bolt · v0</h4></div><p>Describe tu app o página y la crean por ti.</p><div class="enlaces-fila"><a class="enl" href="https://lovable.dev" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> lovable<wbr>.dev</a><a class="enl" href="https://bolt.new" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> bolt<wbr>.new</a><a class="enl" href="https://v0.dev" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> v0<wbr>.dev</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🕸️</span><h4>Graphify</h4></div><p>Convierte una carpeta (código, PDF, notas) en un mapa que la IA consulta gastando pocos tokens.</p><div class="cmd"><code>pip install graphifyy</code><button class="copiar-mini" type="button" data-copiar="c1" data-msg="Copiado. Pégalo en la terminal, en Colab o en tu editor." aria-label="Copiar el comando" title="Copiar">📋</button></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🏠</span><h4>IA en tu PC (privada)</h4></div><p>Ollama y LM Studio con modelos abiertos: Llama, Qwen, DeepSeek, Gemma.</p><div class="enlaces-fila"><a class="enl" href="https://ollama.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> ollama<wbr>.com</a><a class="enl" href="https://lmstudio.ai" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> lmstudio<wbr>.ai</a></div></article></div></div>
+</div></section>
+<section id="voz"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 4 · Google Colab · GPU gratis</div><h2 class="titulo">Clonar y generar voz <span class="cian">gratis</span></h2><p>Google Colab te presta un computador con tarjeta gráfica (GPU) gratis, desde el navegador. No necesitas instalar nada.</p></div>
+<div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🧬</span><h3>Qwen3-TTS 1.7B</h3></div><p>Modelo abierto de Alibaba (Qwen). Clona una voz con 5–15 s de audio y habla 10 idiomas, incluido español. Corre gratis en Google Colab con GPU.</p><div class="enlaces-fila"><a class="enl" href="https://colab.research.google.com/github/somossimbioticos/somossimbioticos.github.io/blob/main/recursos/ia_gratis_colab.ipynb" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> Abrir cuaderno de la clase</a><a class="enl" href="../recursos/ia_gratis_colab.ipynb" download><span aria-hidden="true">⬇</span> Descargar .ipynb</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎙️</span><h3>Generar voz con Qwen en Colab</h3></div><p>Cuaderno listo para escribir un texto y escucharlo con voces de Qwen. Solo toca ▶️ en cada celda.</p><div class="enlaces-fila"><a class="enl" href="https://colab.research.google.com/drive/1eqGAk7EylS6rZO-LSQSgE4VlZhCGMC1X#scrollTo=l8Au1ANZuDU6" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> Abrir en Google Colab</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎧</span><h3>API de ElevenLabs</h3></div><p>Voces muy naturales y clonación profesional desde tu código. La llave se guarda en los Secretos de Colab (🔑), nunca dentro del código.</p><div class="enlaces-fila"><a class="enl" href="https://elevenlabs.io/docs" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> elevenlabs<wbr>.io/<wbr>docs</a></div></article></div>
+<div class="colab">
+  <div class="lateral"><h3>Cómo usar el cuaderno</h3><ol class="lista-num"><li><div>Ábrelo con <b>Abrir cuaderno de la clase</b> y entra con tu cuenta de Google.</div></li><li><div>Menú <b>Entorno de ejecución → Cambiar tipo de entorno de ejecución → GPU T4</b> (gratis).</div></li><li><div>Corre las celdas en orden con ▶️ (o <b>Shift + Enter</b>). La primera vez tarda unos minutos instalando.</div></li><li><div><b>Parte 1:</b> sube un audio tuyo de 5 a 15 segundos (sirve una nota de voz de WhatsApp) y escribe el texto exacto que dices en él.</div></li><li><div><b>Parte 2:</b> en 🔑 <b>Secretos</b> (barra izquierda) crea un secreto con este nombre, pega tu llave de ElevenLabs y activa el acceso del cuaderno:<div class="cmd"><code>ELEVENLABS_API_KEY</code><button class="copiar-mini" type="button" data-copiar="c2" data-msg="Copiado. Úsalo como nombre del secreto en Colab (🔑)." aria-label="Copiar el nombre del secreto" title="Copiar">📋</button></div></div></li><li><div><b>Parte 3:</b> describe tu imagen (en inglés suele salir mejor) y créala en unos 2 segundos.</div></li></ol></div>
+  <div class="lateral"><h3>Lo que trae</h3><div class="flujo"><div class="paso c-cian"><span aria-hidden="true">🗣️</span><div><b class="paso-tit">1 · Clonar tu voz</b><small>Con Qwen3-TTS 1.7B, de código abierto y gratis.</small></div></div><div class="paso c-ambar"><span aria-hidden="true">🎧</span><div><b class="paso-tit">2 · Voz con ElevenLabs</b><small>Voz profesional con la API de ElevenLabs. Necesitas tu propia llave.</small></div></div><div class="paso c-brasa"><span aria-hidden="true">🎨</span><div><b class="paso-tit">3 · Crear imágenes</b><small>SDXL-Turbo en la GPU de Colab: una imagen en ~2 s. Licencia para uso personal y de investigación (no comercial).</small></div></div></div>
+    <div class="enlaces-fila" style="margin-top:14px"><a class="enl" href="https://colab.research.google.com/github/somossimbioticos/somossimbioticos.github.io/blob/main/recursos/ia_gratis_colab.ipynb" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> Abrir en Colab</a><a class="enl" href="../recursos/ia_gratis_colab.ipynb" download><span aria-hidden="true">⬇</span> Descargar .ipynb</a></div>
+    <div class="alerta"><span class="ico" aria-hidden="true">⚠️</span><p><b>Con permiso, siempre.</b> Clona solo tu voz o la de alguien que te autorice. Una llave de API es como tu tarjeta de crédito: no la compartas en chats, capturas ni presentaciones.</p></div>
+  </div>
+</div>
+</div></section>
+<section id="apis" class="banda"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 5 · APIs</div><h2 class="titulo">¿Qué es una <span class="cian">API</span>?</h2></div>
+<div class="dos">
+  <div><p class="grande">Una <b class="cian">API</b> es la puerta para que <b>tu programa</b> (una web, un bot de WhatsApp, un Excel) le pida cosas a otro servicio, por ejemplo a una IA.</p><div class="flujo"><div class="paso c-cian"><span aria-hidden="true">🙋</span><div><b class="paso-tit">Tú (tu app)</b><small>haces el pedido</small></div></div><div class="flecha" aria-hidden="true">↓ con tu llave (API key)</div><div class="paso c-ambar"><span aria-hidden="true">🤵</span><div><b class="paso-tit">La API = el mesero</b><small>lleva el pedido y trae la respuesta</small></div></div><div class="flecha" aria-hidden="true">↓</div><div class="paso c-brasa"><span aria-hidden="true">🔥</span><div><b class="paso-tit">La cocina = el modelo de IA</b><small>Gemini, Llama, GPT…</small></div></div></div></div>
+  <div><ul class="api-puntos"><li>🔑 <b>API key:</b> tu contraseña para usarla. Es secreta.</li><li>💲 <b>Pagas por tokens</b> (o es gratis con límites).</li><li>🔌 Con una API metes IA en <b>tu web, tu bot o tu negocio</b>.</li></ul><div class="caja idea"><div class="caja-bar"><span class="mono">La idea, en código</span></div><pre class="codigo"><code>pregunta = "Resume este texto en 3 viñetas"
+respuesta = ia.chat(modelo="llama-3.3-70b",
+                    mensaje=pregunta)
+print(respuesta)</code></pre></div></div>
+</div>
+<h3 class="sub-tit" id="groq">APIs de IA gratis: Groq <span class="etq">Para programadores</span></h3>
+<p><b class="cian">Groq</b> te da una API de IA <b>gratis</b> (con límites) y <b>ultrarrápida</b>: cientos de palabras por segundo con modelos abiertos como Llama, Qwen y GPT-OSS.</p>
+<div class="dos">
+  <div><ol class="pasos-num"><li class="pn"><span aria-hidden="true">1</span><div><b class="pn-tit">Crea tu cuenta</b><p>Sin tarjeta de crédito.</p><div class="enlaces-fila"><a class="enl" href="https://console.groq.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> console<wbr>.groq<wbr>.com</a></div></div></li><li class="pn"><span aria-hidden="true">2</span><div><b class="pn-tit">Crea tu API key</b><p>Menú <b>API Keys</b> → <b>Create API Key</b>. Guárdala en un lugar seguro.</p><div class="enlaces-fila"><a class="enl" href="https://console.groq.com/keys" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> console<wbr>.groq<wbr>.com/<wbr>keys</a></div></div></li><li class="pn"><span aria-hidden="true">3</span><div><b class="pn-tit">Úsala</b><p>Funciona igual que la de OpenAI: cambia solo la dirección y el modelo.</p></div></li></ol><div class="enlaces-fila" style="margin-top:16px"><a class="enl" href="https://groq.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> groq<wbr>.com</a></div></div>
+  <div><div class="caja cod"><div class="caja-bar"><span class="mono">Ejemplo en Python · Groq</span><button class="btn btn-cian copiar" type="button" data-copiar="groq" data-msg="Copiado. Pégalo en la terminal, en Colab o en tu editor." aria-label="Copiar el código de ejemplo de Groq">📋 Copiar</button></div><pre class="codigo"><code># Primero instala la librería:  pip install openai
+from openai import OpenAI
+
+cliente = OpenAI(api_key="TU_LLAVE",
+    base_url="https://api.groq.com/openai/v1")
+
+r = cliente.chat.completions.create(
+    model="llama-3.3-70b-versatile",
+    messages=[{"role": "user",
+               "content": "Hola, ¿qué es Groq?"}])
+print(r.choices[0].message.content)</code></pre></div><p class="nota">Cambia <code>TU_LLAVE</code> por tu llave y no la publiques. En Colab, guárdala en 🔑 Secretos.</p><div style="margin-top:14px"><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎁</span><h3>Otras APIs con plan gratis</h3></div><p>Google AI Studio (Gemini) y OpenRouter (modelos «:free»). Límites típicos: ~30 pedidos por minuto.</p><div class="enlaces-fila"><a class="enl" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> aistudio<wbr>.google<wbr>.com/<wbr>apikey</a><a class="enl" href="https://openrouter.ai" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> openrouter<wbr>.ai</a></div></article></div></div>
+</div>
+</div></section>
+<section id="ollama"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 5 · Gratis · privado · sin internet</div><h2 class="titulo">IA en tu PC con <span class="cian">Ollama</span></h2><p>Instálalo desde <a href="https://ollama.com/download" target="_blank" rel="noopener">ollama.com/download</a>, abre la terminal (en Windows: «Símbolo del sistema» o PowerShell) y escribe un comando. La primera vez descarga el modelo.</p></div>
+<div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">⚡</span><h3>Texto rápido y liviano</h3></div><div class="cmd"><code>ollama run gemma3:1b</code><button class="copiar-mini" type="button" data-copiar="c3" data-msg="Copiado. Pégalo en la terminal, en Colab o en tu editor." aria-label="Copiar el comando" title="Copiar">📋</button></div><p>806 MB · responde en ~1 s en un PC sin tarjeta gráfica (~23 palabras/s). Ideal para resumir, redactar y practicar.</p></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">👁️</span><h3>Analizar una imagen</h3></div><div class="cmd"><code>ollama run moondream "Describe esta foto" ./foto.jpg</code><button class="copiar-mini" type="button" data-copiar="c4" data-msg="Copiado. Pégalo en la terminal, en Colab o en tu editor." aria-label="Copiar el comando" title="Copiar">📋</button></div><p>1,7 GB · ~30 s por foto sin GPU (responde en inglés). Mejor en español: <b>qwen3-vl:2b</b> (necesita GPU para ir rápido).</p></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎨</span><h3>Crear imágenes</h3></div><div class="cmd"><code>ollama run x/flux2-klein "un colibrí en acuarela"</code><button class="copiar-mini" type="button" data-copiar="c5" data-msg="Copiado. Pégalo en la terminal, en Colab o en tu editor." aria-label="Copiar el comando" title="Copiar">📋</button></div><p>Experimental y por ahora <b>solo en Mac</b>. En Windows o Linux usa la parte 3 del cuaderno de Colab (GPU gratis).</p><div class="enlaces-fila"><a class="enl" href="https://colab.research.google.com/github/somossimbioticos/somossimbioticos.github.io/blob/main/recursos/ia_gratis_colab.ipynb" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> Cuaderno: imágenes en Colab</a></div></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🔒</span><h3>¿Por qué local?</h3></div><p>Gratis, privado (tus datos no salen del PC) y funciona sin internet. Más grande el modelo = más inteligente pero más lento.</p><div class="enlaces-fila"><a class="enl" href="https://ollama.com/download" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> ollama<wbr>.com/<wbr>download</a><a class="enl" href="https://ollama.com/search" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> ollama<wbr>.com/<wbr>search</a></div></article></div>
+</div></section>
+<section id="prompts"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 6 · Los ejemplos</div><h2 class="titulo">Prompts que <span class="cian">funcionan</span></h2><p>Un prompt es la instrucción que le das a la IA. Mientras más claro, mejor la respuesta.</p></div>
+<h3 class="sub-tit" id="formula" style="margin-top:0">La fórmula R · C · T · F · E</h3>
+<p>Las cinco partes de un buen prompt, con el ejemplo de la clase: un profesor que prepara una clase de genética.</p>
+<div class="rctfe"><div class="fila c-cian"><span class="letra" aria-hidden="true">R</span><b>Rol</b><q>Actúa como profesor de biología con 20 años de experiencia</q></div><div class="fila c-ambar"><span class="letra" aria-hidden="true">C</span><b>Contexto</b><q>Mis estudiantes son de grado 9 y les cuesta la genética</q></div><div class="fila c-brasa"><span class="letra" aria-hidden="true">T</span><b>Tarea</b><q>Crea una clase de 45 minutos sobre las leyes de Mendel</q></div><div class="fila c-violeta"><span class="letra" aria-hidden="true">F</span><b>Formato</b><q>En tabla: momento, actividad, minutos y materiales</q></div><div class="fila c-verde"><span class="letra" aria-hidden="true">E</span><b>Ejemplos y límites</b><q>Sin términos en inglés; incluye un juego de 10 minutos</q></div></div>
+<div class="compara">
+  <div class="mal"><span class="ico" aria-hidden="true">❌</span><p><b>«Hazme una clase de genética»</b><br>→ respuesta genérica</p></div>
+  <div class="bien"><span class="ico" aria-hidden="true">✅</span><p><b>R + C + T + F + E</b><br>→ lista para usar</p></div>
+</div>
+<div class="caja"><div class="caja-bar"><span class="mono">✅ El prompt completo</span><button class="btn btn-cian copiar" type="button" data-copiar="rctfe" aria-label="Copiar el prompt completo de ejemplo">📋 Copiar</button></div><pre class="prompt"><span class="parte c-cian">Actúa como profesor de biología con 20 años de experiencia.</span> <span class="parte c-ambar">Mis estudiantes son de grado 9 y les cuesta la genética.</span> <span class="parte c-brasa">Crea una clase de 45 minutos sobre las leyes de Mendel.</span> <span class="parte c-violeta">Entrégala en una tabla con estas columnas: momento, actividad, minutos y materiales.</span> <span class="parte c-verde">No uses términos en inglés e incluye un juego de 10 minutos.</span></pre></div>
+<h3 class="sub-tit" id="trucos">7 trucos que cambian todo</h3>
+<p>Frases cortas que mejoran cualquier respuesta. Las que tienen 📋 se pueden copiar.</p>
+<div class="trucos"><article class="truco"><div class="t-cab"><span class="t-ico" aria-hidden="true">🙋</span><h4>Que te entreviste</h4></div><div class="cmd"><code>Antes de responder, hazme las preguntas que necesites.</code><button class="copiar-mini" type="button" data-copiar="c6" data-msg="Copiado. Pégalo al final de tu prompt." aria-label="Copiar la frase" title="Copiar">📋</button></div></article><article class="truco"><div class="t-cab"><span class="t-ico" aria-hidden="true">🧩</span><h4>Dale ejemplos</h4></div><p class="frase">«Escribe con este estilo: …» y pega un texto que te guste.</p></article><article class="truco"><div class="t-cab"><span class="t-ico" aria-hidden="true">🔁</span><h4>Itera, no empieces de cero</h4></div><p class="frase">«Más corto» · «más formal» · «cambia el punto 3»</p></article><article class="truco"><div class="t-cab"><span class="t-ico" aria-hidden="true">🧐</span><h4>Que se autocritique</h4></div><div class="cmd"><code>Revisa tu respuesta como un experto exigente y mejórala.</code><button class="copiar-mini" type="button" data-copiar="c7" data-msg="Copiado. Pégalo al final de tu prompt." aria-label="Copiar la frase" title="Copiar">📋</button></div></article><article class="truco"><div class="t-cab"><span class="t-ico" aria-hidden="true">📦</span><h4>Separa el texto</h4></div><p class="frase">Pon lo que pegas entre """ comillas """ o ###.</p></article><article class="truco"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎯</span><h4>Di para quién es</h4></div><p class="frase">«Para un niño de 10 años» · «para un gerente con 2 minutos»</p></article><article class="truco"><div class="t-cab"><span class="t-ico" aria-hidden="true">📋</span><h4>Pide el formato final</h4></div><p class="frase">Tabla, viñetas, correo listo para copiar…</p></article></div>
+<h3 class="sub-tit" id="llevar">8 prompts para llevar</h3>
+<p>Cópialos y cambia lo que está entre <mark class="hueco">[corchetes]</mark> por tu información.</p>
+<div class="lista"><article class="pcard" id="p1"><header class="pcab"><span class="pnum">1</span><div><h4>Que te lo expliquen fácil</h4><p>Explicar un tema y practicar</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 1</span><button class="btn btn-cian copiar" type="button" data-copiar="p1" aria-label="Copiar el prompt 1: Que te lo expliquen fácil">📋 Copiar</button></div><pre class="prompt">Actúa como tutor paciente. Explícame <mark class="hueco">[tema]</mark> como si tuviera 15 años, con una analogía. Luego hazme 3 preguntas y corrígeme.</pre></div></article><article class="pcard" id="p2"><header class="pcab"><span class="pnum">2</span><div><h4>Tarjetas de estudio</h4><p>Repasar para un examen</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 2</span><button class="btn btn-cian copiar" type="button" data-copiar="p2" aria-label="Copiar el prompt 2: Tarjetas de estudio">📋 Copiar</button></div><pre class="prompt">Crea 20 tarjetas de estudio tipo Anki sobre <mark class="hueco">[tema]</mark>. Frente: pregunta concreta. Reverso: respuesta breve.</pre></div></article><article class="pcard" id="p3"><header class="pcab"><span class="pnum">3</span><div><h4>Correo en un minuto</h4><p>Escribir correos claros</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 3</span><button class="btn btn-cian copiar" type="button" data-copiar="p3" aria-label="Copiar el prompt 3: Correo en un minuto">📋 Copiar</button></div><pre class="prompt">Redacta un correo <mark class="hueco">[formal]</mark> para <mark class="hueco">[persona]</mark> sobre <mark class="hueco">[asunto]</mark>. Puntos clave: <mark class="hueco">[x, y, z]</mark>. Dame el asunto y 2 alternativas.</pre></div></article><article class="pcard" id="p4"><header class="pcab"><span class="pnum">4</span><div><h4>Acta de reunión</h4><p>Ordenar notas de una reunión</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 4</span><button class="btn btn-cian copiar" type="button" data-copiar="p4" aria-label="Copiar el prompt 4: Acta de reunión">📋 Copiar</button></div><pre class="prompt">Convierte estas notas en un acta con decisiones, compromisos, responsables y fechas: """<mark class="hueco">[notas]</mark>"""</pre></div></article><article class="pcard" id="p5"><header class="pcab"><span class="pnum">5</span><div><h4>Ideas para Instagram</h4><p>Contenido para tu negocio</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 5</span><button class="btn btn-cian copiar" type="button" data-copiar="p5" aria-label="Copiar el prompt 5: Ideas para Instagram">📋 Copiar</button></div><pre class="prompt">Mi negocio es <mark class="hueco">[descripción]</mark>. Dame 10 ideas de publicaciones para Instagram con gancho, texto y 5 hashtags.</pre></div></article><article class="pcard" id="p6"><header class="pcab"><span class="pnum">6</span><div><h4>Presupuesto 50/30/20</h4><p>Organizar tu plata</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 6</span><button class="btn btn-cian copiar" type="button" data-copiar="p6" aria-label="Copiar el prompt 6: Presupuesto 50/30/20">📋 Copiar</button></div><pre class="prompt">Gano <mark class="hueco">[monto]</mark> y mis gastos son <mark class="hueco">[lista]</mark>. Hazme un presupuesto 50/30/20 y 5 consejos para ahorrar.</pre></div></article><article class="pcard" id="p7"><header class="pcab"><span class="pnum">7</span><div><h4>Entender un contrato</h4><p>Antes de firmar</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 7</span><button class="btn btn-cian copiar" type="button" data-copiar="p7" aria-label="Copiar el prompt 7: Entender un contrato">📋 Copiar</button></div><pre class="prompt">Explícame este contrato en palabras sencillas: qué me obliga, qué riesgos tiene y qué preguntar antes de firmar. """<mark class="hueco">[pega aquí el contrato]</mark>"""</pre></div></article><article class="pcard" id="p8"><header class="pcab"><span class="pnum">8</span><div><h4>Que te pregunte primero</h4><p>Para cualquier tema</p></div></header><div class="caja"><div class="caja-bar"><span class="mono">Prompt 8</span><button class="btn btn-cian copiar" type="button" data-copiar="p8" aria-label="Copiar el prompt 8: Que te pregunte primero">📋 Copiar</button></div><pre class="prompt">Antes de responder, hazme todas las preguntas que necesites para darte la mejor respuesta sobre: <mark class="hueco">[lo que necesitas]</mark>.</pre></div></article></div>
+<div class="mas"><span class="ico" aria-hidden="true">✍️</span><p><b>¿Quieres más ejemplos?</b> En la guía de prompts está el método RCT paso a paso, un ejemplo completo y 10 prompts más para copiar.</p><a class="btn btn-cian" href="../prompts/">Ver la guía →</a></div>
+</div></section>
+<section id="tokens" class="banda"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 6 · Tokens</div><h2 class="titulo">Cómo ahorrar tokens <span class="cian">(y dinero)</span></h2></div>
+<div class="tokens">
+  <div class="token-stat"><b class="num">≈ 1,4</b><p class="uno">tokens por palabra en español</p><p>Un token es un pedacito de palabra: las IAs cobran y ponen límites por tokens.</p>
+    <p class="clave">💡 En cada mensaje la IA vuelve a «leer» <b>toda</b> la conversación.</p></div>
+  <ul class="tips"><li><span aria-hidden="true">🗂️</span><div><b>Un chat por tema.</b> Los chats eternos gastan más en cada mensaje.</div></li><li><span aria-hidden="true">📝</span><div><b>Resume y reinicia:</b> pide un resumen y pégalo en un chat nuevo.<div class="cmd"><code>Resume esta conversación en 10 viñetas.</code><button class="copiar-mini" type="button" data-copiar="c8" data-msg="Copiado. Pégalo en tu chat con la IA." aria-label="Copiar la frase" title="Copiar">📋</button></div></div></li><li><span aria-hidden="true">✂️</span><div><b>Pega solo lo necesario:</b> la página 4, no el PDF de 80.</div></li><li><span aria-hidden="true">📏</span><div><b>Pide respuestas cortas:</b><div class="cmd"><code>Máximo 5 viñetas, sin introducción.</code><button class="copiar-mini" type="button" data-copiar="c9" data-msg="Copiado. Pégalo en tu chat con la IA." aria-label="Copiar la frase" title="Copiar">📋</button></div></div></li><li><span aria-hidden="true">🧠</span><div><b>Modelo adecuado:</b> el rápido para lo fácil, el potente solo para lo difícil.</div></li><li><span aria-hidden="true">🕸️</span><div><b>Proyectos grandes:</b> Graphify o búsqueda en tus documentos en vez de pegarlo todo.</div></li></ul>
+</div>
+</div></section>
+<section id="casos"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 7 · Casos de uso</div><h2 class="titulo">Casos de uso <span class="cian">reales</span></h2><p>Ideas para empezar hoy. Toca «Pruébalo» para ir al prompt de ejemplo.</p></div>
+<div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎓</span><h3>Estudiantes</h3></div><p>Tarjetas tipo Anki, quizzes, explicar un tema «como si tuviera 12 años», practicar entrevistas o idiomas.</p><div class="prueba">Pruébalo: <a class="enl interno" href="#p1"><span aria-hidden="true">↑</span> Prompt 1</a><a class="enl interno" href="#p2"><span aria-hidden="true">↑</span> Prompt 2</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">👩‍🏫</span><h3>Docentes</h3></div><p>Planes de clase, talleres con solución, rúbricas, preguntas tipo ICFES, presentaciones.</p><div class="prueba">Pruébalo: <a class="enl interno" href="#formula"><span aria-hidden="true">↑</span> Ejemplo R·C·T·F·E</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🏪</span><h3>Negocios</h3></div><p>Publicaciones con hashtags, respuestas a clientes, cotizaciones, nombres y logos, guiones de Reels.</p><div class="prueba">Pruébalo: <a class="enl interno" href="#p5"><span aria-hidden="true">↑</span> Prompt 5</a></div></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🏢</span><h3>Oficina</h3></div><p>Transcribir y resumir reuniones, actas, correos, fórmulas de Excel, informes.</p><div class="prueba">Pruébalo: <a class="enl interno" href="#p3"><span aria-hidden="true">↑</span> Prompt 3</a><a class="enl interno" href="#p4"><span aria-hidden="true">↑</span> Prompt 4</a></div></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🏠</span><h3>Vida diaria</h3></div><p>Presupuesto familiar, menú y lista de mercado, entender contratos, recordatorios.</p><div class="prueba">Pruébalo: <a class="enl interno" href="#p6"><span aria-hidden="true">↑</span> Prompt 6</a><a class="enl interno" href="#p7"><span aria-hidden="true">↑</span> Prompt 7</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">📱</span><h3>Contenido</h3></div><p>Imágenes, videos, voz en off y música para tus redes.</p><div class="prueba">Pruébalo: <a class="enl interno" href="#h-imagen"><span aria-hidden="true">↑</span> Imágenes y video</a><a class="enl interno" href="#h-voz"><span aria-hidden="true">↑</span> Voz y música</a></div></article></div>
+</div></section>
+<section id="agentes" class="banda"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 7 · Nivel avanzado</div><h2 class="titulo">Lo que viene: <span class="cian">agentes</span></h2></div>
+<div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🤖</span><h3>Agentes</h3></div><p>IAs que <b>hacen</b> cosas, no solo responden: navegan, llenan formularios, programan y ejecutan tareas de varios pasos.</p></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🔌</span><h3>MCP · Model Context Protocol</h3></div><p>El «USB» de la IA: un estándar para conectarla con Gmail, Drive, Notion, bases de datos y tus herramientas.</p><div class="enlaces-fila"><a class="enl" href="https://modelcontextprotocol.io" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> modelcontextprotocol<wbr>.io</a></div></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🕸️</span><h3>Graphify</h3></div><p>Grafo de conocimiento de tu proyecto: la IA entiende miles de archivos consultando solo lo necesario.</p><div class="cmd"><code>pip install graphifyy</code><button class="copiar-mini" type="button" data-copiar="c10" data-msg="Copiado. Pégalo en la terminal, en Colab o en tu editor." aria-label="Copiar el comando" title="Copiar">📋</button></div></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🧠</span><h3>Modelos que razonan</h3></div><p>Piensan paso a paso antes de responder: mejores en matemáticas, ciencia y código (y más lentos).</p></article></div>
+</div></section>
+<section id="web-datos"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 7 · Webs con datos</div><h2 class="titulo">Conectar una base de datos con una <span class="cian">web</span></h2></div>
+<div class="web-datos">
+  <div class="flujo"><div class="paso c-cian"><span aria-hidden="true">🌐</span><div><b class="paso-tit">Página web</b><small>GitHub Pages (gratis)</small></div></div><div class="flecha" aria-hidden="true">↓ inicio de sesión y datos</div><div class="paso c-ambar"><span aria-hidden="true">🗄️</span><div><b class="paso-tit">Base de datos + usuarios</b><small>Supabase (gratis para empezar)</small></div></div><div class="flecha" aria-hidden="true">↓ tareas pesadas con IA</div><div class="paso c-brasa"><span aria-hidden="true">⚙️</span><div><b class="paso-tit">Servidor</b><small>Google Cloud Run → modelos de IA</small></div></div></div>
+  <div>
+    <p class="grande">Así está construido <b class="cian">Simbi</b>. Con Claude Code u OpenCode puedes crear algo así describiéndolo.</p>
+    <div class="enlaces-fila"><a class="enl" href="https://pages.github.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> pages<wbr>.github<wbr>.com</a><a class="enl" href="https://supabase.com" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> supabase<wbr>.com</a><a class="enl" href="https://cloud.google.com/run" target="_blank" rel="noopener"><span aria-hidden="true">🔗</span> cloud<wbr>.google<wbr>.com/<wbr>run</a></div>
+    <div class="alerta"><span class="ico" aria-hidden="true">🔒</span><p><b>Regla de oro de seguridad:</b> las llaves secretas NUNCA van en la página web. Cada usuario solo debe ver sus propios datos (en Supabase: RLS).</p></div>
+    <p class="nota">¿Sin programar? En Simbi, el atajo 🌐 <b>Crear página web</b> hace una página con formulario y base de datos.</p>
+  </div>
+</div>
+</div></section>
+<section id="riesgos" class="banda"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 8 · Buen uso</div><h2 class="titulo">Riesgos y <span class="cian">buen uso</span></h2></div>
+<div class="tarjetas"><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">🤥</span><h3>Se equivoca con seguridad</h3></div><p>Verifica datos, cifras y citas. Más aún en salud, leyes y dinero.</p></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🔐</span><h3>Privacidad</h3></div><p>No pegues contraseñas, tarjetas, historias clínicas ni datos de otras personas.</p></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎭</span><h3>Deepfakes y voces clonadas</h3></div><p>Estafas tipo «mamá, estoy en problemas». Acuerden una <b>palabra clave</b> familiar.</p></article><article class="tarjeta c-cian"><div class="t-cab"><span class="t-ico" aria-hidden="true">©️</span><h3>Derechos de autor</h3></div><p>Cuidado con usar imágenes, música o voces generadas con fines comerciales.</p></article><article class="tarjeta c-ambar"><div class="t-cab"><span class="t-ico" aria-hidden="true">🎓</span><h3>Para aprender, no para copiar</h3></div><p>Úsala para entender y practicar. Los profesores lo notan.</p></article><article class="tarjeta c-brasa"><div class="t-cab"><span class="t-ico" aria-hidden="true">🧭</span><h3>Tú decides</h3></div><p>La IA es copiloto: el criterio y la responsabilidad son tuyos.</p></article></div>
+</div></section>
+<section id="simbi"><div class="envoltura"><div class="sec-cab"><div class="mono">Parte 8 · Demostración en vivo</div><h2 class="titulo">Conoce <span class="cian">Simbi</span></h2></div>
+<div class="simbi-demo">
+  <figure class="capturas">
+    <a href="img/simbi-inicio.webp" target="_blank" rel="noopener"><img src="img/simbi-inicio.webp" width="1600" height="1000" loading="lazy" alt="Pantalla principal de Simbi con sus atajos: descargar de YouTube, texto a voz, transcribir, presentación PowerPoint, estudiar, crear página web, mejorar foto, crear música y más."></a>
+    <div class="capturas-2">
+      <img src="img/simbi-musica.webp" width="540" height="800" loading="lazy" alt="Ventana «Crear música» de Simbi: describes la pista y eliges género, ánimo y ritmo.">
+      <img src="img/simbi-producto.webp" width="540" height="800" loading="lazy" alt="Ventana «Foto de producto pro» de Simbi: subes una foto y eliges escena y formato.">
+    </div>
+    <figcaption>Así se ve Simbi: la pantalla principal, «Crear música» y «Foto de producto pro».</figcaption>
+  </figure>
+  <div>
+    <p class="grande">Todo en un solo lugar, <b class="cian">en español</b> y sin gastar tokens en los atajos:</p>
+    <ul class="simbi-lista"><li>💬 Chat con 4 niveles de IA</li><li>📄 PDF, Word, Excel y PowerPoint</li><li>🖼️ Mejorar fotos y 🛍️ fotos de producto</li><li>🎵 Música, 🔊 voz y ✂️ subtítulos</li><li>🌎 Traducir y doblar videos</li><li>📋 Hoja de vida · 🌐 páginas web</li><li>⏰ Recordatorios por Telegram · ☁️ tu nube</li></ul>
+    <a class="btn btn-cian" href="../app/">Entrar a Simbi →</a>
+  </div>
+</div>
+<div class="regalo" id="regalo">
+  <div>
+    <div class="mono cian">Tu regalo · 1 día gratis</div>
+    <h3 class="titulo">Tu día gratis de Simbi</h3>
+    <p>Simbi es el asistente de IA de Somos Simbióticos: chat, PDF, Excel, PowerPoint, imágenes, voz, videos, música, tarjetas de estudio, recordatorios y tu nube.</p>
+    <ol>
+      <li>Entra a <a href="../app/">somossimbioticos.github.io/app</a></li>
+      <li>Crea tu cuenta (con Google o correo)</li>
+      <li>Escribe el código y listo 🎉</li>
+    </ol>
+    <p>¿Quieres la versión Pro? Escríbenos a <a href="mailto:somossimbioticos@gmail.com">somossimbioticos@gmail.com</a></p>
+  </div>
+  <div class="regalo-cod"><span class="mono">Tu código</span><b>SOMOS2026</b><button class="btn btn-cian copiar" type="button" data-copiar="codigo" data-msg="Código copiado. Entra a Simbi, crea tu cuenta y pégalo." aria-label="Copiar el código SOMOS2026">📋 Copiar</button></div>
+</div>
+</div></section>
+<section id="tarea" class="banda">
+  <div class="envoltura">
+    <div class="cta">
+      <div class="mono cian">Tu tarea esta semana</div>
+      <h2 class="titulo">Usa la fórmula <span class="cian">R·C·T·F·E</span></h2>
+      <p>Úsala con algo real de tu trabajo o estudio y compártelo en el grupo. Copia la plantilla, llénala y pégala en Simbi o en tu IA favorita.</p>
+      <div class="caja"><div class="caja-bar"><span class="mono">Plantilla R·C·T·F·E</span><button class="btn btn-cian copiar" type="button" data-copiar="plantilla" aria-label="Copiar la plantilla R·C·T·F·E">📋 Copiar</button></div><pre class="prompt"><b class="parte c-cian">Rol:</b> Actúa como <mark class="hueco">[profesión o especialidad, con años de experiencia]</mark>.
+<b class="parte c-ambar">Contexto:</b> <mark class="hueco">[Quién eres, para quién es y qué tienes]</mark>.
+<b class="parte c-brasa">Tarea:</b> <mark class="hueco">[Qué necesitas exactamente]</mark>.
+<b class="parte c-violeta">Formato:</b> <mark class="hueco">[Tabla, viñetas, correo, pasos…]</mark>.
+<b class="parte c-verde">Ejemplos y límites:</b> <mark class="hueco">[Un ejemplo del estilo que quieres y lo que NO debe hacer]</mark>.</pre></div>
+      <div class="acciones">
+        <a class="btn btn-cian" href="https://chat.whatsapp.com/JM1uSyx6D1YHoal0NypoDW" target="_blank" rel="noopener">💬 Unirme al grupo de WhatsApp</a>
+        <a class="btn btn-borde" href="https://www.instagram.com/somossimbioticos/" target="_blank" rel="noopener">📸 @somossimbioticos</a>
+        <a class="btn btn-borde" href="../app/">🌐 Simbi</a>
+      </div>
+      <p class="gracias">¡Gracias! ¿Preguntas?</p>
+    </div>
+  </div>
+</section>
+<section id="enlaces"><div class="envoltura"><div class="sec-cab"><div class="mono">Todo en un solo lugar</div><h2 class="titulo">Todos los <span class="cian">enlaces</span></h2><p>Los 46 enlaces de la clase, ordenados por tema.</p></div>
+<div class="directorio"><div class="dir-grupo"><h3>Somos Simbióticos</h3><ul><li><a href="https://www.instagram.com/somossimbioticos/" target="_blank" rel="noopener">Instagram<span>@<wbr>somossimbioticos</span></a></li><li><a href="../">Página web<span>somossimbioticos<wbr>.github<wbr>.io</span></a></li><li><a href="../app/">Simbi IA<span>somossimbioticos<wbr>.github<wbr>.io/<wbr>app</span></a></li><li><a href="../prompts/">Guía de prompts<span>somossimbioticos<wbr>.github<wbr>.io/<wbr>prompts</span></a></li><li><a href="https://chat.whatsapp.com/JM1uSyx6D1YHoal0NypoDW" target="_blank" rel="noopener">Grupo de WhatsApp<span>chat<wbr>.whatsapp<wbr>.com</span></a></li><li><a href="mailto:somossimbioticos@gmail.com">Correo<span>somossimbioticos@<wbr>gmail<wbr>.com</span></a></li></ul></div><div class="dir-grupo"><h3>Aliados de la clase</h3><ul><li><a href="https://www.instagram.com/avancemos.col/" target="_blank" rel="noopener">Avancemos<span>@<wbr>avancemos<wbr>.col</span></a></li></ul></div><div class="dir-grupo"><h3>Cuadernos de Colab</h3><ul><li><a href="https://colab.research.google.com/github/somossimbioticos/somossimbioticos.github.io/blob/main/recursos/ia_gratis_colab.ipynb" target="_blank" rel="noopener">Cuaderno de la clase<span>voz, ElevenLabs e imágenes</span></a></li><li><a href="https://colab.research.google.com/drive/1eqGAk7EylS6rZO-LSQSgE4VlZhCGMC1X#scrollTo=l8Au1ANZuDU6" target="_blank" rel="noopener">Generar voz con Qwen<span>colab<wbr>.research<wbr>.google<wbr>.com</span></a></li><li><a href="../recursos/ia_gratis_colab.ipynb" download>Descargar el cuaderno<span>ia_gratis_colab<wbr>.ipynb</span></a></li></ul></div><div class="dir-grupo"><h3>Comparar modelos</h3><ul><li><a href="https://artificialanalysis.ai" target="_blank" rel="noopener">Artificial Analysis<span>artificialanalysis<wbr>.ai</span></a></li></ul></div><div class="dir-grupo"><h3>Conversar, investigar y estudiar</h3><ul><li><a href="https://claude.ai" target="_blank" rel="noopener">Claude<span>claude<wbr>.ai</span></a></li><li><a href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT<span>chatgpt<wbr>.com</span></a></li><li><a href="https://gemini.google.com" target="_blank" rel="noopener">Gemini<span>gemini<wbr>.google<wbr>.com</span></a></li><li><a href="https://perplexity.ai" target="_blank" rel="noopener">Perplexity<span>perplexity<wbr>.ai</span></a></li><li><a href="https://notebooklm.google.com" target="_blank" rel="noopener">NotebookLM<span>notebooklm<wbr>.google<wbr>.com</span></a></li><li><a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio<span>aistudio<wbr>.google<wbr>.com</span></a></li></ul></div><div class="dir-grupo"><h3>Imágenes y video</h3><ul><li><a href="https://gemini.google.com" target="_blank" rel="noopener">Nano Banana y Veo<span>gemini<wbr>.google<wbr>.com</span></a></li><li><a href="https://midjourney.com" target="_blank" rel="noopener">Midjourney<span>midjourney<wbr>.com</span></a></li><li><a href="https://ideogram.ai" target="_blank" rel="noopener">Ideogram<span>ideogram<wbr>.ai</span></a></li><li><a href="https://canva.com" target="_blank" rel="noopener">Canva<span>canva<wbr>.com</span></a></li><li><a href="https://sora.com" target="_blank" rel="noopener">Sora<span>sora<wbr>.com</span></a></li><li><a href="https://klingai.com" target="_blank" rel="noopener">Kling<span>klingai<wbr>.com</span></a></li><li><a href="https://runwayml.com" target="_blank" rel="noopener">Runway<span>runwayml<wbr>.com</span></a></li></ul></div><div class="dir-grupo"><h3>Voz y música</h3><ul><li><a href="https://elevenlabs.io" target="_blank" rel="noopener">ElevenLabs<span>elevenlabs<wbr>.io</span></a></li><li><a href="https://elevenlabs.io/docs" target="_blank" rel="noopener">API de ElevenLabs<span>elevenlabs<wbr>.io/<wbr>docs</span></a></li><li><a href="https://aistudio.google.com" target="_blank" rel="noopener">Chirp, Gemini TTS y Lyria<span>aistudio<wbr>.google<wbr>.com</span></a></li><li><a href="https://suno.com" target="_blank" rel="noopener">Suno<span>suno<wbr>.com</span></a></li><li><a href="https://udio.com" target="_blank" rel="noopener">Udio<span>udio<wbr>.com</span></a></li></ul></div><div class="dir-grupo"><h3>Crear apps y programar</h3><ul><li><a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code<span>claude<wbr>.com/<wbr>claude-code</span></a></li><li><a href="https://opencode.ai" target="_blank" rel="noopener">OpenCode<span>opencode<wbr>.ai</span></a></li><li><a href="https://github.com/google-gemini/gemini-cli" target="_blank" rel="noopener">Gemini CLI<span>github<wbr>.com/<wbr>google-gemini/<wbr>gemini-cli</span></a></li><li><a href="https://lovable.dev" target="_blank" rel="noopener">Lovable<span>lovable<wbr>.dev</span></a></li><li><a href="https://bolt.new" target="_blank" rel="noopener">Bolt<span>bolt<wbr>.new</span></a></li><li><a href="https://v0.dev" target="_blank" rel="noopener">v0<span>v0<wbr>.dev</span></a></li><li><a href="https://lmstudio.ai" target="_blank" rel="noopener">LM Studio<span>lmstudio<wbr>.ai</span></a></li></ul></div><div class="dir-grupo"><h3>APIs gratis</h3><ul><li><a href="https://groq.com" target="_blank" rel="noopener">Groq<span>groq<wbr>.com</span></a></li><li><a href="https://console.groq.com" target="_blank" rel="noopener">Consola de Groq<span>console<wbr>.groq<wbr>.com</span></a></li><li><a href="https://console.groq.com/keys" target="_blank" rel="noopener">Llaves de Groq<span>console<wbr>.groq<wbr>.com/<wbr>keys</span></a></li><li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Llave de Gemini<span>aistudio<wbr>.google<wbr>.com/<wbr>apikey</span></a></li><li><a href="https://openrouter.ai" target="_blank" rel="noopener">OpenRouter<span>openrouter<wbr>.ai</span></a></li></ul></div><div class="dir-grupo"><h3>Ollama: IA en tu PC</h3><ul><li><a href="https://ollama.com" target="_blank" rel="noopener">Ollama<span>ollama<wbr>.com</span></a></li><li><a href="https://ollama.com/download" target="_blank" rel="noopener">Descargar Ollama<span>ollama<wbr>.com/<wbr>download</span></a></li><li><a href="https://ollama.com/search" target="_blank" rel="noopener">Buscar modelos<span>ollama<wbr>.com/<wbr>search</span></a></li></ul></div><div class="dir-grupo"><h3>Agentes y webs con datos</h3><ul><li><a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP<span>modelcontextprotocol<wbr>.io</span></a></li><li><a href="https://pages.github.com" target="_blank" rel="noopener">GitHub Pages<span>pages<wbr>.github<wbr>.com</span></a></li><li><a href="https://supabase.com" target="_blank" rel="noopener">Supabase<span>supabase<wbr>.com</span></a></li><li><a href="https://cloud.google.com/run" target="_blank" rel="noopener">Google Cloud Run<span>cloud<wbr>.google<wbr>.com/<wbr>run</span></a></li></ul></div></div>
+</div></section>
+  </main>
+
+  <footer>
+    <div class="envoltura">
+      <a class="marca" href="../"><img src="../logo.svg" alt=""><span>Somos Simbióticos</span></a>
+      <div>@somossimbioticos · #EvolucionismoCientífico #Colombia #Ecuador</div>
+      <div><a href="../">Inicio</a> · <a href="../prompts/">Guía de prompts</a> · <a href="../app/">Simbi IA</a></div>
+    </div>
+  </footer>
+
+  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
+  <script type="application/json" id="textos">{"codigo": "SOMOS2026", "c1": "pip install graphifyy", "c2": "ELEVENLABS_API_KEY", "groq": "# Primero instala la librería:  pip install openai\nfrom openai import OpenAI\n\ncliente = OpenAI(api_key=\"TU_LLAVE\",\n    base_url=\"https://api.groq.com/openai/v1\")\n\nr = cliente.chat.completions.create(\n    model=\"llama-3.3-70b-versatile\",\n    messages=[{\"role\": \"user\",\n               \"content\": \"Hola, ¿qué es Groq?\"}])\nprint(r.choices[0].message.content)", "c3": "ollama run gemma3:1b", "c4": "ollama run moondream \"Describe esta foto\" ./foto.jpg", "c5": "ollama run x/flux2-klein \"un colibrí en acuarela\"", "rctfe": "Actúa como profesor de biología con 20 años de experiencia. Mis estudiantes son de grado 9 y les cuesta la genética. Crea una clase de 45 minutos sobre las leyes de Mendel. Entrégala en una tabla con estas columnas: momento, actividad, minutos y materiales. No uses términos en inglés e incluye un juego de 10 minutos.", "c6": "Antes de responder, hazme las preguntas que necesites.", "c7": "Revisa tu respuesta como un experto exigente y mejórala.", "p1": "Actúa como tutor paciente. Explícame [tema] como si tuviera 15 años, con una analogía. Luego hazme 3 preguntas y corrígeme.", "p2": "Crea 20 tarjetas de estudio tipo Anki sobre [tema]. Frente: pregunta concreta. Reverso: respuesta breve.", "p3": "Redacta un correo [formal] para [persona] sobre [asunto]. Puntos clave: [x, y, z]. Dame el asunto y 2 alternativas.", "p4": "Convierte estas notas en un acta con decisiones, compromisos, responsables y fechas: \"\"\"[notas]\"\"\"", "p5": "Mi negocio es [descripción]. Dame 10 ideas de publicaciones para Instagram con gancho, texto y 5 hashtags.", "p6": "Gano [monto] y mis gastos son [lista]. Hazme un presupuesto 50/30/20 y 5 consejos para ahorrar.", "p7": "Explícame este contrato en palabras sencillas: qué me obliga, qué riesgos tiene y qué preguntar antes de firmar. \"\"\"[pega aquí el contrato]\"\"\"", "p8": "Antes de responder, hazme todas las preguntas que necesites para darte la mejor respuesta sobre: [lo que necesitas].", "c8": "Resume esta conversación en 10 viñetas.", "c9": "Máximo 5 viñetas, sin introducción.", "c10": "pip install graphifyy", "plantilla": "Rol: Actúa como [profesión o especialidad, con años de experiencia].\nContexto: [Quién eres, para quién es y qué tienes].\nTarea: [Qué necesitas exactamente].\nFormato: [Tabla, viñetas, correo, pasos…].\nEjemplos y límites: [Un ejemplo del estilo que quieres y lo que NO debe hacer]."}</script>
+  <script>
+    const TEXTOS = JSON.parse(document.getElementById("textos").textContent);
+    const aviso = document.getElementById("aviso");
+    let tAviso;
+    function avisar(msg) {
+      aviso.textContent = msg; aviso.classList.add("si");
+      clearTimeout(tAviso); tAviso = setTimeout(() => aviso.classList.remove("si"), 3400);
+    }
+    async function copiar(texto) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(texto); return true; }
+      } catch (e) { /* se intenta el método antiguo */ }
+      const ta = document.createElement("textarea");
+      ta.value = texto; ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none";
+      document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, texto.length);
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      ta.remove();
+      return ok;
+    }
+    document.addEventListener("click", async (ev) => {
+      const b = ev.target.closest("[data-copiar]");
+      if (!b) return;
+      const texto = TEXTOS[b.dataset.copiar];
+      if (!texto) return;
+      if (await copiar(texto)) {
+        const mini = b.classList.contains("copiar-mini");
+        if (!b.dataset.etiqueta) b.dataset.etiqueta = b.textContent;
+        b.textContent = mini ? "✅" : "✅ Copiado"; b.classList.add("ok");
+        setTimeout(() => { b.textContent = b.dataset.etiqueta; b.classList.remove("ok"); }, 2200);
+        avisar(b.dataset.msg || (texto.includes("[") ? "Copiado. Pégalo en Simbi y cambia lo que está entre [corchetes]."
+                                                     : "Copiado. Pégalo en Simbi o en tu IA de confianza."));
+      } else {
+        avisar("No se pudo copiar solo. Mantén presionado el texto para seleccionarlo.");
+      }
+    });
+  </script>
+</body>
+</html>
