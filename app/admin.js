@@ -1,4 +1,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/+esm";
+import { marked } from "https://cdn.jsdelivr.net/npm/marked@12.0.2/+esm";
+import DOMPurify from "https://cdn.jsdelivr.net/npm/dompurify@3.4.17/+esm";
 import { CONFIG } from "../config.js";
 
 const sb = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
@@ -263,19 +265,43 @@ async function verChats(u) {
     el("b", {}, c.titulo || "Sin título"), el("small", {}, `${fechaCorta(c.actualizado)} · ${fmt(c.mensajes)} mensajes · ${NIVEL[c.nivel] || c.nivel}`)));
   lista.replaceChildren(...botones);
 }
+// Respuesta de Simbi con formato (Markdown saneado; los enlaces abren en otra pestaña)
+function md(texto) {
+  const d = el("div", { class: "ch-texto md" });
+  d.innerHTML = DOMPurify.sanitize(marked.parse(texto || "", { breaks: true }), { FORBID_TAGS: ["style", "form", "input"] });
+  d.querySelectorAll("a[href]").forEach((a) => { a.target = "_blank"; a.rel = "noopener noreferrer"; });
+  return d;
+}
+const ICONO = (mime) => /^image\//.test(mime) ? "🖼️" : /^audio\//.test(mime) ? "🎵" : /^video\//.test(mime) ? "🎬" : /pdf/.test(mime) ? "📄" : "📎";
+function adjunto(a, urls) {
+  const mime = a.mime || "", nombre = a.nombre || a.ruta || "archivo", url = urls[a.ruta];
+  const etiqueta = `${ICONO(mime)} ${nombre}${a.bytes ? " · " + (a.bytes / 1048576 < 1 ? Math.max(1, Math.round(a.bytes / 1024)) + " KB" : (a.bytes / 1048576).toFixed(1) + " MB") : ""}`;
+  if (!url) return el("span", { class: "ch-adj" }, etiqueta + " (no disponible)");
+  const enlace = el("a", { class: "ch-adj", href: url, target: "_blank", rel: "noopener noreferrer" }, etiqueta);
+  if (/^image\//.test(mime)) return el("figure", { class: "ch-media" }, el("a", { href: url, target: "_blank", rel: "noopener noreferrer" },
+    el("img", { src: url, alt: nombre, loading: "lazy" })), enlace);
+  if (/^audio\//.test(mime)) return el("figure", { class: "ch-media" }, el("audio", { src: url, controls: "", preload: "none" }), enlace);
+  if (/^video\//.test(mime)) return el("figure", { class: "ch-media" }, el("video", { src: url, controls: "", preload: "metadata", playsinline: "" }), enlace);
+  return enlace;
+}
 async function abrirChat(c, vista) {
   vista.replaceChildren(el("p", { class: "mono" }, "Cargando…"));
-  const { data, error } = await sb.rpc("admin_mensajes", { p_conv: c.id });
+  const [{ data, error }, urls] = await Promise.all([sb.rpc("admin_mensajes", { p_conv: c.id }),
+    api(`/admin/chat/${c.id}/archivos`).catch(() => ({}))]);
   if (error) { vista.replaceChildren(el("p", { class: "aviso" }, error.message)); return; }
   const volver = el("button", { type: "button", class: "btn-mini ch-volver", onclick: () => dlg.querySelector(".ch-cuerpo").classList.remove("abierto") }, "← Conversaciones");
   const msjs = (data || []).map((m) => {
-    const adj = (m.adjuntos || []).map((a) => el("span", { class: "ch-adj" }, (/^image\//.test(a.mime) ? "🖼️ " : /^audio\//.test(a.mime) ? "🎵 " : /^video\//.test(a.mime) ? "🎬 " : "📎 ") + (a.nombre || a.ruta || "archivo")));
-    const herr = (m.eventos || []).map((e) => e && (e.etiqueta || e.nombre || e.herramienta || e.tipo)).filter(Boolean);
-    const pie = [fechaCorta(m.creado), m.rol === "asistente" && m.modelo ? m.modelo + (m.detalle ? " · " + m.detalle : "") : null,
-      m.tokens ? fmt(m.tokens) + " tokens" : null, herr.length ? [...new Set(herr)].join(", ") : null].filter(Boolean).join(" · ");
-    return el("div", { class: "ch-msj " + (m.rol === "usuario" ? "yo" : "ia") },
-      el("div", { class: "ch-quien" }, m.rol === "usuario" ? "👤 Usuario" : "🤖 Simbi"),
-      m.contenido ? el("div", { class: "ch-texto" }, m.contenido) : null,
+    const ia = m.rol !== "usuario";
+    const adj = (m.adjuntos || []).filter((a) => a && a.ruta).map((a) => adjunto(a, urls));
+    const herr = (m.eventos || []).filter((e) => e && (e.etiqueta || e.nombre)).map((e) =>
+      el("li", { class: e.estado === "ok" || !e.error ? "" : "mal" }, `${e.etiqueta || e.nombre}${e.segundos ? ` · ${e.segundos} s` : ""}${e.error ? " · ⚠️ " + e.error : ""}`,
+        e.desc ? el("small", {}, String(e.desc).slice(0, 300)) : null));
+    const pie = [fechaCorta(m.creado), ia && m.modelo ? m.modelo + (m.detalle ? " · " + m.detalle : "") : null,
+      m.tokens ? fmt(m.tokens) + " tokens" : null].filter(Boolean).join(" · ");
+    return el("div", { class: "ch-msj " + (ia ? "ia" : "yo") },
+      el("div", { class: "ch-quien" }, ia ? "🤖 Simbi respondió" : "👤 Usuario"),
+      herr.length ? el("details", { class: "ch-herr" }, el("summary", {}, `🛠️ Herramientas usadas (${herr.length})`), el("ul", {}, herr)) : null,
+      m.contenido ? (ia ? md(m.contenido) : el("div", { class: "ch-texto" }, m.contenido)) : null,
       adj.length ? el("div", { class: "ch-adjs" }, adj) : null,
       el("small", {}, pie));
   });
